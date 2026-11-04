@@ -559,7 +559,7 @@ function renderTournaments() {
         <span class="pill">${esc(t.status || 'En curso')}</span>
       </div>
     </div>
-
+   ${tournamentManagementButtons(t)}
     ${tournamentAdmin()}
 
     ${teams.length ? groups.map(group => {
@@ -608,6 +608,121 @@ function renderTournaments() {
       <h2>🏆 Eliminatorias</h2>
       ${renderTournamentMatches(matches.filter(x => x.phase === 'Eliminatorias'))}
     </div>`;
+}
+
+
+function tournamentManagementButtons(t) {
+  if (!isLoggedAdmin) return '';
+
+  return `
+    <div class="section card" style="border-color:var(--gold)">
+      <h2>⚙️ Gestionar campeonato</h2>
+
+      <div style="display:flex; gap:8px">
+        <button class="btn-action"
+          style="background:var(--panel2); color:var(--green); border:1px solid var(--green)"
+          onclick="editTournament('${t.id}')">
+          ✏️ Editar torneo
+        </button>
+
+        <button class="btn-action btn-danger"
+          onclick="deleteTournament('${t.id}')">
+          🗑️ Eliminar
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+async function editTournament(id) {
+  if (!isLoggedAdmin) return;
+
+  const tournament = tournaments.find(t => t.id === id);
+  if (!tournament) return alert('No se encontró el torneo.');
+
+  const name = prompt('Nombre del campeonato:', tournament.name);
+  if (name === null) return;
+
+  const season = prompt('Temporada:', tournament.season || '');
+  if (season === null) return;
+
+  const status = prompt(
+    'Estado del torneo (En curso, Finalizado o Suspendido):',
+    tournament.status || 'En curso'
+  );
+  if (status === null) return;
+
+  if (!name.trim()) {
+    return alert('El nombre no puede quedar vacío.');
+  }
+
+  const { error } = await db
+    .from('tournaments')
+    .update({
+      name: name.trim(),
+      season: season.trim(),
+      status: status.trim() || 'En curso'
+    })
+    .eq('id', id);
+
+  if (error) {
+    return alert('Error al editar: ' + error.message);
+  }
+
+  await loadTournaments();
+  alert('✏️ ¡Campeonato actualizado correctamente!');
+}
+
+async function deleteTournament(id) {
+  if (!isLoggedAdmin) return;
+
+  const tournament = tournaments.find(t => t.id === id);
+  if (!tournament) return alert('No se encontró el torneo.');
+
+  const confirmation = confirm(
+    '⚠️ ¿ELIMINAR CAMPEONATO?\n\n' +
+    tournament.name +
+    '\n\nSe eliminarán también todos sus equipos y partidos.\n\n' +
+    'Esta acción no se puede deshacer.'
+  );
+
+  if (!confirmation) return;
+
+  try {
+    // Primero eliminamos los partidos del torneo
+    const { error: matchesError } = await db
+      .from('tournament_matches')
+      .delete()
+      .eq('tournament_id', id);
+
+    if (matchesError) throw matchesError;
+
+    // Después eliminamos los equipos
+    const { error: teamsError } = await db
+      .from('tournament_teams')
+      .delete()
+      .eq('tournament_id', id);
+
+    if (teamsError) throw teamsError;
+
+    // Finalmente eliminamos el campeonato
+    const { error: tournamentError } = await db
+      .from('tournaments')
+      .delete()
+      .eq('id', id);
+
+    if (tournamentError) throw tournamentError;
+
+    activeTournamentId = null;
+    tournamentView = 'list';
+
+    await loadTournaments();
+
+    alert('🗑️ Campeonato eliminado correctamente.');
+
+  } catch (error) {
+    alert('❌ No se pudo eliminar el campeonato:\n' + error.message);
+  }
 }
 
 function openTournament(id) {
