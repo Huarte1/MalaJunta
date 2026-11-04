@@ -585,24 +585,26 @@
     }
 
     async function editMatch(id, currentOpponent, currentDate, currentVenue) {
-      const newOpponent = prompt("Editar Rival:", currentOpponent);
-      if (newOpponent === null) return;
-      const newDate = prompt("Editar Fecha (AAAA-MM-DD):", currentDate || '');
-      const newVenue = prompt("Editar Cancha / Sede:", currentVenue || '');
+  const newTime = prompt("Editar Horario:", currentTime || '');
+  if (newTime === null) return;
 
-      const { error } = await db.from('matches').update({
-        opponent: newOpponent,
-        match_date: newDate ? newDate : null,
-        venue: newVenue ? newVenue : null
-      }).eq('id', id);
+  const newVenue = prompt("Editar Cancha / Sede:", currentVenue || '');
+  if (newVenue === null) return;
 
-      if (error) {
-        alert("❌ Error al actualizar el partido: " + error.message);
-      } else {
-        alert("✏️ ¡Partido actualizado con éxito!");
-        init();
-      }
-    }
+  const { error } = await db.from('matches').update({
+    opponent: newOpponent.trim(),
+    match_date: newDate || null,
+    match_time: newTime || null,
+    venue: newVenue || null
+  }).eq('id', id);
+
+  if (error) {
+    alert("❌ Error al actualizar el partido: " + error.message);
+  } else {
+    alert("✏️ ¡Partido actualizado correctamente!");
+    await init();
+  }
+}
 
     function renderAdminLists() {
       const playerListDiv = document.getElementById('admin-player-list');
@@ -807,36 +809,49 @@
     });
 
     // Finalizar Partido y Cargar Resultado
-    document.getElementById('btn-save-result').addEventListener('click', async () => {
-      const matchId = document.getElementById('select-match-result').value;
-      const gf = document.getElementById('res-gf').value;
-      const ga = document.getElementById('res-ga').value;
+    
+document.getElementById('btn-save-result').addEventListener('click', async () => {
+  const matchId = document.getElementById('select-match-result').value;
+  const gf = document.getElementById('res-gf').value;
+  const ga = document.getElementById('res-ga').value;
 
-      if (!matchId) return alert("⚠️ Seleccioná un partido pendiente.");
-      if (gf === '' || ga === '') return alert("⚠️ Completá los goles de ambos equipos.");
+  if (!matchId) {
+    return alert("⚠️ Seleccioná un partido pendiente.");
+  }
 
-      const { error } = await db.matches ? db.from('matches').update({
-        goals_for: Number(gf),
-        goals_against: Number(ga),
-        status: 'Jugado'
-      }).eq('id', matchId) : null;
+  if (gf === '' || ga === '') {
+    return alert("⚠️ Completá los goles de ambos equipos.");
+  }
 
-      // Usando sintaxis directa limpia de supabase para update de partidos
-      const { error: updateErr } = await db.from('matches').update({
-        goals_for: Number(gf),
-        goals_against: Number(ga),
-        status: 'Jugado'
-      }).eq('id', matchId);
+  const goalsFor = Number(gf);
+  const goalsAgainst = Number(ga);
 
-      if (updateErr) {
-        alert("❌ Error al guardar resultado: " + updateErr.message);
-      } else {
-        alert("🏆 ¡Resultado guardado y estadísticas actualizadas!");
-        document.getElementById('res-gf').value = '';
-        document.getElementById('res-ga').value = '';
-        init();
-      }
-    });
+  if (
+    !Number.isInteger(goalsFor) || goalsFor < 0 ||
+    !Number.isInteger(goalsAgainst) || goalsAgainst < 0
+  ) {
+    return alert("⚠️ Los goles deben ser números enteros positivos.");
+  }
+
+  const { error } = await db.from('matches').update({
+    goals_for: goalsFor,
+    goals_against: goalsAgainst,
+    status: 'Jugado'
+  }).eq('id', matchId);
+
+  if (error) {
+    alert("❌ Error al guardar resultado: " + error.message);
+  } else {
+    alert("🏆 ¡Resultado guardado! Las estadísticas se actualizarán.");
+
+    document.getElementById('res-gf').value = '';
+    document.getElementById('res-ga').value = '';
+
+    await init();
+    switchTab('partidos');
+  }
+});
+
 
     // Inicializar App y Sincronizar Directo de la Tabla de Goles
     async function init() {
