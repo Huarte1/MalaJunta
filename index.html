@@ -352,6 +352,29 @@ let tournamentView = 'list';
 function tournamentTeam(id) {
   return tournamentTeams.find(t => t.id === id)?.name || 'Por definir';
 }
+function tournamentChampion(tournament) {
+  if (tournament.status !== 'Finalizado') return null;
+
+  const finalMatch = tournamentMatches.find(m =>
+    m.tournament_id === tournament.id &&
+    m.phase === 'Eliminatorias' &&
+    m.round_name === 'Final' &&
+    m.status === 'Jugado'
+  );
+
+  if (!finalMatch) return null;
+
+  const homeGoals = Number(finalMatch.home_goals);
+  const awayGoals = Number(finalMatch.away_goals);
+
+  if (homeGoals === awayGoals) return null;
+
+  const championId = homeGoals > awayGoals
+    ? finalMatch.home_team_id
+    : finalMatch.away_team_id;
+
+  return tournamentTeams.find(team => team.id === championId) || null;
+}
 
 async function loadTournaments() {
   const [t, teams, matches] = await Promise.all([
@@ -519,7 +542,14 @@ function renderTournaments() {
   if (!root) return;
 
   // PANTALLA PRINCIPAL: LISTA DE TORNEOS
-  if (tournamentView === 'list' || !activeTournamentId) {
+    if (tournamentView === 'list' || !activeTournamentId) {
+
+    const champions = tournaments.filter(t => tournamentChampion(t));
+
+    const activeTournaments = tournaments.filter(
+      t => !tournamentChampion(t)
+    );
+
     root.innerHTML = `
       <div class="section">
         <h2 style="color:var(--green)">🏆 Campeonatos</h2>
@@ -530,38 +560,146 @@ function renderTournaments() {
 
       ${tournamentCreateForm()}
 
-      ${tournaments.length ? `
-        <div style="display:flex; flex-direction:column; gap:10px">
-          ${tournaments.map(t => {
-            const teamCount = tournamentTeams.filter(x => x.tournament_id === t.id).length;
-            const matchCount = tournamentMatches.filter(x => x.tournament_id === t.id).length;
+      ${champions.length ? `
+        <div class="section" style="margin-bottom:22px">
+          <h2 style="color:var(--gold);font-size:16px">
+            👑 HISTORIAL DE CAMPEONES
+          </h2>
 
-            return `
-              <button onclick="openTournament('${t.id}')"
-                style="width:100%; text-align:left; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px; background:var(--panel); color:var(--white); border:1px solid var(--line); border-radius:14px; cursor:pointer">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            ${champions.map(t => {
+              const champion = tournamentChampion(t);
 
-                <div style="min-width:0">
-                  <div style="font-size:16px; font-weight:900; margin-bottom:5px">
-                    🏆 ${esc(t.name)}
-                  </div>
-                  <div class="muted" style="font-size:11px">
-                    ${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}
-                    ${teamCount} equipos · ${matchCount} partidos
-                  </div>
-                  <div style="margin-top:9px">
-                    <span class="pill">${esc(t.status || 'En curso')}</span>
+              return `
+                <div style="
+                  position:relative;
+                  overflow:hidden;
+                  padding:20px 16px;
+                  border-radius:16px;
+                  border:1px solid var(--gold);
+                  background:linear-gradient(135deg,#282314,#151810 65%,#111713);
+                  box-shadow:0 8px 25px rgba(0,0,0,.3);
+                ">
+
+                  <div style="text-align:center">
+                    <div style="font-size:30px;margin-bottom:5px">🏆</div>
+
+                    <div style="
+                      color:var(--gold);
+                      font-size:10px;
+                      font-weight:900;
+                      letter-spacing:2px;
+                    ">
+                      CAMPEÓN DEL TORNEO
+                    </div>
+
+                    <div style="
+                      font-size:23px;
+                      font-weight:950;
+                      margin:9px 0;
+                      color:#fff;
+                    ">
+                      ${esc(champion.name)}
+                    </div>
+
+                    <div style="
+                      color:#c9b978;
+                      font-size:11px;
+                      font-weight:700;
+                    ">
+                      ${esc(t.name)}
+                      ${t.season ? ' · TEMPORADA ' + esc(t.season) : ''}
+                    </div>
+
+                    <button
+                      onclick="openTournament('${t.id}')"
+                      style="
+                        width:100%;
+                        margin-top:17px;
+                        padding:12px;
+                        border:0;
+                        border-radius:9px;
+                        background:var(--gold);
+                        color:#15130b;
+                        font-weight:900;
+                        cursor:pointer;
+                      ">
+                      VER TORNEO Y RECORRIDO →
+                    </button>
                   </div>
                 </div>
-
-                <span style="font-size:23px; color:var(--green)">›</span>
-              </button>`;
-          }).join('')}
+              `;
+            }).join('')}
+          </div>
         </div>
-      ` : `
+      ` : ''}
+
+      <div class="section">
+        <h2 style="color:var(--green)">⚽ Torneos en curso</h2>
+
+        ${activeTournaments.length ? `
+          <div style="display:flex;flex-direction:column;gap:10px">
+            ${activeTournaments.map(t => {
+              const teamCount = tournamentTeams.filter(
+                x => x.tournament_id === t.id
+              ).length;
+
+              const matchCount = tournamentMatches.filter(
+                x => x.tournament_id === t.id
+              ).length;
+
+              return `
+                <button
+                  onclick="openTournament('${t.id}')"
+                  style="
+                    width:100%;
+                    text-align:left;
+                    display:flex;
+                    align-items:center;
+                    justify-content:space-between;
+                    gap:12px;
+                    padding:16px;
+                    background:var(--panel);
+                    color:var(--white);
+                    border:1px solid var(--line);
+                    border-radius:14px;
+                    cursor:pointer;
+                  ">
+
+                  <div style="min-width:0">
+                    <div style="font-size:16px;font-weight:900;margin-bottom:5px">
+                      ⚽ ${esc(t.name)}
+                    </div>
+
+                    <div class="muted" style="font-size:11px">
+                      ${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}
+                      ${teamCount} equipos · ${matchCount} partidos
+                    </div>
+
+                    <div style="margin-top:9px">
+                      <span class="pill">
+                        ${esc(t.status || 'En curso')}
+                      </span>
+                    </div>
+                  </div>
+
+                  <span style="font-size:23px;color:var(--green)">›</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        ` : `
+          <div class="empty">
+            No hay torneos en curso.
+          </div>
+        `}
+      </div>
+
+      ${!tournaments.length ? `
         <div class="empty">
           Todavía no hay torneos creados.
         </div>
-      `}
+      ` : ''}
     `;
 
     return;
@@ -1069,16 +1207,6 @@ function getRoundName(numberOfTeams) {
   if (numberOfTeams === 8) return 'Cuartos de final';
   if (numberOfTeams === 16) return 'Octavos de final';
   return 'Eliminatorias';
-}
-
-function getNextRoundName(currentRound) {
-  const next = {
-    'Octavos de final': 'Cuartos de final',
-    'Cuartos de final': 'Semifinal',
-    'Semifinal': 'Final'
-  };
-
-  return next[currentRound] || null;
 }
 
 
