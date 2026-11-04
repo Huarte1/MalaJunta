@@ -387,6 +387,7 @@ function tournamentCreateForm() {
     </div>`;
 }
 
+
 function tournamentAdmin() {
   if (!isLoggedAdmin) return '';
 
@@ -398,80 +399,119 @@ function tournamentAdmin() {
 
   return `
     <div class="section card" style="border-color:var(--green)">
-      <h2>⚙️ Administrar campeonato</h2>
+      <h2>⚙️ Administración del campeonato</h2>
 
-      <div style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px">
-        <h3 style="margin-top:0">👥 1. Cargar equipos</h3>
-        <p class="muted" style="font-size:11px; line-height:1.5">
-          Escribí un equipo por línea. Podés indicar la zona después de un guion.
-          Si no indicás zona, se asignará a la Zona A.
+      <div style="background:var(--panel2);padding:12px;border-radius:10px;margin-bottom:14px">
+        <h3>👥 1. Cargar equipos y zonas</h3>
+        <p class="muted" style="font-size:11px">
+          Un equipo por línea. Indicá la zona después de un guion.
         </p>
-
-        <textarea
-          id="bulk-team-list"
-          class="input-field"
-          rows="7"
-          placeholder="Ejemplo:
-MalaJunta - A
-Los Pibes - A
-La Quinta - B
-Pelusa FC - B"
-          style="resize:vertical; line-height:1.7"
-        ></textarea>
-
+        <textarea id="bulk-team-list" class="input-field" rows="6"
+          placeholder="MalaJunta - A&#10;Los Pibes - A&#10;La Quinta - B&#10;Pelusa FC - B"
+          style="resize:vertical"></textarea>
         <button class="btn-action" onclick="addTournamentTeamsBulk()">
-          ➕ Cargar todos los equipos
+          ➕ Cargar equipos
         </button>
       </div>
 
-      <div style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px">
-        <h3 style="margin-top:0">📋 Equipos cargados (${teams.length})</h3>
-
-        ${groups.length ? groups.map(group => {
-          const list = teams.filter(x => (x.group_name || 'A') === group);
-
-          return `
-            <div style="margin-bottom:12px">
-              <div style="color:var(--green); font-size:12px; font-weight:900; margin-bottom:6px">
-                ZONA ${esc(group)} · ${list.length} equipos
-              </div>
-              ${list.map((team, i) => `
-                <div style="padding:8px 10px; background:var(--panel); border:1px solid var(--line); border-radius:7px; margin-bottom:5px; font-size:12px">
-                  ${i + 1}. <b>${esc(team.name)}</b>
+      <div style="background:var(--panel2);padding:12px;border-radius:10px;margin-bottom:14px">
+        <h3>📋 2. Equipos y grupos (${teams.length})</h3>
+        ${groups.map(group => `
+          <div style="margin-bottom:12px">
+            <b style="color:var(--green)">ZONA ${esc(group)}</b>
+            ${teams.filter(x => (x.group_name || 'A') === group).map(team => `
+              <div style="display:flex;justify-content:space-between;align-items:center;background:var(--panel);padding:9px;border-radius:8px;margin-top:6px">
+                <b>${esc(team.name)}</b>
+                <div style="display:flex;gap:5px">
+                  <button class="btn-action" style="width:auto;margin:0;padding:6px 9px"
+                    onclick="editTournamentTeam('${team.id}')">✏️</button>
+                  <button class="btn-action btn-danger" style="width:auto;margin:0;padding:6px 9px"
+                    onclick="deleteTournamentTeam('${team.id}')">🗑️</button>
                 </div>
-              `).join('')}
-            </div>
-          `;
-        }).join('') : '<div class="muted">Todavía no hay equipos cargados.</div>'}
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
       </div>
 
-      <div style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px">
-        <h3 style="margin-top:0">⚽ 2. Generar fixture</h3>
+      <div style="background:var(--panel2);padding:12px;border-radius:10px;margin-bottom:14px">
+        <h3>⚽ 3. Fixture de grupos</h3>
         <p class="muted" style="font-size:11px">
-          Se crearán automáticamente los partidos entre todos los equipos de cada zona.
+          Genera partidos de todos contra todos dentro de cada zona.
         </p>
         <button class="btn-action" onclick="generateGroupFixtures()">
-          ⚽ Generar partidos de zonas
+          ⚽ Generar fixture
         </button>
       </div>
 
-      <div style="background:var(--panel2); padding:12px; border-radius:10px">
-        <h3 style="margin-top:0">🏆 3. Clasificación y eliminatorias</h3>
-        <label class="muted" style="font-size:11px">¿Cuántos equipos clasifican por zona?</label>
-        <input
-          id="qualifiers-per-group"
-          type="number"
-          min="1"
-          value="2"
-          class="input-field"
-          placeholder="Clasificados por zona"
-        >
+      <div style="background:var(--panel2);padding:12px;border-radius:10px">
+        <h3>🏆 4. Clasificación a eliminatorias</h3>
+        <label class="muted" style="font-size:11px">
+          Cantidad de equipos que clasifican por zona
+        </label>
+        <input id="qualifiers-per-group" type="number" min="1" max="16"
+          value="2" class="input-field">
+
+        <p class="muted" style="font-size:11px;line-height:1.5">
+          La cantidad total de clasificados debe ser 2, 4, 8 o 16 para armar
+          una llave completa sin equipos libres.
+        </p>
+
         <button class="btn-action" onclick="generateKnockout()">
-          🏆 Generar eliminatorias
+          🏆 Crear cuadro eliminatorio
         </button>
       </div>
     </div>
   `;
+}
+
+async function editTournamentTeam(id) {
+  if (!isLoggedAdmin) return;
+
+  const team = tournamentTeams.find(x => String(x.id) === String(id));
+  if (!team) return;
+
+  const newName = prompt('Nombre del equipo:', team.name);
+  if (newName === null) return;
+
+  const newGroup = prompt('Zona del equipo (A, B, C...):', team.group_name || 'A');
+  if (newGroup === null) return;
+
+  if (!newName.trim() || !newGroup.trim()) {
+    return alert('Completá el nombre y la zona.');
+  }
+
+  const { error } = await db.from('tournament_teams').update({
+    name: newName.trim(),
+    group_name: newGroup.trim().toUpperCase()
+  }).eq('id', id);
+
+  if (error) return alert('Error: ' + error.message);
+
+  await loadTournaments();
+  alert('Equipo actualizado.');
+}
+
+async function deleteTournamentTeam(id) {
+  if (!isLoggedAdmin) return;
+
+  const team = tournamentTeams.find(x => String(x.id) === String(id));
+  if (!team) return;
+
+  if (tournamentMatches.some(m =>
+    String(m.home_team_id) === String(id) ||
+    String(m.away_team_id) === String(id)
+  )) {
+    return alert('Este equipo ya tiene partidos asociados. No se puede eliminar sin borrar primero esos partidos.');
+  }
+
+  if (!confirm('¿Eliminar a ' + team.name + ' de este campeonato?')) return;
+
+  const { error } = await db.from('tournament_teams').delete().eq('id', id);
+
+  if (error) return alert('Error: ' + error.message);
+
+  await loadTournaments();
 }
 
 function renderTournaments() {
@@ -605,9 +645,31 @@ function renderTournaments() {
     `}
 
     <div class="section card">
-      <h2>🏆 Eliminatorias</h2>
-      ${renderTournamentMatches(matches.filter(x => x.phase === 'Eliminatorias'))}
-    </div>`;
+  <h2>🏆 Fase eliminatoria</h2>
+
+  ${['Octavos de final', 'Cuartos de final', 'Semifinal',
+     'Tercer puesto', 'Final'].map(round => {
+    const roundMatches = matches.filter(
+      x => x.phase === 'Eliminatorias' && x.round_name === round
+    );
+
+    if (!roundMatches.length) return '';
+
+    return `
+      <div style="margin-top:15px">
+        <h3 style="color:var(--green);font-size:14px">
+          ${round === 'Final' ? '🏆 GRAN FINAL' :
+            round === 'Tercer puesto' ? '🥉 TERCER PUESTO' :
+            '⚔️ ' + round.toUpperCase()}
+        </h3>
+        ${renderTournamentMatches(roundMatches)}
+      </div>
+    `;
+  }).join('')}
+
+  ${matches.some(x => x.phase === 'Eliminatorias') ? '' :
+    '<div class="empty">Las eliminatorias todavía no fueron generadas.</div>'}
+</div>
 }
 
 
@@ -945,48 +1007,298 @@ async function generateGroupFixtures() {
   alert('Fixture generado correctamente.');
 }
 
+
 async function saveTournamentResult(id) {
   if (!isLoggedAdmin) return;
 
   const hg = document.getElementById('tg-home-' + id).value;
   const ag = document.getElementById('tg-away-' + id).value;
 
-  if (hg === '' || ag === '') return alert('Completá ambos resultados.');
+  if (hg === '' || ag === '') {
+    return alert('Completá ambos resultados.');
+  }
 
-  const home = Number(hg), away = Number(ag);
-  if (!Number.isInteger(home) || home < 0 || !Number.isInteger(away) || away < 0) {
+  const home = Number(hg);
+  const away = Number(ag);
+
+  if (
+    !Number.isInteger(home) || home < 0 ||
+    !Number.isInteger(away) || away < 0
+  ) {
     return alert('Ingresá goles válidos.');
   }
 
-  const { error } = await db.from('tournament_matches').update({
-    home_goals:home,
-    away_goals:away,
-    status:'Jugado'
-  }).eq('id',id);
+  const match = tournamentMatches.find(
+    x => String(x.id) === String(id)
+  );
 
-  if (error) return alert('Error: ' + error.message);
+  if (!match) return alert('No se encontró el partido.');
+
+  if (
+    match.phase === 'Eliminatorias' &&
+    home === away
+  ) {
+    return alert(
+      'En una eliminatoria no puede quedar empate.\n\n' +
+      'Primero hay que definir el ganador por penales.'
+    );
+  }
+
+  const { error } = await db
+    .from('tournament_matches')
+    .update({
+      home_goals: home,
+      away_goals: away,
+      status: 'Jugado'
+    })
+    .eq('id', id);
+
+  if (error) return alert('Error al guardar: ' + error.message);
 
   await loadTournaments();
+
+  if (match.phase === 'Eliminatorias') {
+    await advanceTournamentRound();
+  }
+}
+
+
+function getRoundName(numberOfTeams) {
+  if (numberOfTeams === 2) return 'Final';
+  if (numberOfTeams === 4) return 'Semifinal';
+  if (numberOfTeams === 8) return 'Cuartos de final';
+  if (numberOfTeams === 16) return 'Octavos de final';
+  return 'Eliminatorias';
+}
+
+function getNextRoundName(currentRound) {
+  const next = {
+    'Octavos de final': 'Cuartos de final',
+    'Cuartos de final': 'Semifinal',
+    'Semifinal': 'Final'
+  };
+
+  return next[currentRound] || null;
 }
 
 async function generateKnockout() {
   if (!isLoggedAdmin || !activeTournamentId) return;
 
-  const perGroup = Number(document.getElementById('qualifiers-per-group').value);
-  if (!Number.isInteger(perGroup) || perGroup < 1) return alert('Indicá cuántos clasifican.');
+  const perGroup = Number(
+    document.getElementById('qualifiers-per-group').value
+  );
 
-  const teams = tournamentTeams.filter(x => x.tournament_id === activeTournamentId);
-  const matches = tournamentMatches.filter(x => x.tournament_id === activeTournamentId);
+  if (!Number.isInteger(perGroup) || perGroup < 1) {
+    return alert('Indicá cuántos clasifican por zona.');
+  }
 
-  if (!matches.some(x => x.phase === 'Grupos')) return alert('Primero generá el fixture de zonas.');
+  const teams = tournamentTeams.filter(
+    x => x.tournament_id === activeTournamentId
+  );
 
-  if (matches.some(x => x.phase === 'Grupos' && x.status !== 'Jugado')) {
-    return alert('Tenés que cargar todos los resultados de la fase de grupos.');
+  const matches = tournamentMatches.filter(
+    x => x.tournament_id === activeTournamentId
+  );
+
+  const groupMatches = matches.filter(x => x.phase === 'Grupos');
+
+  if (!groupMatches.length) {
+    return alert('Primero generá el fixture de grupos.');
+  }
+
+  if (groupMatches.some(x => x.status !== 'Jugado')) {
+    return alert('Tenés que completar todos los resultados de grupos.');
   }
 
   if (matches.some(x => x.phase === 'Eliminatorias')) {
     return alert('Ya existen eliminatorias para este torneo.');
   }
+
+  const groups = [...new Set(teams.map(x => x.group_name || 'A'))];
+  const qualified = [];
+
+  groups.forEach(group => {
+    const groupTeams = teams.filter(
+      x => (x.group_name || 'A') === group
+    );
+
+    const groupResults = groupMatches.filter(
+      x => (x.group_name || 'A') === group
+    );
+
+    const standings = calculateGroupTable(groupTeams, groupResults);
+
+    qualified.push(...standings.slice(0, perGroup));
+  });
+
+  const total = qualified.length;
+
+  if (![2, 4, 8, 16].includes(total)) {
+    return alert(
+      'La cantidad de clasificados es ' + total +
+      '. Para crear una llave completa necesitás 2, 4, 8 o 16 equipos.\n\n' +
+      'Modificá la cantidad que clasifica por zona.'
+    );
+  }
+
+
+async function advanceTournamentRound() {
+  if (!isLoggedAdmin || !activeTournamentId) return;
+
+  const knockoutMatches = tournamentMatches.filter(
+    x => x.tournament_id === activeTournamentId &&
+         x.phase === 'Eliminatorias'
+  );
+
+  if (!knockoutMatches.length) return;
+
+  const rounds = [
+    'Octavos de final',
+    'Cuartos de final',
+    'Semifinal',
+    'Final'
+  ];
+
+  const currentRound = rounds.find(round =>
+    knockoutMatches.some(m => m.round_name === round) &&
+    knockoutMatches
+      .filter(m => m.round_name === round)
+      .some(m => m.status !== 'Jugado')
+  );
+
+  if (!currentRound) return;
+
+  const currentMatches = knockoutMatches.filter(
+    m => m.round_name === currentRound
+  );
+
+  if (currentMatches.some(m => m.status !== 'Jugado')) return;
+
+  // No avanzar si hay un empate sin definición por penales.
+  if (currentMatches.some(m =>
+    Number(m.home_goals) === Number(m.away_goals)
+  )) {
+    return alert(
+      'Hay un empate en ' + currentRound +
+      '. Necesitás definir quién gana por penales antes de avanzar.'
+    );
+  }
+
+  const winners = [];
+  const losers = [];
+
+  currentMatches.forEach(m => {
+    const homeWins = Number(m.home_goals) > Number(m.away_goals);
+
+    winners.push(homeWins ? m.home_team_id : m.away_team_id);
+    losers.push(homeWins ? m.away_team_id : m.home_team_id);
+  });
+
+  if (currentRound === 'Final') {
+    const championId = winners[0];
+    const champion = tournamentTeam(championId);
+
+    await db.from('tournaments').update({
+      status: 'Finalizado'
+    }).eq('id', activeTournamentId);
+
+    await loadTournaments();
+
+    alert('🏆 ¡TENEMOS CAMPEÓN!\n\n' + champion);
+    return;
+  }
+
+  const nextRound = getNextRoundName(currentRound);
+
+  if (!nextRound) return;
+
+  const alreadyCreated = knockoutMatches.some(
+    m => m.round_name === nextRound
+  );
+
+  if (alreadyCreated) return;
+
+  const { data: { user } } = await db.auth.getUser();
+
+  const nextFixtures = [];
+
+  for (let i = 0; i < winners.length; i += 2) {
+    nextFixtures.push({
+      tournament_id: activeTournamentId,
+      owner_id: user.id,
+      home_team_id: winners[i],
+      away_team_id: winners[i + 1],
+      phase: 'Eliminatorias',
+      round_name: nextRound,
+      status: 'Programado'
+    });
+  }
+
+  // La final se crea automáticamente al terminar las semifinales.
+  if (nextRound === 'Final') {
+    for (let i = 0; i < losers.length; i += 2) {
+      nextFixtures.push({
+        tournament_id: activeTournamentId,
+        owner_id: user.id,
+        home_team_id: losers[i],
+        away_team_id: losers[i + 1],
+        phase: 'Eliminatorias',
+        round_name: 'Tercer puesto',
+        status: 'Programado'
+      });
+    }
+  }
+
+  if (!nextFixtures.length) return;
+
+  const { error } = await db
+    .from('tournament_matches')
+    .insert(nextFixtures);
+
+  if (error) {
+    return alert('Error al crear la siguiente fase: ' + error.message);
+  }
+
+  await loadTournaments();
+
+  alert(
+    '✅ ¡Fase completada!\n\n' +
+    'Se generó automáticamente: ' + nextRound
+  );
+}
+
+
+  const { data: { user } } = await db.auth.getUser();
+
+  const firstRound = getRoundName(total);
+  const fixtures = [];
+
+  for (let i = 0; i < total / 2; i++) {
+    fixtures.push({
+      tournament_id: activeTournamentId,
+      owner_id: user.id,
+      home_team_id: qualified[i].id,
+      away_team_id: qualified[total - 1 - i].id,
+      phase: 'Eliminatorias',
+      round_name: firstRound,
+      status: 'Programado'
+    });
+  }
+
+  const { error } = await db
+    .from('tournament_matches')
+    .insert(fixtures);
+
+  if (error) return alert('Error al crear eliminatorias: ' + error.message);
+
+  await loadTournaments();
+
+  alert(
+    '🏆 ¡Cuadro creado!\n\n' +
+    'Primera fase: ' + firstRound +
+    '\nPartidos: ' + fixtures.length
+  );
+}
 
   const groups = [...new Set(teams.map(x => x.group_name || 'Sin zona'))];
   const qualified = [];
