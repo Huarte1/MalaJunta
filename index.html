@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#080b09">
+  <title>MalaJunta FC · Plantel Oficial y Estadísticas</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #080b09;
+      --panel: #111713;
+      --panel2: #18221b;
+      --line: #26352b;
+      --green: #a6e65b;
+      --red: #ff5252;
+      --yellow: #ffd166;
+      --muted: #9aa79d;
+      --white: #f4f7f3;
+      --gold: #d4af37;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { 
+      margin: 0; 
+      background: var(--bg); 
+      color: var(--white); 
+      font: 14px Inter, system-ui, -apple-system, sans-serif; 
+      -webkit-font-smoothing: antialiased; 
+      padding-bottom: 75px;
+    }
+    .wrap { max-width: 1120px; margin: auto; padding: 16px 14px 40px; }
+    
+    header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .brand-logo { width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(166,230,91,0.25)); flex: none; }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand { font-weight: 950; font-size: 22px; letter-spacing: 0.5px; line-height: 1.1; }
+    .brand span { color: var(--green); }
+    .sub { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); margin-top: 2px; font-weight: 700; text-transform: uppercase; }
+    
+    .hero { 
+      position: relative;
+      display: flex; 
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px; 
+      margin-bottom: 16px; 
+      padding: 18px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(8, 11, 9, 0.7) 0%, rgba(8, 11, 9, 0.95) 100%), url('cancha_fondo.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+    .eyebrow { font-size: 10px; letter-spacing: 1.5px; color: var(--green); font-weight: 800; }
+    .title { font-size: 20px; font-weight: 900; margin: 2px 0; line-height: 1.25; }
+    
+    .pill { display: inline-block; padding: 4px 9px; border-radius: 20px; background: #243321; color: var(--green); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .badge-win { background: rgba(166, 230, 91, 0.2); color: var(--green); border: 1px solid var(--green); }
+    .badge-loss { background: rgba(255, 82, 82, 0.2); color: var(--red); border: 1px solid var(--red); }
+    .badge-draw { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
+    .badge-invicto { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
+
+    .tabs { 
+      position: fixed; 
+      bottom: 0; 
+      left: 0; 
+      right: 0; 
+      background: rgba(17, 23, 19, 0.95); 
+      backdrop-filter: blur(12px); 
+      -webkit-backdrop-filter: blur(12px); 
+      border-top: 1px solid var(--line); 
+      display: grid; 
+      grid-template-columns: repeat(4, 1fr); 
+      padding: 8px 6px; 
+      gap: 4px; 
+      z-index: 1000; 
+    }
+    .tabs.admin-active { grid-template-columns: repeat(5, 1fr); }
+    .tabs button { 
+      background: transparent; 
+      color: var(--muted); 
+      border: 0; 
+      padding: 8px 2px; 
+      border-radius: 8px; 
+      font-weight: 750; 
+      cursor: pointer; 
+      font-size: 10px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 3px; 
+    }
+    .tabs button.active { background: var(--panel2); color: var(--green); border: 1px solid var(--line); }
+
+    .tab-content { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 14px; position: relative; }
+    .metric { font-size: 26px; font-weight: 900; margin-top: 4px; color: var(--white); }
+    .card-invicto-badge { position: absolute; top: 10px; right: 10px; font-size: 9px; padding: 2px 6px; }
+
+    .section { margin-top: 16px; }
+    .section h2 { font-size: 15px; margin: 0 0 10px; }
+
+    .search-bar, .input-field { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--white); margin-bottom: 10px; font-size: 13px; outline: none; }
+    .search-bar:focus, .input-field:focus { border-color: var(--green); }
+
+    .btn-action { background: var(--green); color: #10170c; border: 0; padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; margin-top: 4px; }
+    .btn-danger { background: rgba(255, 82, 82, 0.2); color: var(--red); border: 1px solid var(--red); }
+
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; }
+    table { width: 100%; border-collapse: collapse; min-width: 480px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { font-size: 12.5px; }
+
+    .player-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .player { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+    .number { width: 40px; height: 40px; border-radius: 8px; background: var(--panel2); display: grid; place-items: center; color: var(--green); font-size: 18px; font-weight: 900; flex: none; border: 1px solid var(--line); }
+    .player b { display: block; font-size: 14px; }
+    .player small { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+
+    details { margin-top: 8px; }
+    summary { cursor: pointer; color: var(--green); font-size: 11.5px; font-weight: 750; outline: none; }
+
+    .perf-bar-wrap { background: var(--panel2); border-radius: 6px; height: 10px; width: 100%; display: flex; overflow: hidden; margin-top: 8px; border: 1px solid var(--line); }
+    .perf-win { background: var(--green); height: 100%; }
+    .perf-draw { background: var(--yellow); height: 100%; }
+    .perf-loss { background: var(--red); height: 100%; }
+
+    .empty, .loading { padding: 30px 10px; text-align: center; color: var(--muted); font-weight: 600; font-size: 13px; }
+    .error { color: #ffb0a8; background: rgba(255, 82, 82, 0.1); padding: 12px; border-radius: 10px; border: 1px solid var(--red); font-size: 12px; }
+    .footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 16px; }
+    .hide { display: none !important; }
+
+    @media (min-width: 768px) {
+      body { padding-bottom: 0; }
+      .tabs { position: relative; background: transparent; backdrop-filter: none; border-top: 0; display: flex; margin: 20px 0; padding: 0; }
+      .tabs button { background: var(--panel2); color: var(--white); border: 1px solid var(--line); padding: 10px 18px; font-size: 13px; }
+      .tabs button.active { background: var(--green); color: #10170c; }
+      .grid { grid-template-columns: repeat(4, 1fr); }
+      .player-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+      .hero { flex-direction: row; align-items: flex-end; padding: 25px; }
+      .title { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <img src="logo_malajunta_transparente.png" alt="Escudo MalaJunta FC" class="brand-logo">
+      <div class="brand-text">
+        <div class="brand">MALA<span>JUNTA</span> FC</div>
+        <div class="sub">Plantel y Estadísticas</div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">TEMPORADA ACTIVA</div>
+        <div class="title">"Jugamos como nunca, perdimos como siempre"</div>
+        <div class="muted" style="font-size: 12px;">Números oficiales del club.</div>
+      </div>
+      <span class="pill" id="badge-status">EN VIVO</span>
+    </section>
+
+    <div id="status" class="loading">⏳ Cargando datos del club...</div>
+
+    <div id="site" class="hide">
+      <!-- Menú Flotante Inferior -->
+      <nav class="tabs" id="main-nav">
+        <button class="active" data-tab="resumen"><span>📊</span>Resumen</button>
+        <button data-tab="plantel"><span>🏃‍♂️</span>Plantel</button>
+        <button data-tab="partidos"><span>⚽</span>Partidos</button>
+        <button data-tab="estadisticas"><span>📈</span>Números</button>
+        <button data-tab="admin" id="nav-admin-tab" class="hide"><span>📋</span>Panel DT</button>
+      </nav>
+
+      <section id="resumen" class="tab-content"></section>
+      <section id="plantel" class="tab-content hide"></section>
+      <section id="partidos" class="tab-content hide"></section>
+      <section id="estadisticas" class="tab-content hide"></section>
+      
+      <!-- SOLAPA DETALLE DE PARTIDO Y CONTROL DE GOLES -->
+      <section id="detalle" class="tab-content hide">
+        <div class="card" style="margin-bottom: 12px;">
+          <button onclick="switchTab('partidos')" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:6px 12px; border-radius:8px; cursor:pointer; font-size:11px; margin-bottom:10px;">← Volver a Partidos</button>
+          <h2 id="view-match-title" style="margin:0 0 4px; font-size: 18px;">Detalle del Partido</h2>
+          <div id="view-match-info" class="muted" style="font-size: 12px;"></div>
+        </div>
+
+        <!-- FORMULARIO DE CARGA DE GOLES (Visible solo para el DT logueado) -->
+        <div id="admin-goal-box" class="section card hide" style="border-color: var(--gold);">
+          <h2>🎯 Anotar Gol o Asistencia en este partido</h2>
+          <select id="detail-goal-scorer" class="input-field"></select>
+          <select id="detail-goal-assist" class="input-field"></select>
+          <button id="btn-detail-save-goal" class="btn-action" style="background: var(--gold); color: #10170c;">💾 Registrar Grito Sagrado</button>
+        </div>
+
+        <div class="section card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="margin: 0;">⚽ Gritos Sagrados Registrados</h2>
+            <span id="goals-counter-pill" class="pill">0 / 0 Goles</span>
+          </div>
+          <div id="view-goals-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN EXCLUSIVA DEL DT -->
+      <section id="admin" class="tab-content hide">
+        <div class="card" style="margin-bottom: 15px; border-color: var(--green);">
+          <h2 style="margin-top:0;">📋 Pizarra de Control del DT</h2>
+          <p class="muted" style="font-size: 12px;">Manejo total de la pizarra, el plantel y los resultados.</p>
+          <button id="btn-logout" class="btn-action btn-danger" style="margin-top: 5px;">🚪 Cerrar Sesión DT</button>
+        </div>
+
+        <div class="section card">
+          <h2>➕ Cargar Nuevo Jugador</h2>
+          <input type="text" id="add-player-name" class="input-field" placeholder="Nombre y Apellido">
+          <input type="text" id="add-player-pos" class="input-field" placeholder="Posición (ej: Delantero, Arquero)">
+          <input type="number" id="add-player-num" class="input-field" placeholder="Número de Camiseta (Dorsal)">
+          <button id="btn-save-player" class="btn-action">Guardar Jugador</button>
+        </div>
+
+        <div class="section card">
+          <h2>👥 Gestionar Plantel (Borrar / Editar)</h2>
+          <div id="admin-player-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+
+        <div class="section card">
+          <h2>⚽ Programar Nuevo Partido</h2>
+          <input type="text" id="add-match-opponent" class="input-field" placeholder="Rival">
+          <input type="date" id="add-match-date" class="input-field">
+          <input type="text" id="add-match-time" class="input-field" placeholder="Horario (ej: 16:30 hs)">
+          <input type="text" id="add-match-venue" class="input-field" placeholder="Cancha / Sede">
+          <button id="btn-save-match" class="btn-action">Guardar Partido</button>
+        </div>
+
+        <div class="section card">
+          <h2>📝 Cargar Resultado de Partido</h2>
+          <select id="select-match-result" class="input-field"></select>
+          <div style="display:flex; gap:10px;">
+            <input type="number" id="res-gf" class="input-field" placeholder="Goles MalaJunta">
+            <input type="number" id="res-ga" class="input-field" placeholder="Goles Rival">
+          </div>
+          <button id="btn-save-result" class="btn-action">Finalizar y Guardar Resultado</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- BOTÓN LOGIN DT -->
+    <div style="text-align: center; margin-top: 30px;" id="login-footer-container">
+      <button id="btn-admin-login" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:6px 12px; border-radius:8px; font-size:11px; cursor:pointer;">🔐 Acceso DT / Admin</button>
+    </div>
+
+    <!-- Modal de Login -->
+    <div id="admin-modal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2000;">
+      <div class="card" style="width: 90%; max-width: 340px; background:var(--panel); text-align: left;">
+        <h3 style="margin-top:0;">Panel del DT 📋</h3>
+        <p class="muted" style="font-size:12px; margin-bottom:15px;">Ingresá tus datos para editar la pizarra.</p>
+        <input type="email" id="admin-email" class="search-bar" placeholder="Correo electrónico">
+        <input type="password" id="admin-pass" class="search-bar" placeholder="Contraseña">
+        <div style="display:flex; gap:10px;">
+          <button id="btn-login-submit" style="background:var(--green); color:#10170c; flex:1; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; border:0;">Entrar</button>
+          <button id="btn-login-cancel" style="background:var(--panel2); color:var(--white); border:1px solid var(--line); flex:1; padding:10px; border-radius:8px; cursor:pointer;">Cancelar</button>
+        </div>
+        <div id="login-error" class="error hide" style="margin-top:10px; width:100%;"></div>
+      </div>
+    </div>
+
+    <div class="footer">MalaJunta FC · La redonda no se mancha 🧉</div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = 'https://jkytifivibiwnxkobkmr.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_5nfMkL9Grdgxwy2kNjs6PA_AQGG_w1H';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let players = [], matches = [], goals = [], keepers = [];
+    let isLoggedAdmin = false;
+    let currentMatchIdForView = null;
+
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const date = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'Por def.';
+    const name = id => players.find(p => p.id === id)?.name || 'Jugador';
+
+    function metric(label, value, isInvicto = false) {
+      if(isInvicto){
+        return `<div class="card" style="border-color: var(--gold);"><div class="muted" style="font-size:11px;">${label}</div><div class="metric" style="color: var(--gold);">${value}</div><span class="pill badge-invicto card-invicto-badge">Racha</span></div>`;
+      }
+      return `<div class="card"><div class="muted" style="font-size:11px;">${label}</div><div class="metric">${value}</div></div>`;
+    }
+
+    function getInvictoStreak(arr) {
+        const jugados = arr.filter(m => m.status === 'Jugado').sort((a,b) => new Date(b.match_date) - new Date(a.match_date));
+        if(!jugados.length) return 0;
+        let streak = 0;
+        for (const match of jugados) {
+            const result = Number(match.goals_for||0) - Number(match.goals_against||0);
+            if (result >= 0) { streak++; } else { break; }
+        }
+        return streak;
+    }
+
+    function getMatchBadge(gf, ga, status) {
+      if (status !== 'Jugado') return `<span class="pill">Prog.</span>`;
+      if (gf > ga) return `<span class="pill badge-win">G (${gf}-${ga})</span>`;
+      if (gf < ga) return `<span class="pill badge-loss">P (${gf}-${ga})</span>`;
+      return `<span class="pill badge-draw">E (${gf}-${ga})</span>`;
+    }
+
+    function matchRows(arr) {
+      return arr.length ? `<div class="table-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Rival</th><th>Res.</th><th>Acción</th></tr></thead>
+        <tbody>${arr.map(m => `
+          <tr>
+            <td>${date(m.match_date)}</td>
+            <td><b>${esc(m.opponent || 'Rival')}</b></td>
+            <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
+            <td>
+              <div style="display:flex; gap:4px; align-items:center;">
+                <button onclick="viewMatchDetail('${m.id}')" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Goles</button>
+                ${isLoggedAdmin ? `
+                  <button onclick="editMatch('${m.id}', '${esc(m.opponent).replace(/'/g, "\\'")}', '${m.match_date || ''}', '${esc(m.venue || '').replace(/'/g, "\\'")}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">✏️</button>
+                  <button onclick="deleteMatch('${m.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">🗑️</button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>`).join('')}
+        </tbody></table></div>` : '<div class="empty">No hay partidos cargados.</div>';
+    }
+
+    function keeperStats(p) {
+      const a = keepers.filter(k => k.player_id === p.id);
+      return {
+        apps: a.length,
+        clean: a.filter(k => Number(k.goals_conceded) === 0).length,
+        against: a.reduce((s, k) => s + Number(k.goals_conceded || 0), 0)
+      };
+    }
+
+    function profile(p) {
+      const gs = goals.filter(g => g.scorer_id === p.id).length;
+      const as = goals.filter(g => g.assist_id === p.id).length;
+      const k = keeperStats(p);
+      return `<details>
+        <summary>Ver números breves</summary>
+        <div class="card" style="margin-top:8px; background:var(--panel2); padding:10px;">
+          <div style="display:flex; justify-content:space-around; text-align:center;">
+            <div><b>${gs}</b><br><small class="muted">Goles</small></div>
+            <div><b>${as}</b><br><small class="muted">Asist.</small></div>
+            <div><b>${gs + as}</b><br><small class="muted">Aportes</small></div>
+          </div>
+          ${p.position === 'Arquero' ? `<p class="muted" style="margin-top:8px; font-size:11px; text-align:center;">🧤 ${k.apps} PJ · ${k.clean} V.Inv. · ${k.against} Recibidos</p>` : ''}
+        </div>
+      </details>`;
+    }
+
+    function filterPlayers() {
+      const q = document.getElementById('search-player').value.toLowerCase();
+      const filtered = players.filter(p => p.name.toLowerCase().includes(q) || (p.position && p.position.toLowerCase().includes(q))).sort((a,b) => a.name.localeCompare(b.name,'es'));
+      document.getElementById('player-list-container').innerHTML = filtered.map(p => `
+        <article class="card">
+          <div class="player" style="padding:0;border:0;background:none">
+            <div class="number">${p.number ?? '-'}</div>
+            <div>
+              <b>${esc(p.name)}</b>
+              <small>${esc(p.position || 'Sin pos.')}</small>
+            </div>
+          </div>
+          ${profile(p)}
+        </article>`).join('');
+    }
+
+    function populateMatchSelect() {
+      const select = document.getElementById('select-match-result');
+      const pending = matches.filter(m => m.status !== 'Jugado');
+      select.innerHTML = pending.length 
+        ? pending.map(m => `<option value="${m.id}">Vs ${esc(m.opponent)} (${date(m.match_date)})</option>`).join('')
+        : '<option value="">Sin partidos pendientes</option>';
+    }
+
+    function populateDetailGoalSelects() {
+      const sortedPlayers = [...players].sort((a,b) => a.name.localeCompare(b.name, 'es'));
+      const optionsHtml = sortedPlayers.map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.position || 'Jugador')})</option>`).join('');
+      
+      document.getElementById('detail-goal-scorer').innerHTML = `<option value="">-- Seleccionar Goleador --</option>` + optionsHtml;
+      document.getElementById('detail-goal-assist').innerHTML = `<option value="">-- Sin Asistencia (Opcional) --</option>` + optionsHtml;
+    }
+
+    function render() {
+      const played = matches.filter(m => m.status === 'Jugado');
+      const gf = played.reduce((s, m) => s + Number(m.goals_for || 0), 0);
+      const ga = played.reduce((s, m) => s + Number(m.goals_against || 0), 0);
+      const wins = played.filter(m => Number(m.goals_for || 0) > Number(m.goals_against || 0)).length;
+      const draws = played.filter(m => Number(m.goals_for || 0) === Number(m.goals_against || 0)).length;
+      const losses = played.filter(m => Number(m.goals_for || 0) < Number(m.goals_against || 0)).length;
+      const invicto = getInvictoStreak(matches);
+
+      const totalPlayed = played.length || 1;
+
+      // Tab Resumen
+      document.getElementById('resumen').innerHTML = `
+        <div class="grid">
+          ${metric('Plantel', players.length)}
+          ${metric('Jugados', played.length)}
+          ${metric('Victorias', wins)}
+          ${metric('Invicto', invicto + ' PJ', true)}
+        </div>
+        <div class="section card">
+          <h2>Últimos Partidos</h2>
+          ${matchRows(matches.sort((a,b) => new Date(b.match_date) - new Date(a.match_date)).slice(0, 4))}
+        </div>`;
+
+      // Tab Plantel
+      document.getElementById('plantel').innerHTML = `
+        <input type="text" id="search-player" class="search-bar" placeholder="🔍 Buscar jugador..." oninput="filterPlayers()">
+        <div class="player-grid" id="player-list-container"></div>`;
+      filterPlayers();
+
+      // Tab Partidos
+      document.getElementById('partidos').innerHTML = `<div class="card"><h2>Fixture Temporada</h2>${matchRows(matches.sort((a,b) => new Date(a.match_date) - new Date(b.match_date)))}</div>`;
+
+      // Tab Estadísticas
+      document.getElementById('estadisticas').innerHTML = `
+        <div class="grid">
+          ${metric('Goles A Favor', gf)}
+          ${metric('Goles En Contra', ga)}
+          ${metric('Dif. Gol', gf - ga)}
+          ${metric('Puntos', (wins * 3) + draws)}
+        </div>
+        <div class="section card">
+          <h2>📊 Rendimiento (${played.length} partidos)</h2>
+          <div style="font-size:11px; color:var(--muted); display:flex; justify-content:space-between;">
+            <span>🟢 ${wins}V</span>
+            <span>🟡 ${draws}E</span>
+            <span>🔴 ${losses}D</span>
+          </div>
+          <div class="perf-bar-wrap">
+            <div class="perf-win" style="width: ${(wins/totalPlayed)*100}%"></div>
+            <div class="perf-draw" style="width: ${(draws/totalPlayed)*100}%"></div>
+            <div class="perf-loss" style="width: ${(losses/totalPlayed)*100}%"></div>
+          </div>
+        </div>
+        <div class="section card"><h2>🏆 Goleadores</h2>${ranking('goal')}</div>
+        <div class="section card"><h2>🎯 Asistidores</h2>${ranking('assist')}</div>`;
+
+      populateMatchSelect();
+      renderAdminLists();
+
+      if (currentMatchIdForView) {
+        populateDetailGoalSelects();
+        renderMatchDetail(currentMatchIdForView);
+      }
+    }
+
+    function ranking(kind) {
+      const counts = {};
+      goals.forEach(g => {
+        const id = kind === 'goal' ? g.scorer_id : g.assist_id;
+        if (id) counts[id] = (counts[id] || 0) + 1;
+      });
+      const rows = Object.entries(counts).map(([id, n]) => ({ name: name(id), n })).sort((a, b) => b.n - a.n);
+      return rows.length ? `<div class="table-wrap"><table style="min-width:0;">
+        <thead><tr><th>#</th><th>Jugador</th><th>Cant.</th></tr></thead>
+        <tbody>${rows.map((r, i) => `<tr><td><b>#${i + 1}</b></td><td>${esc(r.name)}</td><td><span class="pill">${r.n}</span></td></tr>`).join('')}</tbody>
+      </table></div>` : '<div class="empty">Sin registros.</div>';
+    }
+
+    function switchTab(tabId) {
+      ['resumen', 'plantel', 'partidos', 'estadisticas', 'admin', 'detalle'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.toggle('hide', id !== tabId);
+      });
+      document.querySelectorAll('[data-tab]').forEach(x => {
+        x.classList.toggle('active', x.dataset.tab === tabId);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
+      currentMatchIdForView = null;
+      switchTab(b.dataset.tab);
+    }));
+
+    // --- ACCIONES DE ADMINISTRADOR / DT ---
+    function updateAdminUI(user) {
+      isLoggedAdmin = !!user;
+      const navAdminTab = document.getElementById('nav-admin-tab');
+      const mainNav = document.getElementById('main-nav');
+      const badgeStatus = document.getElementById('badge-status');
+      const loginFooter = document.getElementById('login-footer-container');
+      const adminGoalBox = document.getElementById('admin-goal-box');
+
+      if (user) {
+        navAdminTab.classList.remove('hide');
+        mainNav.classList.add('admin-active');
+        badgeStatus.innerText = "MODO DT ACTIVO";
+        badgeStatus.style.background = "var(--green)";
+        badgeStatus.style.color = "#10170c";
+        loginFooter.classList.add('hide');
+        if(adminGoalBox) adminGoalBox.classList.remove('hide');
+      } else {
+        navAdminTab.classList.add('hide');
+        mainNav.classList.remove('admin-active');
+        badgeStatus.innerText = "EN VIVO";
+        badgeStatus.style.background = "#243321";
+        badgeStatus.style.color = "var(--green)";
+        loginFooter.classList.remove('hide');
+        if(adminGoalBox) adminGoalBox.classList.add('hide');
+      }
+      render();
+    }
+
+    const adminModal = document.getElementById('admin-modal');
+    document.getElementById('btn-admin-login').addEventListener('click', () => adminModal.classList.remove('hide'));
+    document.getElementById('btn-login-cancel').addEventListener('click', () => adminModal.classList.add('hide'));
+
+    document.getElementById('btn-login-submit').addEventListener('click', async () => {
+      const email = document.getElementById('admin-email').value;
+      const password = document.getElementById('admin-pass').value;
+      const errDiv = document.getElementById('login-error');
+      
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if (error) {
+        errDiv.textContent = "❌ Datos incorrectos, mirá que no es la PlayStation.";
+        errDiv.classList.remove('hide');
+      } else {
+        errDiv.classList.add('hide');
+        adminModal.classList.add('hide');
+        updateAdminUI(data.user);
+        alert("✅ ¡Bienvenido a la dirección técnica, DT!");
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await db.auth.signOut();
+      updateAdminUI(null);
+      switchTab('resumen');
+      alert("👋 Sesión cerrada.");
+    });
+
+    async function deletePlayer(id) {
+      if (!confirm("⚠️ ¿Estás seguro de rajar a este jugador del plantel?")) return;
+      const { error } = await db.from('players').delete().eq('id', id);
+      if (error) {
+        alert("❌ Error al borrar: " + error.message);
+      } else {
+        alert("🗑️ Jugador borrado de la lista.");
+        init();
+      }
+    }
+
+    async function editPlayer(id, currentName, currentNum) {
+      const newName = prompt("Editar Nombre del Jugador:", currentName);
+      if (newName === null) return; 
+      const newNum = prompt("Editar Número de Camiseta (Dorsal):", currentNum || '');
+
+      const { error } = await db.from('players').update({
+        name: newName,
+        number: newNum ? Number(newNum) : null
+      }).eq('id', id);
+
+      if (error) {
+        alert("❌ Error al actualizar: " + error.message);
+      } else {
+        alert("✏️ ¡Ficha actualizada con éxito!");
+        init();
+      }
+    }
+
+    async function deleteMatch(id) {
+      if (!confirm("⚠️ ¿Estás seguro de borrar este partido del fixture?")) return;
+      const { error } = await db.from('matches').delete().eq('id', id);
+      if (error) {
+        alert("❌ Error al borrar partido: " + error.message);
+      } else {
+        alert("🗑️ Partido eliminado de la agenda.");
+        init();
+      }
+    }
+
+    async function editMatch(id, currentOpponent, currentDate, currentVenue) {
+      const newOpponent = prompt("Editar Rival:", currentOpponent);
+      if (newOpponent === null) return;
+      const newDate = prompt("Editar Fecha (AAAA-MM-DD):", currentDate || '');
+      const newVenue = prompt("Editar Cancha / Sede:", currentVenue || '');
+
+      const { error } = await db.from('matches').update({
+        opponent: newOpponent,
+        match_date: newDate ? newDate : null,
+        venue: newVenue ? newVenue : null
+      }).eq('id', id);
+
+      if (error) {
+        alert("❌ Error al actualizar el partido: " + error.message);
+      } else {
+        alert("✏️ ¡Partido actualizado con éxito!");
+        init();
+      }
+    }
+
+    function renderAdminLists() {
+      const playerListDiv = document.getElementById('admin-player-list');
+      playerListDiv.innerHTML = players.length ? players.map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:10px; border:1px solid var(--line); margin-bottom: 6px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-weight: 900; color: var(--green); font-size: 14px; min-width: 20px;">#${p.number ?? '-'}</span>
+            <div>
+              <b style="font-size: 13px; display: block;">${esc(p.name)}</b>
+              <small class="muted" style="font-size: 10.5px;">${esc(p.position)}</small>
+            </div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button onclick="editPlayer('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.number || ''}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">✏️</button>
+            <button onclick="deletePlayer('${p.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">🗑️</button>
+          </div>
+        </div>
+      `).join('') : '<div class="empty" style="padding:15px;">No hay jugadores cargados.</div>';
+    }
+
+    // --- SOLAPA DETALLE Y REGISTRO DE GOLES AGRUPADOS ---
+    async function viewMatchDetail(matchId) {
+      currentMatchIdForView = matchId;
+      populateDetailGoalSelects(); 
+      renderMatchDetail(matchId);
+      switchTab('detalle');
+    }
+
+    function renderMatchDetail(matchId) {
+      const match = matches.find(m => m.id === matchId);
+      if (!match) return;
+
+      document.getElementById('view-match-title').innerText = `Vs ${match.opponent}`;
+      document.getElementById('view-match-info').innerHTML = `
+        📅 Fecha: ${date(match.match_date)} &nbsp;·&nbsp; 
+        📍 Cancha: ${esc(match.venue || 'No especificada')}<br>
+        📊 Resultado Final: <b>${match.status === 'Jugado' ? `${match.goals_for} - ${match.goals_against}` : 'Pendiente'}</b>
+      `;
+
+      const matchGoals = goals.filter(g => g.match_id === matchId);
+      const goalsListDiv = document.getElementById('view-goals-list');
+      
+      const totalGoalsFor = Number(match.goals_for || 0);
+      const registeredGoalsCount = matchGoals.length;
+      const counterPill = document.getElementById('goals-counter-pill');
+      
+      if (registeredGoalsCount === totalGoalsFor) {
+        counterPill.className = "pill badge-win";
+        counterPill.innerText = `✅ ${registeredGoalsCount} / ${totalGoalsFor} Goles anotados`;
+      } else if (registeredGoalsCount > totalGoalsFor) {
+        counterPill.className = "pill badge-loss";
+        counterPill.innerText = `⚠️ Hay ${registeredGoalsCount} anotados (Sobran)`;
+      } else {
+        counterPill.className = "pill badge-draw";
+        counterPill.innerText = `⚠️ Faltan anotar (${registeredGoalsCount} / ${totalGoalsFor})`;
+      }
+
+      if (matchGoals.length > 0) {
+        const groupedMap = {};
+        matchGoals.forEach(g => {
+          if (!groupedMap[g.scorer_id]) {
+            groupedMap[g.scorer_id] = { count: 0, assists: [] };
+          }
+          groupedMap[g.scorer_id].count += 1;
+          if (g.assist_id) {
+            groupedMap[g.scorer_id].assists.push(name(g.assist_id));
+          }
+        });
+
+        goalsListDiv.innerHTML = Object.entries(groupedMap).map(([scorerId, data]) => {
+          const scorerName = name(scorerId);
+          const assistsText = data.assists.length ? `<br><small class="muted">Asistencias: ${data.assists.join(', ')}</small>` : '';
+          const deleteBtn = isLoggedAdmin ? `<button onclick="deleteLastGoalForPlayer('${scorerId}', '${matchId}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">🗑️ Borrar 1 Gol</button>` : '';
+
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:10px; border:1px solid var(--line);">
+              <div style="font-size: 13px;">
+                ⚽ <b>${esc(scorerName)}</b> <span class="pill" style="margin-left:6px;">x${data.count}</span>
+                ${assistsText}
+              </div>
+              ${deleteBtn}
+            </div>
+          `;
+        }).join('');
+      } else {
+        goalsListDiv.innerHTML = '<div class="empty" style="padding:20px;">No hay goles cargados para este partido todavía.</div>';
+      }
+    }
+
+    // Borrar el último gol registrado de un jugador específico en este partido
+    async function deleteLastGoalForPlayer(scorerId, matchId) {
+      if (!confirm("⚠️ ¿Querés borrar un gol de este jugador?")) return;
+      
+      const userGoals = goals.filter(g => g.match_id === matchId && g.scorer_id === scorerId);
+      if (!userGoals.length) {
+        alert("❌ Error al ubicar el gol para borrar.");
+        return;
+      }
+
+      userGoals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const goalIdToDelete = userGoals[0].id;
+
+      const { error } = await db.from('goals').delete().eq('id', goalIdToDelete);
+
+      if (error) {
+        alert("❌ Error al borrar el gol: " + error.message);
+      } else {
+        alert("🗑️ GOL descontado de la cuenta.");
+        await init(); // Sincroniza todo al instante
+      }
+    }
+
+    // Guardar gol desde la solapa de detalle
+    document.getElementById('btn-detail-save-goal').addEventListener('click', async () => {
+      if (!currentMatchIdForView) {
+        return alert("⚠️ Error: No se detectó el partido actual.");
+      }
+      
+      const scorerId = document.getElementById('detail-goal-scorer').value;
+      const assistId = document.getElementById('detail-goal-assist').value;
+
+      if (!scorerId) return alert("⚠️ Seleccioná quién hizo el gol.");
+
+      const { data: { user } } = await db.auth.getUser();
+
+      const { error } = await db.from('goals').insert([{
+        match_id: currentMatchIdForView,
+        scorer_id: scorerId,
+        assist_id: assistId ? assistId : null,
+        owner_id: user ? user.id : null
+      }]);
+
+      if (error) {
+        alert("❌ Error al anotar el gol: " + error.message);
+      } else {
+        alert("GOOOOOOL! ⚽ ¡Anotado con éxito!");
+        document.getElementById('detail-goal-scorer').value = '';
+        document.getElementById('detail-goal-assist').value = '';
+        
+        await init(); // Sincroniza todo al instante
+      }
+    });
+
+    // Cargar Jugador en Supabase
+    document.getElementById('btn-save-player').addEventListener('click', async () => {
+      const nameVal = document.getElementById('add-player-name').value;
+      const posVal = document.getElementById('add-player-pos').value;
+      const numVal = document.getElementById('add-player-num').value;
+
+      if (!nameVal) return alert("⚠️ Poné al menos el nombre del jugador.");
+
+      const { data: { user } } = await db.auth.getUser();
+
+      const { error } = await db.from('players').insert([{
+        name: nameVal,
+        position: posVal || 'Jugador',
+        number: numVal ? Number(numVal) : null,
+        owner_id: user ? user.id : null
+      }]);
+
+      if (error) {
+        alert("❌ Error al guardar jugador: " + error.message);
+      } else {
+        alert("⚽ ¡Jugador cargado al plantel!");
+        document.getElementById('add-player-name').value = '';
+        document.getElementById('add-player-pos').value = '';
+        document.getElementById('add-player-num').value = '';
+        init();
+      }
+    });
+
+    // Cargar Partido en Supabase
+    document.getElementById('btn-save-match').addEventListener('click', async () => {
+      const opp = document.getElementById('add-match-opponent').value;
+      const mDate = document.getElementById('add-match-date').value;
+      const mTime = document.getElementById('add-match-time').value;
+      const mVenue = document.getElementById('add-match-venue').value;
+
+      if (!opp || !mDate) return alert("⚠️ Completá rival y fecha.");
+
+      const { data: { user } } = await db.auth.getUser();
+
+      const { error } = await db.from('matches').insert([{
+        opponent: opp,
+        match_date: mDate,
+        match_time: mTime || null,
+        venue: mVenue || null,
+        status: 'Programado',
+        owner_id: user ? user.id : null
+      }]);
+
+      if (error) {
+        alert("❌ Error al programar partido: " + error.message);
+      } else {
+        alert("🗓️ ¡Partido guardado en la agenda!");
+        document.getElementById('add-match-opponent').value = '';
+        document.getElementById('add-match-date').value = '';
+        document.getElementById('add-match-time').value = '';
+        document.getElementById('add-match-venue').value = '';
+        init();
+      }
+    });
+
+    // Finalizar Partido y Cargar Resultado
+    document.getElementById('btn-save-result').addEventListener('click', async () => {
+      const matchId = document.getElementById('select-match-result').value;
+      const gf = document.getElementById('res-gf').value;
+      const ga = document.getElementById('res-ga').value;
+
+      if (!matchId) return alert("⚠️ Seleccioná un partido pendiente.");
+      if (gf === '' || ga === '') return alert("⚠️ Completá los goles de ambos equipos.");
+
+      const { error } = await db.matches ? db.from('matches').update({
+        goals_for: Number(gf),
+        goals_against: Number(ga),
+        status: 'Jugado'
+      }).eq('id', matchId) : null;
+
+      // Usando sintaxis directa limpia de supabase para update de partidos
+      const { error: updateErr } = await db.from('matches').update({
+        goals_for: Number(gf),
+        goals_against: Number(ga),
+        status: 'Jugado'
+      }).eq('id', matchId);
+
+      if (updateErr) {
+        alert("❌ Error al guardar resultado: " + updateErr.message);
+      } else {
+        alert("🏆 ¡Resultado guardado y estadísticas actualizadas!");
+        document.getElementById('res-gf').value = '';
+        document.getElementById('res-ga').value = '';
+        init();
+      }
+    });
+
+    // Inicializar App y Sincronizar Directo de la Tabla de Goles
+    async function init() {
+      try {
+        const { data, error } = await db.rpc('get_malajunta_public_data');
+        if (error) throw error;
+        players = data.players || [];
+        matches = data.matches || [];
+        keepers = data.goalkeepers || [];
+
+        // 👈 TRAEMOS LOS GOLES DIRECTAMENTE DE LA TABLA PARA EVITAR CACHÉ RPC
+        const { data: freshGoals, error: goalsErr } = await db.from('goals').select('*');
+        if (goalsErr) throw goalsErr;
+        goals = freshGoals || [];
+
+        const { data: { user } } = await db.auth.getUser();
+        isLoggedAdmin = !!user;
+
+        render();
+        document.getElementById('status').classList.add('hide');
+        document.getElementById('site').classList.remove('hide');
+
+        updateAdminUI(user);
+
+        if (currentMatchIdForView) {
+          renderMatchDetail(currentMatchIdForView);
+        }
+
+      } catch (e) {
+        document.getElementById('status').innerHTML = `<div class="error">❌ Error al cargar datos.<br><small>${esc(e.message || e)}</small></div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
