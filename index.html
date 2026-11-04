@@ -347,6 +347,7 @@ let tournaments = [];
 let tournamentTeams = [];
 let tournamentMatches = [];
 let activeTournamentId = null;
+let tournamentView = 'list';
 
 function tournamentTeam(id) {
   return tournamentTeams.find(t => t.id === id)?.name || 'Por definir';
@@ -374,16 +375,24 @@ async function loadTournaments() {
   renderTournaments();
 }
 
-function tournamentAdmin() {
+function tournamentCreateForm() {
   if (!isLoggedAdmin) return '';
+
   return `
     <div class="section card" style="border-color:var(--green)">
-      <h2>⚙️ Administración del torneo</h2>
+      <h2>➕ Crear campeonato</h2>
       <input id="new-tournament-name" class="input-field" placeholder="Nombre del torneo">
       <input id="new-tournament-season" class="input-field" placeholder="Temporada (ej. 2026)">
       <button class="btn-action" onclick="createTournament()">Crear torneo</button>
+    </div>`;
+}
 
-      <hr style="border-color:var(--line); margin:18px 0">
+function tournamentAdmin() {
+  if (!isLoggedAdmin) return '';
+
+  return `
+    <div class="section card" style="border-color:var(--green)">
+      <h2>⚙️ Administración del torneo</h2>
 
       <h3>Agregar equipo</h3>
       <input id="new-team-name" class="input-field" placeholder="Nombre del equipo">
@@ -407,37 +416,91 @@ function renderTournaments() {
   const root = document.getElementById('tournament-public');
   if (!root) return;
 
-  if (!tournaments.length) {
+  // PANTALLA PRINCIPAL: LISTA DE TORNEOS
+  if (tournamentView === 'list' || !activeTournamentId) {
     root.innerHTML = `
-      <div class="empty">Todavía no hay torneos creados.</div>
-      ${tournamentAdmin()}`;
+      <div class="section">
+        <h2 style="color:var(--green)">🏆 Campeonatos</h2>
+        <p class="muted" style="font-size:12px">
+          Seleccioná un torneo para ver sus equipos, partidos y resultados.
+        </p>
+      </div>
+
+      ${tournamentCreateForm()}
+
+      ${tournaments.length ? `
+        <div style="display:flex; flex-direction:column; gap:10px">
+          ${tournaments.map(t => {
+            const teamCount = tournamentTeams.filter(x => x.tournament_id === t.id).length;
+            const matchCount = tournamentMatches.filter(x => x.tournament_id === t.id).length;
+
+            return `
+              <button onclick="openTournament('${t.id}')"
+                style="width:100%; text-align:left; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px; background:var(--panel); color:var(--white); border:1px solid var(--line); border-radius:14px; cursor:pointer">
+
+                <div style="min-width:0">
+                  <div style="font-size:16px; font-weight:900; margin-bottom:5px">
+                    🏆 ${esc(t.name)}
+                  </div>
+                  <div class="muted" style="font-size:11px">
+                    ${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}
+                    ${teamCount} equipos · ${matchCount} partidos
+                  </div>
+                  <div style="margin-top:9px">
+                    <span class="pill">${esc(t.status || 'En curso')}</span>
+                  </div>
+                </div>
+
+                <span style="font-size:23px; color:var(--green)">›</span>
+              </button>`;
+          }).join('')}
+        </div>
+      ` : `
+        <div class="empty">
+          Todavía no hay torneos creados.
+        </div>
+      `}
+    `;
+
     return;
   }
 
+  // PANTALLA INTERNA DEL TORNEO
   const t = tournaments.find(x => x.id === activeTournamentId);
-  if (!t) return;
+
+  if (!t) {
+    tournamentView = 'list';
+    renderTournaments();
+    return;
+  }
 
   const teams = tournamentTeams.filter(x => x.tournament_id === t.id);
   const matches = tournamentMatches.filter(x => x.tournament_id === t.id);
-
   const groups = [...new Set(teams.map(x => x.group_name || 'Sin zona'))];
 
   root.innerHTML = `
-    <div class="section">
-      <label class="muted">Seleccionar campeonato</label>
-      <select class="input-field" onchange="selectTournament(this.value)">
-        ${tournaments.map(x => `
-          <option value="${x.id}" ${x.id === t.id ? 'selected' : ''}>
-            ${esc(x.name)} ${x.season ? '· ' + esc(x.season) : ''}
-          </option>`).join('')}
-      </select>
-      <h2 style="color:var(--green)">${esc(t.name)}</h2>
-      <span class="pill">${esc(t.status || 'En curso')}</span>
+    <button onclick="backToTournaments()"
+      style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:9px 13px; border-radius:9px; cursor:pointer; font-weight:800; margin-bottom:14px">
+      ← Volver a torneos
+    </button>
+
+    <div class="card" style="border-color:var(--green); margin-bottom:14px">
+      <div class="eyebrow">CAMPEONATO</div>
+      <h2 style="font-size:22px; margin:6px 0; color:var(--green)">
+        🏆 ${esc(t.name)}
+      </h2>
+      <div class="muted" style="font-size:12px">
+        ${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}
+        ${teams.length} equipos · ${matches.length} partidos
+      </div>
+      <div style="margin-top:10px">
+        <span class="pill">${esc(t.status || 'En curso')}</span>
+      </div>
     </div>
 
     ${tournamentAdmin()}
 
-    ${groups.map(group => {
+    ${teams.length ? groups.map(group => {
       const groupTeams = teams.filter(x => (x.group_name || 'Sin zona') === group);
       const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
       const table = calculateGroupTable(groupTeams, groupMatches);
@@ -445,26 +508,39 @@ function renderTournaments() {
       return `
         <div class="section card">
           <h2>🟢 Zona ${esc(group)}</h2>
+
           <div class="table-wrap">
             <table style="min-width:520px">
               <thead>
-                <tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr>
+                <tr>
+                  <th>#</th><th>Equipo</th><th>PJ</th><th>PG</th>
+                  <th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th>
+                </tr>
               </thead>
               <tbody>
                 ${table.map((r,i) => `
                   <tr>
-                    <td>${i+1}</td><td><b>${esc(r.name)}</b></td>
+                    <td>${i+1}</td>
+                    <td><b>${esc(r.name)}</b></td>
                     <td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td>
                     <td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td>
-                    <td>${r.dg}</td><td><b style="color:var(--green)">${r.pts}</b></td>
-                  </tr>`).join('')}
+                    <td>${r.dg}</td>
+                    <td><b style="color:var(--green)">${r.pts}</b></td>
+                  </tr>
+                `).join('')}
               </tbody>
             </table>
           </div>
+
           <h3>Partidos de zona</h3>
           ${renderTournamentMatches(groupMatches)}
         </div>`;
-    }).join('')}
+    }).join('') : `
+      <div class="card empty">
+        Todavía no hay equipos cargados en este torneo.
+        ${isLoggedAdmin ? '<br>Podés agregarlos desde Administración del torneo.' : ''}
+      </div>
+    `}
 
     <div class="section card">
       <h2>🏆 Eliminatorias</h2>
@@ -472,6 +548,18 @@ function renderTournaments() {
     </div>`;
 }
 
+function openTournament(id) {
+  activeTournamentId = id;
+  tournamentView = 'detail';
+  renderTournaments();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function backToTournaments() {
+  tournamentView = 'list';
+  renderTournaments();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 function calculateGroupTable(teams, matches) {
   const rows = teams.map(t => ({
     id:t.id, name:t.name, pj:0, pg:0, pe:0, pp:0,
@@ -530,8 +618,7 @@ function renderTournamentMatches(matches) {
 }
 
 async function selectTournament(id) {
-  activeTournamentId = id;
-  renderTournaments();
+  openTournament(id);
 }
 
 async function createTournament() {
@@ -549,9 +636,10 @@ async function createTournament() {
 
   if (error) return alert('Error: ' + error.message);
 
-  activeTournamentId = data.id;
-  await loadTournaments();
-  alert('🏆 Torneo creado.');
+ activeTournamentId = data.id;
+tournamentView = 'detail';
+await loadTournaments();
+alert('🏆 Torneo creado.');
 }
 
 async function addTournamentTeam() {
