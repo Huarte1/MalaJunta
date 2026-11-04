@@ -390,27 +390,89 @@ function tournamentCreateForm() {
 function tournamentAdmin() {
   if (!isLoggedAdmin) return '';
 
+  const teams = tournamentTeams.filter(
+    x => x.tournament_id === activeTournamentId
+  );
+
+  const groups = [...new Set(teams.map(x => x.group_name || 'A'))];
+
   return `
     <div class="section card" style="border-color:var(--green)">
-      <h2>⚙️ Administración del torneo</h2>
+      <h2>⚙️ Administrar campeonato</h2>
 
-      <h3>Agregar equipo</h3>
-      <input id="new-team-name" class="input-field" placeholder="Nombre del equipo">
-      <input id="new-team-group" class="input-field" placeholder="Zona (ej. A, B, C)">
-      <button class="btn-action" onclick="addTournamentTeam()">Agregar equipo</button>
+      <div style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px">
+        <h3 style="margin-top:0">👥 1. Cargar equipos</h3>
+        <p class="muted" style="font-size:11px; line-height:1.5">
+          Escribí un equipo por línea. Podés indicar la zona después de un guion.
+          Si no indicás zona, se asignará a la Zona A.
+        </p>
 
-      <hr style="border-color:var(--line); margin:18px 0">
+        <textarea
+          id="bulk-team-list"
+          class="input-field"
+          rows="7"
+          placeholder="Ejemplo:
+MalaJunta - A
+Los Pibes - A
+La Quinta - B
+Pelusa FC - B"
+          style="resize:vertical; line-height:1.7"
+        ></textarea>
 
-      <h3>Fixture de zonas</h3>
-      <button class="btn-action" onclick="generateGroupFixtures()">⚽ Generar partidos de zonas</button>
+        <button class="btn-action" onclick="addTournamentTeamsBulk()">
+          ➕ Cargar todos los equipos
+        </button>
+      </div>
 
-      <hr style="border-color:var(--line); margin:18px 0">
+      <div style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px">
+        <h3 style="margin-top:0">📋 Equipos cargados (${teams.length})</h3>
 
-      <h3>Clasificación</h3>
-      <input id="qualifiers-per-group" type="number" min="1" value="2" class="input-field" placeholder="Clasificados por zona">
-      <button class="btn-action" onclick="generateKnockout()">🏆 Generar eliminatorias</button>
-    </div>`;
-}
+        ${groups.length ? groups.map(group => {
+          const list = teams.filter(x => (x.group_name || 'A') === group);
+
+          return `
+            <div style="margin-bottom:12px">
+              <div style="color:var(--green); font-size:12px; font-weight:900; margin-bottom:6px">
+                ZONA ${esc(group)} · ${list.length} equipos
+              </div>
+              ${list.map((team, i) => `
+                <div style="padding:8px 10px; background:var(--panel); border:1px solid var(--line); border-radius:7px; margin-bottom:5px; font-size:12px">
+                  ${i + 1}. <b>${esc(team.name)}</b>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }).join('') : '<div class="muted">Todavía no hay equipos cargados.</div>'}
+      </div>
+
+      <div style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px">
+        <h3 style="margin-top:0">⚽ 2. Generar fixture</h3>
+        <p class="muted" style="font-size:11px">
+          Se crearán automáticamente los partidos entre todos los equipos de cada zona.
+        </p>
+        <button class="btn-action" onclick="generateGroupFixtures()">
+          ⚽ Generar partidos de zonas
+        </button>
+      </div>
+
+      <div style="background:var(--panel2); padding:12px; border-radius:10px">
+        <h3 style="margin-top:0">🏆 3. Clasificación y eliminatorias</h3>
+        <label class="muted" style="font-size:11px">¿Cuántos equipos clasifican por zona?</label>
+        <input
+          id="qualifiers-per-group"
+          type="number"
+          min="1"
+          value="2"
+          class="input-field"
+          placeholder="Clasificados por zona"
+        >
+        <button class="btn-action" onclick="generateKnockout()">
+          🏆 Generar eliminatorias
+        </button>
+      </div>
+    </div>
+  `;
+}}
 
 function renderTournaments() {
   const root = document.getElementById('tournament-public');
@@ -642,28 +704,87 @@ await loadTournaments();
 alert('🏆 Torneo creado.');
 }
 
-async function addTournamentTeam() {
-  if (!isLoggedAdmin || !activeTournamentId) return alert('Seleccioná un torneo.');
+async function addTournamentTeamsBulk() {
+  if (!isLoggedAdmin || !activeTournamentId) {
+    return alert('Seleccioná un torneo.');
+  }
 
-  const name = document.getElementById('new-team-name').value.trim();
-  const group = document.getElementById('new-team-group').value.trim().toUpperCase();
+  const textarea = document.getElementById('bulk-team-list');
+  const lines = textarea.value
+    .split('\n')
+    .map(x => x.trim())
+    .filter(Boolean);
 
-  if (!name || !group) return alert('Completá el equipo y la zona.');
+  if (!lines.length) {
+    return alert('Escribí al menos un equipo.');
+  }
 
-  const { data:{user} } = await db.auth.getUser();
-  const { error } = await db.from('tournament_teams').insert({
-    tournament_id:activeTournamentId,
-    owner_id:user.id,
-    name,
-    group_name:group
+  const teamsToAdd = [];
+
+  lines.forEach(line => {
+    const parts = line.split(/\s+-\s+|\s+\|\s+/);
+
+    const name = parts[0].trim();
+    const group = (parts[1] || 'A').trim().toUpperCase();
+
+    if (!name) return;
+
+    teamsToAdd.push({
+      name,
+      group_name: group
+    });
   });
 
-  if (error) return alert('Error: ' + error.message);
+  if (!teamsToAdd.length) {
+    return alert('No se encontraron equipos válidos.');
+  }
+
+  const existingNames = tournamentTeams
+    .filter(x => x.tournament_id === activeTournamentId)
+    .map(x => x.name.trim().toLowerCase());
+
+  const uniqueTeams = [];
+  const seen = new Set(existingNames);
+
+  teamsToAdd.forEach(team => {
+    const key = team.name.toLowerCase();
+
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueTeams.push(team);
+    }
+  });
+
+  if (!uniqueTeams.length) {
+    return alert('Esos equipos ya están cargados en este torneo.');
+  }
+
+  const { data: { user } } = await db.auth.getUser();
+
+  const records = uniqueTeams.map(team => ({
+    tournament_id: activeTournamentId,
+    owner_id: user.id,
+    name: team.name,
+    group_name: team.group_name
+  }));
+
+  const { error } = await db
+    .from('tournament_teams')
+    .insert(records);
+
+  if (error) {
+    return alert('Error al cargar equipos: ' + error.message);
+  }
+
+  textarea.value = '';
 
   await loadTournaments();
-  alert('Equipo agregado.');
-}
 
+  alert(
+    '✅ Se cargaron ' + uniqueTeams.length +
+    ' equipos correctamente.'
+  );
+}
 async function generateGroupFixtures() {
   if (!isLoggedAdmin || !activeTournamentId) return;
 
