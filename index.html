@@ -26,7 +26,7 @@
       color: var(--white); 
       font: 14px Inter, system-ui, -apple-system, sans-serif; 
       -webkit-font-smoothing: antialiased; 
-      padding-bottom: 75px;
+      padding-bottom: 110px;
     }
     .wrap { max-width: 1120px; margin: auto; padding: 16px 14px 40px; }
     
@@ -60,37 +60,89 @@
     .badge-draw { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
     .badge-invicto { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
 
-    .tabs { 
-      position: fixed; 
-      bottom: 0; 
-      left: 0; 
-      right: 0; 
-      background: rgba(17, 23, 19, 0.95); 
-      backdrop-filter: blur(12px); 
-      -webkit-backdrop-filter: blur(12px); 
-      border-top: 1px solid var(--line); 
-      display: grid; 
-      grid-template-columns: repeat(4, 1fr); 
-      padding: 8px 6px; 
-      gap: 4px; 
-      z-index: 1000; 
-    }
-    .tabs.admin-active { grid-template-columns: repeat(5, 1fr); }
-    .tabs button { 
-      background: transparent; 
-      color: var(--muted); 
-      border: 0; 
-      padding: 8px 2px; 
-      border-radius: 8px; 
-      font-weight: 750; 
-      cursor: pointer; 
-      font-size: 10px; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: 3px; 
-    }
-    .tabs button.active { background: var(--panel2); color: var(--green); border: 1px solid var(--line); }
+   
+/* BARRA DE NAVEGACIÓN PREMIUM */
+.tabs {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 650px;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 8px;
+  background: rgba(12, 18, 14, .94);
+  border: 1px solid rgba(166, 230, 91, .16);
+  border-radius: 20px;
+  box-shadow: 0 10px 35px rgba(0,0,0,.5);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.tabs.admin-active {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.tabs button {
+  min-width: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #9aa79d;
+  padding: 9px 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.tabs button span {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.tabs button.active {
+  background: rgba(166, 230, 91, .13);
+  color: #a6e65b;
+  border: 1px solid rgba(166, 230, 91, .18);
+}
+
+.tabs button:active {
+  transform: scale(.94);
+}
+
+/* ESCRITORIO */
+@media (min-width: 768px) {
+  .tabs {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    width: auto;
+    min-width: 550px;
+    max-width: 650px;
+    margin: 20px auto;
+    background: rgba(12, 18, 14, .94);
+    border: 1px solid rgba(166, 230, 91, .16);
+  }
+
+  .tabs button {
+    padding: 10px 8px;
+  }
+
+  .tabs button.active {
+    background: rgba(166, 230, 91, .13);
+    color: #a6e65b;
+  }
+}
 
     .tab-content { animation: fadeIn 0.25s ease-out; }
     @keyframes fadeIn {
