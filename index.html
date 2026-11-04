@@ -176,6 +176,7 @@
         <button class="active" data-tab="resumen"><span>📊</span>Resumen</button>
         <button data-tab="plantel"><span>🏃‍♂️</span>Plantel</button>
         <button data-tab="partidos"><span>⚽</span>Partidos</button>
+<button data-tab="torneos"><span>🏆</span>Torneos</button>
         <button data-tab="estadisticas"><span>📈</span>Números</button>
         <button data-tab="admin" id="nav-admin-tab" class="hide"><span>📋</span>Panel DT</button>
       </nav>
@@ -184,7 +185,14 @@
       <section id="plantel" class="tab-content hide"></section>
       <section id="partidos" class="tab-content hide"></section>
       <section id="estadisticas" class="tab-content hide"></section>
-      
+      <section id="torneos" class="tab-content hide">
+  <div class="card">
+    <h2>🏆 Campeonatos MalaJunta</h2>
+    <p class="muted">Torneos independientes de las estadísticas generales del club.</p>
+    <div id="tournament-public"></div>
+  </div>
+</section>
+
       <!-- SOLAPA DETALLE DE PARTIDO Y CONTROL DE GOLES -->
       <section id="detalle" class="tab-content hide">
         <div class="card" style="margin-bottom: 12px;">
@@ -283,6 +291,363 @@
     let players = [], matches = [], goals = [], keepers = [];
     let isLoggedAdmin = false;
     let currentMatchIdForView = null;
+let tournaments = [];
+let tournamentTeams = [];
+let tournamentMatches = [];
+let activeTournamentId = null;
+
+function tournamentTeam(id) {
+  return tournamentTeams.find(t => t.id === id)?.name || 'Por definir';
+}
+
+async function loadTournaments() {
+  const [t, teams, matches] = await Promise.all([
+    db.from('tournaments').select('*').order('created_at', { ascending: false }),
+    db.from('tournament_teams').select('*').order('name'),
+    db.from('tournament_matches').select('*').order('created_at')
+  ]);
+
+  if (t.error) throw t.error;
+  if (teams.error) throw teams.error;
+  if (matches.error) throw matches.error;
+
+  tournaments = t.data || [];
+  tournamentTeams = teams.data || [];
+  tournamentMatches = matches.data || [];
+
+  if (!activeTournamentId || !tournaments.some(x => x.id === activeTournamentId)) {
+    activeTournamentId = tournaments[0]?.id || null;
+  }
+
+  renderTournaments();
+}
+
+function tournamentAdmin() {
+  if (!isLoggedAdmin) return '';
+  return `
+    <div class="section card" style="border-color:var(--green)">
+      <h2>⚙️ Administración del torneo</h2>
+      <input id="new-tournament-name" class="input-field" placeholder="Nombre del torneo">
+      <input id="new-tournament-season" class="input-field" placeholder="Temporada (ej. 2026)">
+      <button class="btn-action" onclick="createTournament()">Crear torneo</button>
+
+      <hr style="border-color:var(--line); margin:18px 0">
+
+      <h3>Agregar equipo</h3>
+      <input id="new-team-name" class="input-field" placeholder="Nombre del equipo">
+      <input id="new-team-group" class="input-field" placeholder="Zona (ej. A, B, C)">
+      <button class="btn-action" onclick="addTournamentTeam()">Agregar equipo</button>
+
+      <hr style="border-color:var(--line); margin:18px 0">
+
+      <h3>Fixture de zonas</h3>
+      <button class="btn-action" onclick="generateGroupFixtures()">⚽ Generar partidos de zonas</button>
+
+      <hr style="border-color:var(--line); margin:18px 0">
+
+      <h3>Clasificación</h3>
+      <input id="qualifiers-per-group" type="number" min="1" value="2" class="input-field" placeholder="Clasificados por zona">
+      <button class="btn-action" onclick="generateKnockout()">🏆 Generar eliminatorias</button>
+    </div>`;
+}
+
+function renderTournaments() {
+  const root = document.getElementById('tournament-public');
+  if (!root) return;
+
+  if (!tournaments.length) {
+    root.innerHTML = `
+      <div class="empty">Todavía no hay torneos creados.</div>
+      ${tournamentAdmin()}`;
+    return;
+  }
+
+  const t = tournaments.find(x => x.id === activeTournamentId);
+  if (!t) return;
+
+  const teams = tournamentTeams.filter(x => x.tournament_id === t.id);
+  const matches = tournamentMatches.filter(x => x.tournament_id === t.id);
+
+  const groups = [...new Set(teams.map(x => x.group_name || 'Sin zona'))];
+
+  root.innerHTML = `
+    <div class="section">
+      <label class="muted">Seleccionar campeonato</label>
+      <select class="input-field" onchange="selectTournament(this.value)">
+        ${tournaments.map(x => `
+          <option value="${x.id}" ${x.id === t.id ? 'selected' : ''}>
+            ${esc(x.name)} ${x.season ? '· ' + esc(x.season) : ''}
+          </option>`).join('')}
+      </select>
+      <h2 style="color:var(--green)">${esc(t.name)}</h2>
+      <span class="pill">${esc(t.status || 'En curso')}</span>
+    </div>
+
+    ${tournamentAdmin()}
+
+    ${groups.map(group => {
+      const groupTeams = teams.filter(x => (x.group_name || 'Sin zona') === group);
+      const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
+      const table = calculateGroupTable(groupTeams, groupMatches);
+
+      return `
+        <div class="section card">
+          <h2>🟢 Zona ${esc(group)}</h2>
+          <div class="table-wrap">
+            <table style="min-width:520px">
+              <thead>
+                <tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr>
+              </thead>
+              <tbody>
+                ${table.map((r,i) => `
+                  <tr>
+                    <td>${i+1}</td><td><b>${esc(r.name)}</b></td>
+                    <td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td>
+                    <td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td>
+                    <td>${r.dg}</td><td><b style="color:var(--green)">${r.pts}</b></td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+          <h3>Partidos de zona</h3>
+          ${renderTournamentMatches(groupMatches)}
+        </div>`;
+    }).join('')}
+
+    <div class="section card">
+      <h2>🏆 Eliminatorias</h2>
+      ${renderTournamentMatches(matches.filter(x => x.phase === 'Eliminatorias'))}
+    </div>`;
+}
+
+function calculateGroupTable(teams, matches) {
+  const rows = teams.map(t => ({
+    id:t.id, name:t.name, pj:0, pg:0, pe:0, pp:0,
+    gf:0, gc:0, dg:0, pts:0
+  }));
+
+  matches.filter(m => m.status === 'Jugado').forEach(m => {
+    const home = rows.find(x => x.id === m.home_team_id);
+    const away = rows.find(x => x.id === m.away_team_id);
+    if (!home || !away) return;
+
+    const hg = Number(m.home_goals);
+    const ag = Number(m.away_goals);
+
+    home.pj++; away.pj++;
+    home.gf += hg; home.gc += ag;
+    away.gf += ag; away.gc += hg;
+
+    if (hg > ag) { home.pg++; home.pts += 3; away.pp++; }
+    else if (hg < ag) { away.pg++; away.pts += 3; home.pp++; }
+    else { home.pe++; away.pe++; home.pts++; away.pts++; }
+  });
+
+  rows.forEach(r => r.dg = r.gf - r.gc);
+
+  return rows.sort((a,b) =>
+    b.pts-a.pts || b.dg-a.dg || b.gf-a.gf || a.name.localeCompare(b.name)
+  );
+}
+
+function renderTournamentMatches(matches) {
+  if (!matches.length) return '<div class="empty">Todavía no hay partidos.</div>';
+
+  return `<div style="display:flex; flex-direction:column; gap:9px">
+    ${matches.map(m => `
+      <div style="background:var(--panel2); border:1px solid var(--line); padding:11px; border-radius:10px">
+        <div style="display:flex; justify-content:space-between; gap:8px; align-items:center">
+          <div style="flex:1">
+            <b>${esc(tournamentTeam(m.home_team_id))}</b>
+            <span class="muted"> vs </span>
+            <b>${esc(tournamentTeam(m.away_team_id))}</b>
+            <div class="muted" style="font-size:10px">${esc(m.round_name || m.group_name || 'Fase de grupos')}</div>
+          </div>
+          <div style="font-size:18px; font-weight:900; white-space:nowrap">
+            ${m.status === 'Jugado' ? `${m.home_goals} - ${m.away_goals}` : ' - '}
+          </div>
+        </div>
+        ${isLoggedAdmin ? `
+          <div style="display:flex; gap:6px; margin-top:9px">
+            <input id="tg-home-${m.id}" type="number" min="0" class="input-field" style="margin:0" placeholder="Local" value="${m.home_goals ?? ''}">
+            <input id="tg-away-${m.id}" type="number" min="0" class="input-field" style="margin:0" placeholder="Visitante" value="${m.away_goals ?? ''}">
+            <button class="btn-action" style="width:auto; margin:0" onclick="saveTournamentResult('${m.id}')">Guardar</button>
+          </div>` : ''}
+      </div>`).join('')}
+  </div>`;
+}
+
+async function selectTournament(id) {
+  activeTournamentId = id;
+  renderTournaments();
+}
+
+async function createTournament() {
+  if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
+
+  const name = document.getElementById('new-tournament-name').value.trim();
+  const season = document.getElementById('new-tournament-season').value.trim();
+
+  if (!name) return alert('Poné un nombre al torneo.');
+
+  const { data:{user} } = await db.auth.getUser();
+  const { data, error } = await db.from('tournaments').insert({
+    name, season, owner_id:user.id
+  }).select().single();
+
+  if (error) return alert('Error: ' + error.message);
+
+  activeTournamentId = data.id;
+  await loadTournaments();
+  alert('🏆 Torneo creado.');
+}
+
+async function addTournamentTeam() {
+  if (!isLoggedAdmin || !activeTournamentId) return alert('Seleccioná un torneo.');
+
+  const name = document.getElementById('new-team-name').value.trim();
+  const group = document.getElementById('new-team-group').value.trim().toUpperCase();
+
+  if (!name || !group) return alert('Completá el equipo y la zona.');
+
+  const { data:{user} } = await db.auth.getUser();
+  const { error } = await db.from('tournament_teams').insert({
+    tournament_id:activeTournamentId,
+    owner_id:user.id,
+    name,
+    group_name:group
+  });
+
+  if (error) return alert('Error: ' + error.message);
+
+  await loadTournaments();
+  alert('Equipo agregado.');
+}
+
+async function generateGroupFixtures() {
+  if (!isLoggedAdmin || !activeTournamentId) return;
+
+  const teams = tournamentTeams.filter(x => x.tournament_id === activeTournamentId);
+  const groups = [...new Set(teams.map(x => x.group_name || 'Sin zona'))];
+
+  if (!teams.length) return alert('Primero agregá equipos.');
+
+  const existing = tournamentMatches.filter(x =>
+    x.tournament_id === activeTournamentId && x.phase === 'Grupos'
+  );
+
+  if (existing.length) {
+    return alert('Ya hay partidos de zonas generados. No se duplicaron.');
+  }
+
+  const { data:{user} } = await db.auth.getUser();
+  const fixtures = [];
+
+  groups.forEach(group => {
+    const list = teams.filter(x => (x.group_name || 'Sin zona') === group);
+    for (let i=0; i<list.length; i++) {
+      for (let j=i+1; j<list.length; j++) {
+        fixtures.push({
+          tournament_id:activeTournamentId,
+          owner_id:user.id,
+          home_team_id:list[i].id,
+          away_team_id:list[j].id,
+          phase:'Grupos',
+          group_name:group,
+          status:'Programado'
+        });
+      }
+    }
+  });
+
+  if (!fixtures.length) return alert('No hay suficientes equipos para armar partidos.');
+
+  const { error } = await db.from('tournament_matches').insert(fixtures);
+  if (error) return alert('Error: ' + error.message);
+
+  await loadTournaments();
+  alert('Fixture generado correctamente.');
+}
+
+async function saveTournamentResult(id) {
+  if (!isLoggedAdmin) return;
+
+  const hg = document.getElementById('tg-home-' + id).value;
+  const ag = document.getElementById('tg-away-' + id).value;
+
+  if (hg === '' || ag === '') return alert('Completá ambos resultados.');
+
+  const home = Number(hg), away = Number(ag);
+  if (!Number.isInteger(home) || home < 0 || !Number.isInteger(away) || away < 0) {
+    return alert('Ingresá goles válidos.');
+  }
+
+  const { error } = await db.from('tournament_matches').update({
+    home_goals:home,
+    away_goals:away,
+    status:'Jugado'
+  }).eq('id',id);
+
+  if (error) return alert('Error: ' + error.message);
+
+  await loadTournaments();
+}
+
+async function generateKnockout() {
+  if (!isLoggedAdmin || !activeTournamentId) return;
+
+  const perGroup = Number(document.getElementById('qualifiers-per-group').value);
+  if (!Number.isInteger(perGroup) || perGroup < 1) return alert('Indicá cuántos clasifican.');
+
+  const teams = tournamentTeams.filter(x => x.tournament_id === activeTournamentId);
+  const matches = tournamentMatches.filter(x => x.tournament_id === activeTournamentId);
+
+  if (!matches.some(x => x.phase === 'Grupos')) return alert('Primero generá el fixture de zonas.');
+
+  if (matches.some(x => x.phase === 'Grupos' && x.status !== 'Jugado')) {
+    return alert('Tenés que cargar todos los resultados de la fase de grupos.');
+  }
+
+  if (matches.some(x => x.phase === 'Eliminatorias')) {
+    return alert('Ya existen eliminatorias para este torneo.');
+  }
+
+  const groups = [...new Set(teams.map(x => x.group_name || 'Sin zona'))];
+  const qualified = [];
+
+  groups.forEach(group => {
+    const groupTeams = teams.filter(x => (x.group_name || 'Sin zona') === group);
+    const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
+    const standings = calculateGroupTable(groupTeams, groupMatches);
+    qualified.push(...standings.slice(0,perGroup));
+  });
+
+  if (qualified.length < 2) return alert('Se necesitan al menos dos clasificados.');
+
+  const { data:{user} } = await db.auth.getUser();
+  const fixtures = [];
+
+  // Cruces cruzados: primero contra último, segundo contra anteúltimo.
+  for (let i=0; i<Math.floor(qualified.length/2); i++) {
+    fixtures.push({
+      tournament_id:activeTournamentId,
+      owner_id:user.id,
+      home_team_id:qualified[i].id,
+      away_team_id:qualified[qualified.length-1-i].id,
+      phase:'Eliminatorias',
+      round_name:qualified.length <= 2 ? 'Final' : 'Primera ronda',
+      status:'Programado'
+    });
+  }
+
+  if (!fixtures.length) return alert('No se pudieron crear los cruces.');
+
+  const { error } = await db.from('tournament_matches').insert(fixtures);
+  if (error) return alert('Error: ' + error.message);
+
+  await loadTournaments();
+  alert('Cruces iniciales generados. La siguiente ronda se podrá crear al completar estos partidos.');
+}
 
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const date = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'Por def.';
@@ -472,7 +837,7 @@
     }
 
     function switchTab(tabId) {
-      ['resumen', 'plantel', 'partidos', 'estadisticas', 'admin', 'detalle'].forEach(id => {
+      ['resumen', 'plantel', 'partidos', 'estadisticas', 'torneos', 'admin', 'detalle'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.classList.toggle('hide', id !== tabId);
       });
@@ -912,11 +1277,12 @@ document.getElementById('btn-save-result').addEventListener('click', async () =>
 
         const { data: { user } } = await db.auth.getUser();
         isLoggedAdmin = !!user;
+await loadTournaments();
 
         render();
         document.getElementById('status').classList.add('hide');
         document.getElementById('site').classList.remove('hide');
-
+renderTournaments();
         updateAdminUI(user);
 
         if (currentMatchIdForView) {
