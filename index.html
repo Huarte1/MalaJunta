@@ -584,12 +584,25 @@
       }
     }
 
-    async function editMatch(id, currentOpponent, currentDate, currentVenue) {
-  const newTime = prompt("Editar Horario:", currentTime || '');
+ async function editMatch(id, currentOpponent, currentDate, currentVenue) {
+  const currentMatch = matches.find(m => String(m.id) === String(id));
+  if (!currentMatch) return alert("No se encontró el partido.");
+
+  const newOpponent = prompt("Editar Rival:", currentOpponent || '');
+  if (newOpponent === null) return;
+
+  const newDate = prompt("Editar Fecha (AAAA-MM-DD):", currentDate || '');
+  if (newDate === null) return;
+
+  const newTime = prompt("Editar Horario:", currentMatch.match_time || '');
   if (newTime === null) return;
 
   const newVenue = prompt("Editar Cancha / Sede:", currentVenue || '');
   if (newVenue === null) return;
+
+  if (!newOpponent.trim()) {
+    return alert("El rival no puede quedar vacío.");
+  }
 
   const { error } = await db.from('matches').update({
     opponent: newOpponent.trim(),
@@ -599,7 +612,7 @@
   }).eq('id', id);
 
   if (error) {
-    alert("❌ Error al actualizar el partido: " + error.message);
+    alert("❌ Error al actualizar: " + error.message);
   } else {
     alert("✏️ ¡Partido actualizado correctamente!");
     await init();
@@ -808,12 +821,15 @@
       }
     });
 
-    // Finalizar Partido y Cargar Resultado
-    
+// FINALIZAR PARTIDO Y GUARDAR RESULTADO
 document.getElementById('btn-save-result').addEventListener('click', async () => {
+  if (!isLoggedAdmin) {
+    return alert("⚠️ Tenés que iniciar sesión como DT.");
+  }
+
   const matchId = document.getElementById('select-match-result').value;
-  const gf = document.getElementById('res-gf').value;
-  const ga = document.getElementById('res-ga').value;
+  const gf = document.getElementById('res-gf').value.trim();
+  const ga = document.getElementById('res-ga').value.trim();
 
   if (!matchId) {
     return alert("⚠️ Seleccioná un partido pendiente.");
@@ -833,22 +849,49 @@ document.getElementById('btn-save-result').addEventListener('click', async () =>
     return alert("⚠️ Los goles deben ser números enteros positivos.");
   }
 
-  const { error } = await db.from('matches').update({
-    goals_for: goalsFor,
-    goals_against: goalsAgainst,
-    status: 'Jugado'
-  }).eq('id', matchId);
+  const btn = document.getElementById('btn-save-result');
+  btn.disabled = true;
+  btn.textContent = "Guardando resultado...";
 
-  if (error) {
-    alert("❌ Error al guardar resultado: " + error.message);
-  } else {
-    alert("🏆 ¡Resultado guardado! Las estadísticas se actualizarán.");
+  try {
+    const { data, error } = await db
+      .from('matches')
+      .update({
+        goals_for: goalsFor,
+        goals_against: goalsAgainst,
+        status: 'Jugado'
+      })
+      .eq('id', matchId)
+      .neq('status', 'Jugado')
+      .select('id, status, goals_for, goals_against')
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      throw new Error(
+        "No se actualizó ningún partido. Puede ser un problema de permisos de Supabase (RLS), o el partido ya fue finalizado."
+      );
+    }
+
+    alert("🏆 ¡PARTIDO FINALIZADO!\n\n" +
+      "MalaJunta: " + data.goals_for + "\n" +
+      "Rival: " + data.goals_against +
+      "\n\nLas estadísticas se actualizarán automáticamente.");
 
     document.getElementById('res-gf').value = '';
     document.getElementById('res-ga').value = '';
 
     await init();
     switchTab('partidos');
+
+  } catch (error) {
+    console.error("Error al finalizar partido:", error);
+    alert("❌ No se pudo finalizar el partido:\n" + error.message);
+
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Finalizar y Guardar Resultado";
   }
 });
 
