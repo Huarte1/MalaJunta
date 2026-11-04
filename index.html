@@ -670,8 +670,8 @@ function renderTournaments() {
   ${matches.some(x => x.phase === 'Eliminatorias') ? '' :
     '<div class="empty">Las eliminatorias todavía no fueron generadas.</div>'}
 </div>
+  `;
 }
-
 
 function tournamentManagementButtons(t) {
   if (!isLoggedAdmin) return '';
@@ -1081,6 +1081,25 @@ function getNextRoundName(currentRound) {
   return next[currentRound] || null;
 }
 
+
+function getRoundName(numberOfTeams) {
+  if (numberOfTeams === 2) return 'Final';
+  if (numberOfTeams === 4) return 'Semifinal';
+  if (numberOfTeams === 8) return 'Cuartos de final';
+  if (numberOfTeams === 16) return 'Octavos de final';
+  return null;
+}
+
+function getNextRoundName(currentRound) {
+  const next = {
+    'Octavos de final': 'Cuartos de final',
+    'Cuartos de final': 'Semifinal',
+    'Semifinal': 'Final'
+  };
+
+  return next[currentRound] || null;
+}
+
 async function generateKnockout() {
   if (!isLoggedAdmin || !activeTournamentId) return;
 
@@ -1117,7 +1136,7 @@ async function generateKnockout() {
   const groups = [...new Set(teams.map(x => x.group_name || 'A'))];
   const qualified = [];
 
-  groups.forEach(group => {
+  for (const group of groups) {
     const groupTeams = teams.filter(
       x => (x.group_name || 'A') === group
     );
@@ -1128,149 +1147,27 @@ async function generateKnockout() {
 
     const standings = calculateGroupTable(groupTeams, groupResults);
 
+    if (standings.length < perGroup) {
+      return alert('La zona ' + group + ' no tiene suficientes equipos.');
+    }
+
     qualified.push(...standings.slice(0, perGroup));
-  });
+  }
 
   const total = qualified.length;
-
-  if (![2, 4, 8, 16].includes(total)) {
-    return alert(
-      'La cantidad de clasificados es ' + total +
-      '. Para crear una llave completa necesitás 2, 4, 8 o 16 equipos.\n\n' +
-      'Modificá la cantidad que clasifica por zona.'
-    );
-  }
-
-
-async function advanceTournamentRound() {
-  if (!isLoggedAdmin || !activeTournamentId) return;
-
-  const knockoutMatches = tournamentMatches.filter(
-    x => x.tournament_id === activeTournamentId &&
-         x.phase === 'Eliminatorias'
-  );
-
-  if (!knockoutMatches.length) return;
-
-  const rounds = [
-    'Octavos de final',
-    'Cuartos de final',
-    'Semifinal',
-    'Final'
-  ];
-
-  const currentRound = rounds.find(round =>
-    knockoutMatches.some(m => m.round_name === round) &&
-    knockoutMatches
-      .filter(m => m.round_name === round)
-      .some(m => m.status !== 'Jugado')
-  );
-
-  if (!currentRound) return;
-
-  const currentMatches = knockoutMatches.filter(
-    m => m.round_name === currentRound
-  );
-
-  if (currentMatches.some(m => m.status !== 'Jugado')) return;
-
-  // No avanzar si hay un empate sin definición por penales.
-  if (currentMatches.some(m =>
-    Number(m.home_goals) === Number(m.away_goals)
-  )) {
-    return alert(
-      'Hay un empate en ' + currentRound +
-      '. Necesitás definir quién gana por penales antes de avanzar.'
-    );
-  }
-
-  const winners = [];
-  const losers = [];
-
-  currentMatches.forEach(m => {
-    const homeWins = Number(m.home_goals) > Number(m.away_goals);
-
-    winners.push(homeWins ? m.home_team_id : m.away_team_id);
-    losers.push(homeWins ? m.away_team_id : m.home_team_id);
-  });
-
-  if (currentRound === 'Final') {
-    const championId = winners[0];
-    const champion = tournamentTeam(championId);
-
-    await db.from('tournaments').update({
-      status: 'Finalizado'
-    }).eq('id', activeTournamentId);
-
-    await loadTournaments();
-
-    alert('🏆 ¡TENEMOS CAMPEÓN!\n\n' + champion);
-    return;
-  }
-
-  const nextRound = getNextRoundName(currentRound);
-
-  if (!nextRound) return;
-
-  const alreadyCreated = knockoutMatches.some(
-    m => m.round_name === nextRound
-  );
-
-  if (alreadyCreated) return;
-
-  const { data: { user } } = await db.auth.getUser();
-
-  const nextFixtures = [];
-
-  for (let i = 0; i < winners.length; i += 2) {
-    nextFixtures.push({
-      tournament_id: activeTournamentId,
-      owner_id: user.id,
-      home_team_id: winners[i],
-      away_team_id: winners[i + 1],
-      phase: 'Eliminatorias',
-      round_name: nextRound,
-      status: 'Programado'
-    });
-  }
-
-  // La final se crea automáticamente al terminar las semifinales.
-  if (nextRound === 'Final') {
-    for (let i = 0; i < losers.length; i += 2) {
-      nextFixtures.push({
-        tournament_id: activeTournamentId,
-        owner_id: user.id,
-        home_team_id: losers[i],
-        away_team_id: losers[i + 1],
-        phase: 'Eliminatorias',
-        round_name: 'Tercer puesto',
-        status: 'Programado'
-      });
-    }
-  }
-
-  if (!nextFixtures.length) return;
-
-  const { error } = await db
-    .from('tournament_matches')
-    .insert(nextFixtures);
-
-  if (error) {
-    return alert('Error al crear la siguiente fase: ' + error.message);
-  }
-
-  await loadTournaments();
-
-  alert(
-    '✅ ¡Fase completada!\n\n' +
-    'Se generó automáticamente: ' + nextRound
-  );
-}
-
-
-  const { data: { user } } = await db.auth.getUser();
-
   const firstRound = getRoundName(total);
+
+  if (!firstRound) {
+    return alert(
+      'Hay ' + total + ' clasificados.\n\n' +
+      'Para generar el cuadro necesitás 2, 4, 8 o 16 equipos.'
+    );
+  }
+
+  const { data: { user } } = await db.auth.getUser();
+
+  if (!user) return alert('No se pudo identificar al DT.');
+
   const fixtures = [];
 
   for (let i = 0; i < total / 2; i++) {
@@ -1300,42 +1197,134 @@ async function advanceTournamentRound() {
   );
 }
 
-  const groups = [...new Set(teams.map(x => x.group_name || 'Sin zona'))];
-  const qualified = [];
+async function advanceTournamentRound() {
+  if (!isLoggedAdmin || !activeTournamentId) return;
 
-  groups.forEach(group => {
-    const groupTeams = teams.filter(x => (x.group_name || 'Sin zona') === group);
-    const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
-    const standings = calculateGroupTable(groupTeams, groupMatches);
-    qualified.push(...standings.slice(0,perGroup));
+  const knockoutMatches = tournamentMatches.filter(
+    x => x.tournament_id === activeTournamentId &&
+         x.phase === 'Eliminatorias'
+  );
+
+  const rounds = [
+    'Octavos de final',
+    'Cuartos de final',
+    'Semifinal',
+    'Final'
+  ];
+
+  // Buscar la ronda más avanzada que ya existe.
+  let currentRound = null;
+
+  for (const round of rounds) {
+    if (knockoutMatches.some(m => m.round_name === round)) {
+      currentRound = round;
+    }
+  }
+
+  if (!currentRound) return;
+
+  const currentMatches = knockoutMatches.filter(
+    m => m.round_name === currentRound
+  );
+
+  // Esperar a que estén cargados todos los resultados.
+  if (currentMatches.some(m => m.status !== 'Jugado')) return;
+
+  // No permitir avanzar con empates.
+  if (currentMatches.some(m =>
+    Number(m.home_goals) === Number(m.away_goals)
+  )) {
+    return alert(
+      'Hay un empate en ' + currentRound +
+      '. Primero tenés que definir el ganador.'
+    );
+  }
+
+  const winners = [];
+  const losers = [];
+
+  currentMatches.forEach(m => {
+    const homeWins = Number(m.home_goals) > Number(m.away_goals);
+
+    winners.push(homeWins ? m.home_team_id : m.away_team_id);
+    losers.push(homeWins ? m.away_team_id : m.home_team_id);
   });
 
-  if (qualified.length < 2) return alert('Se necesitan al menos dos clasificados.');
+  // Si terminó la final, declarar campeón.
+  if (currentRound === 'Final') {
+    const champion = tournamentTeam(winners[0]);
 
-  const { data:{user} } = await db.auth.getUser();
-  const fixtures = [];
+    const { error } = await db
+      .from('tournaments')
+      .update({ status: 'Finalizado' })
+      .eq('id', activeTournamentId);
 
-  // Cruces cruzados: primero contra último, segundo contra anteúltimo.
-  for (let i=0; i<Math.floor(qualified.length/2); i++) {
-    fixtures.push({
-      tournament_id:activeTournamentId,
-      owner_id:user.id,
-      home_team_id:qualified[i].id,
-      away_team_id:qualified[qualified.length-1-i].id,
-      phase:'Eliminatorias',
-      round_name:qualified.length <= 2 ? 'Final' : 'Primera ronda',
-      status:'Programado'
+    if (error) {
+      return alert('No se pudo finalizar el torneo: ' + error.message);
+    }
+
+    await loadTournaments();
+
+    alert('🏆 ¡TENEMOS CAMPEÓN!\n\n' + champion);
+    return;
+  }
+
+  const nextRound = getNextRoundName(currentRound);
+
+  if (!nextRound) return;
+
+  // Evitar crear dos veces la misma ronda.
+  if (knockoutMatches.some(m => m.round_name === nextRound)) return;
+
+  const { data: { user } } = await db.auth.getUser();
+
+  if (!user) return alert('No se pudo identificar al DT.');
+
+  const nextFixtures = [];
+
+  // Crear los cruces de la siguiente fase.
+  for (let i = 0; i < winners.length; i += 2) {
+    nextFixtures.push({
+      tournament_id: activeTournamentId,
+      owner_id: user.id,
+      home_team_id: winners[i],
+      away_team_id: winners[i + 1],
+      phase: 'Eliminatorias',
+      round_name: nextRound,
+      status: 'Programado'
     });
   }
 
-  if (!fixtures.length) return alert('No se pudieron crear los cruces.');
+  // Al terminar semifinales, crear también el tercer puesto.
+  if (currentRound === 'Semifinal') {
+    for (let i = 0; i < losers.length; i += 2) {
+      nextFixtures.push({
+        tournament_id: activeTournamentId,
+        owner_id: user.id,
+        home_team_id: losers[i],
+        away_team_id: losers[i + 1],
+        phase: 'Eliminatorias',
+        round_name: 'Tercer puesto',
+        status: 'Programado'
+      });
+    }
+  }
 
-  const { error } = await db.from('tournament_matches').insert(fixtures);
-  if (error) return alert('Error: ' + error.message);
+  if (!nextFixtures.length) return;
+
+  const { error } = await db
+    .from('tournament_matches')
+    .insert(nextFixtures);
+
+  if (error) {
+    return alert('Error al crear la siguiente fase: ' + error.message);
+  }
 
   await loadTournaments();
-  alert('Cruces iniciales generados. La siguiente ronda se podrá crear al completar estos partidos.');
+
+  alert('✅ Se generó automáticamente la siguiente fase: ' + nextRound);
 }
+
 
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const date = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'Por def.';
