@@ -21,70 +21,71 @@
       --white: #f4f7f3;
       --gold: #d4af37;
     }
-/* ESTILOS DE LA BARRA DE REPRODUCCIÓN PERSONALIZADA */
-.custom-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--panel2);
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-}
 
-.btn-play {
-  background: var(--green);
-  color: #10170c;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-weight: 900;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
+    /* ESTILOS DE LA BARRA DE REPRODUCCIÓN PERSONALIZADA */
+    .custom-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel2);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
 
-.time-label {
-  font-size: 11px;
-  color: var(--muted);
-  font-family: monospace;
-  min-width: 32px;
-}
+    .btn-play {
+      background: var(--green);
+      color: #10170c;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
 
-.custom-seekbar {
-  flex: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(166, 230, 91, 0.2);
-  outline: none;
-  cursor: pointer;
-}
+    .time-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+      min-width: 32px;
+    }
 
-/* Color del deslazador (thumb) en webkit y firefox */
-.custom-seekbar::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px rgba(166, 230, 91, 0.6);
-  cursor: pointer;
-}
+    .custom-seekbar {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(166, 230, 91, 0.2);
+      outline: none;
+      cursor: pointer;
+    }
 
-.custom-seekbar::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--green);
-  border: none;
-  cursor: pointer;
-}
+    .custom-seekbar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px rgba(166, 230, 91, 0.6);
+      cursor: pointer;
+    }
+
+    .custom-seekbar::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      border: none;
+      cursor: pointer;
+    }
+
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { 
       margin: 0; 
@@ -126,7 +127,6 @@
     .badge-draw { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
     .badge-invicto { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
 
-    /* REPRODUCTOR SOLO AUDIO (SIN VIDEO) Y DESPLEGABLE */
     .audio-player-card {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -166,7 +166,6 @@
       border: 0;
     }
 
-    /* BARRA DE NAVEGACIÓN PREMIUM CON ÍCONOS SVG */
     .tabs {
       position: fixed;
       bottom: 14px;
@@ -229,9 +228,7 @@
       border: 1px solid rgba(166, 230, 91, .18);
     }
 
-    .tabs button:active {
-      transform: scale(.94);
-    }
+    .tabs button:active { transform: scale(.94); }
 
     @media (min-width: 768px) {
       .tabs {
@@ -246,14 +243,8 @@
         background: rgba(12, 18, 14, .94);
         border: 1px solid rgba(166, 230, 91, .16);
       }
-      .tabs button {
-        padding: 10px 8px;
-        font-size: 10px;
-      }
-      .tabs button.active {
-        background: rgba(166, 230, 91, .13);
-        color: #a6e65b;
-      }
+      .tabs button { padding: 10px 8px; font-size: 10px; }
+      .tabs button.active { background: rgba(166, 230, 91, .13); color: #a6e65b; }
     }
 
     .tab-content { animation: fadeIn 0.25s ease-out; }
@@ -279,12 +270,10 @@
     th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; background: var(--panel2); }
     td { font-size: 12.5px; }
 
-    /* FILTROS RÁPIDOS POR POSICIÓN */
     .pos-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
     .pos-filter-btn { flex: none; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: .18s ease; }
     .pos-filter-btn.active { background: rgba(166,230,91,.15); color: var(--green); border-color: var(--green); }
 
-    /* TARJETAS ESTILO FUT / TRADING CARD */
     .player-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
     .fut-card {
       position: relative; overflow: hidden; background: linear-gradient(145deg, #141f17, #0b110c); border: 1px solid var(--line); border-radius: 16px; padding: 14px; transition: transform .18s, border-color .18s; box-shadow: 0 6px 20px rgba(0,0,0,0.3);
@@ -299,7 +288,6 @@
     .fut-pos-badge { display: inline-block; margin-top: 3px; padding: 2px 7px; border-radius: 6px; background: rgba(255,255,255,.06); border: 1px solid var(--line); font-size: 9.5px; font-weight: 800; color: var(--green); letter-spacing: .5px; }
     .fut-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); flex: none; }
 
-    /* RESUMEN DEL PLANTEL */
     .squad-summary-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
     .squad-stat-box { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
     .squad-stat-box b { font-size: 18px; color: var(--green); display: block; }
@@ -318,7 +306,6 @@
     .beer-btn { width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--white); font-size:18px; font-weight:900; cursor:pointer; }
     .beer-btn:disabled { opacity:.35; cursor:not-allowed; }
 
-    /* ARMADOR DE FORMACIÓN + SUPLENTES */
     .formation-tools { display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin:12px 0 14px; }
     .formation-toggle { width:auto; margin:0; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
     .formation-panel { margin:0 0 16px; }
@@ -326,7 +313,7 @@
     .formation-toolbar select { min-width:145px; max-width:100%; padding:9px 11px; border-radius:9px; color:var(--white); }
     .formation-actions { display:flex; gap:7px; flex-wrap:wrap; }
     .formation-actions button { width:auto; margin:0; padding:8px 11px; font-size:11px; }
-    .pitch { position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-around; gap:8px; min-height:590px; padding:22px 8px; border:2px solid rgba(235,255,225,.48); border-radius:15px; background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0,rgba(255,255,255,.025) 48px,rgba(0,0,0,.035) 48px,rgba(0,0,0,.035) 96px),linear-gradient(135deg,#174d2d,#0d3b22 55%,#174d2d); box-shadow:inset 0 0 35px rgba(0,0,0,.2); }
+    .pitch { position:relative; overflow:hidden; display:flex; flex-direction:column; justify-style:space-around; gap:8px; min-height:590px; padding:22px 8px; border:2px solid rgba(235,255,225,.48); border-radius:15px; background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0,rgba(255,255,255,.025) 48px,rgba(0,0,0,.035) 48px,rgba(0,0,0,.035) 96px),linear-gradient(135deg,#174d2d,#0d3b22 55%,#174d2d); box-shadow:inset 0 0 35px rgba(0,0,0,.2); }
     .pitch:before { content:''; position:absolute; inset:9px; border:1px solid rgba(235,255,225,.48); border-radius:8px; pointer-events:none; }
     .pitch-midline { position:absolute; top:50%; left:10px; right:10px; border-top:1px solid rgba(235,255,225,.42); pointer-events:none; }
     .pitch-circle { position:absolute; width:108px; height:108px; border:1px solid rgba(235,255,225,.42); border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; }
@@ -341,7 +328,6 @@
     .pitch-slot select:focus { border-color:var(--green); }
     .pitch-slot option { background:#101713; color:#fff; }
     
-    /* SUPLENTES / BANCO */
     .bench-box { margin-top: 14px; padding: 12px; background: rgba(5,10,7,.6); border: 1px dashed var(--line); border-radius: 12px; }
     .bench-title { font-size: 11px; font-weight: 800; color: var(--gold); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
     .bench-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
@@ -384,46 +370,29 @@
       <span class="pill" id="badge-status">EN VIVO</span>
     </section>
 
-  <div class="audio-player-card">
-  <div class="audio-header">
-    <div class="audio-title">Artistas LNK en el MALA💚</div>
-    <button id="btn-toggle-video" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 10px; border-radius:8px; font-size:11px; cursor:pointer; font-weight:bold;">📺 Ver lista en video</button>
-  </div>
+    <!-- REPRODUCTOR DE MÚSICA DE MALAJUNTA -->
+    <div class="audio-player-card">
+      <div class="audio-header">
+        <div class="audio-title">Artistas LNK en el MALA💚</div>
+        <button id="btn-toggle-video" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 10px; border-radius:8px; font-size:11px; cursor:pointer; font-weight:bold;">📺 Ver lista en video</button>
+      </div>
 
-  <!-- Audio oculto (alimenta a los controles verdes) -->
-  <audio id="custom-audio" preload="none">
-    <source src="musica_malajunta.mp3" type="audio/mpeg">
-  </audio>
+      <audio id="custom-audio" preload="none">
+        <source src="musica_malajunta.mp3" type="audio/mpeg">
+      </audio>
 
-  <!-- Controles personalizados -->
-  <div class="custom-controls">
-    <button id="btn-play-pause" class="btn-play">▶</button>
-    <span id="current-time" class="time-label">0:00</span>
-    <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
-    <span id="duration-time" class="time-label">0:00</span>
-  </div>
+      <div class="custom-controls">
+        <button id="btn-play-pause" class="btn-play">▶</button>
+        <span id="current-time" class="time-label">0:00</span>
+        <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
+        <span id="duration-time" class="time-label">0:00</span>
+      </div>
 
-  <!-- Panel Oculto de YouTube -->
-  <div id="video-playlist-wrapper" class="hide">
-    <div class="youtube-playlist-container">
-      <iframe 
-        src="https://www.youtube-nocookie.com/embed/videoseries?list=PLbZSJRKE-GIFOzKiZ514GVx4DoDe1Ldpp&autoplay=0" 
-        title="Playlist MalaJunta FC" 
-        frameborder="0" 
-        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-        allowfullscreen>
-      </iframe>
-    </div>
-  </div>
-</div>
-
-      
-
-     <!-- Panel Oculto opcional para desplegar el iframe de la lista -->
+   <!-- Panel Oculto de YouTube con reproducción al azar -->
 <div id="video-playlist-wrapper" class="hide">
   <div class="youtube-playlist-container">
     <iframe 
-      src="https://www.youtube-nocookie.com/embed/videoseries?list=PLbZSJRKE-GIFOzKiZ514GVx4DoDe1Ldpp&autoplay=0" 
+      src="https://www.youtube-nocookie.com/embed/videoseries?list=PLbZSJRKE-GIFOzKiZ514GVx4DoDe1Ldpp&autoplay=0&shuffle=1" 
       title="Playlist MalaJunta FC" 
       frameborder="0" 
       allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
@@ -435,7 +404,6 @@
     <div id="status" class="loading">⏳ Cargando datos del club...</div>
 
     <div id="site" class="hide">
-      <!-- Menú Flotante Inferior -->
       <nav class="tabs" id="main-nav">
         <button class="active" data-tab="resumen">
           <span>
@@ -487,7 +455,6 @@
         </div>
       </section>
 
-      <!-- SOLAPA DETALLE DE PARTIDO Y CONTROL DE GOLES -->
       <section id="detalle" class="tab-content hide">
         <div class="card" style="margin-bottom: 12px;">
           <button onclick="switchTab('partidos')" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:6px 12px; border-radius:8px; cursor:pointer; font-size:11px; margin-bottom:10px;">← Volver a Partidos</button>
@@ -511,7 +478,6 @@
         </div>
       </section>
 
-      <!-- SECCIÓN EXCLUSIVA DEL DT -->
       <section id="admin" class="tab-content hide">
         <div class="card" style="margin-bottom: 15px; border-color: var(--green);">
           <h2 style="margin-top:0;">📋 Pizarra de Control del DT</h2>
@@ -553,12 +519,10 @@
       </section>
     </div>
 
-    <!-- BOTÓN LOGIN DT -->
     <div style="text-align: center; margin-top: 30px;" id="login-footer-container">
       <button id="btn-admin-login" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; font-weight:bold;">🔐 Acceso DT / Admin</button>
     </div>
 
-    <!-- Modal de Login -->
     <div id="admin-modal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2000;">
       <div class="card" style="width: 90%; max-width: 340px; background:var(--panel); text-align: left;">
         <h3 style="margin-top:0;">Panel del DT 📋</h3>
@@ -586,49 +550,49 @@
     let isLoggedAdmin = false;
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
-// LÓGICA DEL REPRODUCTOR PERSONALIZADO
-const audio = document.getElementById('custom-audio');
-const playBtn = document.getElementById('btn-play-pause');
-const seekBar = document.getElementById('seek-bar');
-const currentTimeLabel = document.getElementById('current-time');
-const durationLabel = document.getElementById('duration-time');
 
-function formatTime(seconds) {
-  const min = Math.floor(seconds / 60);
-  const sec = Math.floor(seconds % 60);
-  return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-}
+    // REPRODUCTOR PERSONALIZADO
+    const audio = document.getElementById('custom-audio');
+    const playBtn = document.getElementById('btn-play-pause');
+    const seekBar = document.getElementById('seek-bar');
+    const currentTimeLabel = document.getElementById('current-time');
+    const durationLabel = document.getElementById('duration-time');
 
-playBtn?.addEventListener('click', () => {
-  if (audio.paused) {
-    audio.play();
-    playBtn.innerText = '⏸';
-  } else {
-    audio.pause();
-    playBtn.innerText = '▶';
-  }
-});
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }
 
-audio?.addEventListener('loadedmetadata', () => {
-  durationLabel.innerText = formatTime(audio.duration);
-});
+    playBtn?.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        playBtn.innerText = '⏸';
+      } else {
+        audio.pause();
+        playBtn.innerText = '▶';
+      }
+    });
 
-audio?.addEventListener('timeupdate', () => {
-  if (!isNaN(audio.duration)) {
-    const progress = (audio.currentTime / audio.duration) * 100;
-    seekBar.value = progress;
-    currentTimeLabel.innerText = formatTime(audio.currentTime);
-  }
-});
+    audio?.addEventListener('loadedmetadata', () => {
+      durationLabel.innerText = formatTime(audio.duration);
+    });
 
-seekBar?.addEventListener('input', () => {
-  if (!isNaN(audio.duration)) {
-    const seekTo = (seekBar.value / 100) * audio.duration;
-    audio.currentTime = seekTo;
-  }
-});
+    audio?.addEventListener('timeupdate', () => {
+      if (!isNaN(audio.duration)) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        seekBar.value = progress;
+        currentTimeLabel.innerText = formatTime(audio.currentTime);
+      }
+    });
 
-    // EVENTO BOTÓN VER / OCULTAR LISTA EN VIDEO
+    seekBar?.addEventListener('input', () => {
+      if (!isNaN(audio.duration)) {
+        const seekTo = (seekBar.value / 100) * audio.duration;
+        audio.currentTime = seekTo;
+      }
+    });
+
     document.getElementById('btn-toggle-video')?.addEventListener('click', () => {
       const wrapper = document.getElementById('video-playlist-wrapper');
       const btn = document.getElementById('btn-toggle-video');
@@ -870,7 +834,6 @@ seekBar?.addEventListener('input', () => {
       renderFormationBuilder();
     }
 
-    // --- SECCIÓN CAMPEONATOS Y TORNEOS ---
     let tournaments = [], tournamentTeams = [], tournamentMatches = [];
     let activeTournamentId = null, tournamentView = 'list';
 
@@ -1714,7 +1677,6 @@ seekBar?.addEventListener('input', () => {
       const invicto = getInvictoStreak(matches);
       const totalPlayed = played.length || 1;
 
-      // Resumen
       document.getElementById('resumen').innerHTML = `
         <div class="grid">
           ${metric('Plantel', players.length)}
@@ -1727,7 +1689,6 @@ seekBar?.addEventListener('input', () => {
           ${matchRows(matches.sort((a,b) => new Date(b.match_date) - new Date(a.match_date)).slice(0, 4))}
         </div>`;
 
-      // Plantel con Armador Táctico + Filtros + Tarjetas Rediseñadas
       document.getElementById('plantel').innerHTML = `
         <div class="formation-tools">
           <button id="formation-toggle" class="btn-action formation-toggle" onclick="toggleFormationBuilder()">⚽ Armar formación</button>
@@ -1751,10 +1712,8 @@ seekBar?.addEventListener('input', () => {
       renderSquadSummary();
       filterPlayers();
 
-      // Partidos
       document.getElementById('partidos').innerHTML = `<div class="card"><h2>Fixture Temporada</h2>${matchRows(matches.sort((a,b) => new Date(a.match_date) - new Date(b.match_date)))}</div>`;
 
-      // Estadísticas
       document.getElementById('estadisticas').innerHTML = `
         <div class="grid">
           ${metric('Goles A Favor', gf)}
@@ -1816,7 +1775,6 @@ seekBar?.addEventListener('input', () => {
       switchTab(b.dataset.tab);
     }));
 
-    // --- MODO DT / ADMIN UI ---
     function updateAdminUI(user) {
       isLoggedAdmin = !!user;
       const navAdminTab = document.getElementById('nav-admin-tab');
