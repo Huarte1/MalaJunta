@@ -9,13 +9,6 @@
   <!-- Librería para exportar la cancha táctica a foto PNG -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-.tabs button span svg {
-  width: 19px;
-  height: 19px;
-  display: block;
-  stroke: currentColor;
-  transition: stroke 0.2s ease;
-}
     :root {
       --bg: #080b09;
       --panel: #111713;
@@ -27,7 +20,6 @@
       --muted: #9aa79d;
       --white: #f4f7f3;
       --gold: #d4af37;
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { 
@@ -70,19 +62,19 @@
     .badge-draw { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
     .badge-invicto { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
 
-    /* BARRA DE NAVEGACIÓN PREMIUM */
+    /* BARRA DE NAVEGACIÓN PREMIUM CON ÍCONOS SVG (6 SOLAPAS) */
     .tabs {
       position: fixed;
       bottom: 14px;
       left: 50%;
       transform: translateX(-50%);
-      width: calc(100% - 24px);
-      max-width: 650px;
+      width: calc(100% - 16px);
+      max-width: 680px;
       z-index: 1000;
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 4px;
-      padding: 8px;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 3px;
+      padding: 6px;
       background: rgba(12, 18, 14, .94);
       border: 1px solid rgba(166, 230, 91, .16);
       border-radius: 20px;
@@ -91,19 +83,69 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    .tabs.admin-active { grid-template-columns: repeat(6, 1fr); }
-
     .tabs button {
-      min-width: 0; border: 0; border-radius: 14px; background: transparent; color: #9aa79d; padding: 9px 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; font-size: 10px; font-weight: 700; cursor: pointer; transition: .2s ease;
+      min-width: 0;
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+      color: #9aa79d;
+      padding: 8px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
     }
-    .tabs button span { font-size: 19px; line-height: 1; }
-    .tabs button.active { background: rgba(166, 230, 91, .13); color: #a6e65b; border: 1px solid rgba(166, 230, 91, .18); }
-    .tabs button:active { transform: scale(.94); }
+
+    .tabs button span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tabs button span svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      stroke: currentColor;
+      transition: stroke 0.2s ease;
+    }
+
+    .tabs button.active {
+      background: rgba(166, 230, 91, .13);
+      color: #a6e65b;
+      border: 1px solid rgba(166, 230, 91, .18);
+    }
+
+    .tabs button:active {
+      transform: scale(.94);
+    }
 
     @media (min-width: 768px) {
-      .tabs { position: relative; left: auto; bottom: auto; transform: none; width: auto; min-width: 550px; max-width: 650px; margin: 20px auto; background: rgba(12, 18, 14, .94); border: 1px solid rgba(166, 230, 91, .16); }
-      .tabs button { padding: 10px 8px; }
-      .tabs button.active { background: rgba(166, 230, 91, .13); color: #a6e65b; }
+      .tabs {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        width: auto;
+        min-width: 600px;
+        max-width: 750px;
+        margin: 20px auto;
+        background: rgba(12, 18, 14, .94);
+        border: 1px solid rgba(166, 230, 91, .16);
+      }
+      .tabs button {
+        padding: 10px 8px;
+        font-size: 10px;
+      }
+      .tabs button.active {
+        background: rgba(166, 230, 91, .13);
+        color: #a6e65b;
+      }
     }
 
     .tab-content { animation: fadeIn 0.25s ease-out; }
@@ -237,44 +279,44 @@
     <div id="status" class="loading">⏳ Cargando datos del club...</div>
 
     <div id="site" class="hide">
-      <!-- Menú Flotante Inferior -->
-    <nav class="tabs" id="main-nav">
-  <button class="active" data-tab="resumen">
-    <span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-    </span>Resumen
-  </button>
-  
-  <button data-tab="plantel">
-    <span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    </span>Plantel
-  </button>
+      <!-- Menú Flotante Inferior con SVG Vectoriales (6 Pestañas integradas) -->
+      <nav class="tabs" id="main-nav">
+        <button class="active" data-tab="resumen">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          </span>Resumen
+        </button>
+        
+        <button data-tab="plantel">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>Plantel
+        </button>
 
-  <button data-tab="partidos">
-    <span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 2 3 5-3 3-3-3 3-5z"/><path d="M12 10v12"/><path d="m12 10 7 4"/><path d="m12 10-7 4"/><path d="M4.93 4.93 8.5 8"/><path d="m19.07 4.93-3.57 3.07"/></svg>
-    </span>Partidos
-  </button>
+        <button data-tab="partidos">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 2 3 5-3 3-3-3 3-5z"/><path d="M12 10v12"/><path d="m12 10 7 4"/><path d="m12 10-7 4"/><path d="M4.93 4.93 8.5 8"/><path d="m19.07 4.93-3.57 3.07"/></svg>
+          </span>Partidos
+        </button>
 
-  <button data-tab="torneos">
-    <span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
-    </span>Torneos
-  </button>
+        <button data-tab="torneos">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+          </span>Torneos
+        </button>
 
-  <button data-tab="estadisticas">
-    <span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    </span>Números
-  </button>
+        <button data-tab="estadisticas">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </span>Números
+        </button>
 
-  <button data-tab="admin" id="nav-admin-tab" class="hide">
-    <span>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
-    </span>Panel DT
-  </button>
-</nav>
+        <button data-tab="admin" id="nav-admin-tab">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+          </span>Panel DT
+        </button>
+      </nav>
 
       <section id="resumen" class="tab-content"></section>
       <section id="plantel" class="tab-content hide"></section>
@@ -534,7 +576,6 @@
         return `<div class="pitch-row" data-line="${rowIndex}">${slots}</div>`;
       }).join('');
 
-      // Render de Suplentes (hasta 5)
       const benchSlots = [0, 1, 2, 3, 4].map(index => {
         const selected = String(bench[index] || '');
         const options = sortedPlayers.map(player => {
@@ -1282,7 +1323,7 @@
       const as = goals.filter(g => g.assist_id === p.id).length;
       const k = keeperStats(p);
       return `<details>
-        <summary>Ver estadísticas</summary>
+        <summary>Ver estadísticas y cervezas</summary>
         <div style="margin-top:8px; background:var(--panel2); padding:10px; border-radius:10px; border:1px solid var(--line);">
           <div style="display:flex; justify-content:space-around; text-align:center;">
             <div><b>${gs}</b><br><small class="muted">Goles</small></div>
@@ -1571,15 +1612,11 @@
     // --- MODO DT / ADMIN UI ---
     function updateAdminUI(user) {
       isLoggedAdmin = !!user;
-      const navAdminTab = document.getElementById('nav-admin-tab');
-      const mainNav = document.getElementById('main-nav');
       const badgeStatus = document.getElementById('badge-status');
       const loginFooter = document.getElementById('login-footer-container');
       const adminGoalBox = document.getElementById('admin-goal-box');
 
       if (user) {
-        if(navAdminTab) navAdminTab.classList.remove('hide');
-        if(mainNav) mainNav.classList.add('admin-active');
         if(badgeStatus) {
           badgeStatus.innerText = "MODO DT ACTIVO";
           badgeStatus.style.background = "var(--green)";
@@ -1588,8 +1625,6 @@
         if(loginFooter) loginFooter.classList.add('hide');
         if(adminGoalBox) adminGoalBox.classList.remove('hide');
       } else {
-        if(navAdminTab) navAdminTab.classList.add('hide');
-        if(mainNav) mainNav.classList.remove('admin-active');
         if(badgeStatus) {
           badgeStatus.innerText = "EN VIVO";
           badgeStatus.style.background = "#243321";
