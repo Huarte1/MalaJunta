@@ -62,6 +62,46 @@
     .badge-draw { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
     .badge-invicto { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
 
+    /* REPRODUCTOR SOLO AUDIO (SIN VIDEO) Y DESPLEGABLE */
+    .audio-player-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .audio-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .audio-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--green);
+    }
+    .youtube-playlist-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      margin-top: 10px;
+    }
+    .youtube-playlist-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
     /* BARRA DE NAVEGACIÓN PREMIUM CON ÍCONOS SVG */
     .tabs {
       position: fixed;
@@ -72,7 +112,7 @@
       max-width: 680px;
       z-index: 1000;
       display: grid;
-      grid-template-columns: repeat(5, 1fr); /* 5 columnas por defecto para usuarios */
+      grid-template-columns: repeat(5, 1fr);
       gap: 3px;
       padding: 6px;
       background: rgba(12, 18, 14, .94);
@@ -83,7 +123,6 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* Cuando el DT se loguea, pasa a 6 columnas */
     .tabs.admin-active {
       grid-template-columns: repeat(6, 1fr);
     }
@@ -281,10 +320,36 @@
       <span class="pill" id="badge-status">EN VIVO</span>
     </section>
 
+    <!-- REPRODUCTOR COMPACTO DE MÚSICA (SIN REPRODUCCIÓN AUTOMÁTICA) -->
+    <div class="audio-player-card">
+      <div class="audio-header">
+        <div class="audio-title">🎵 Previa & Cancionero MalaJunta</div>
+        <button id="btn-toggle-video" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 10px; border-radius:8px; font-size:11px; cursor:pointer; font-weight:bold;">📺 Ver lista en video</button>
+      </div>
+
+      <!-- Control de Audio Nativo HTML (NO AUTOPLAY, el usuario debe dar Play) -->
+      <audio controls preload="none" style="width: 100%; height: 36px; outline: none;">
+        <source src="musica_malajunta.mp3" type="audio/mpeg">
+        Tu navegador no soporta el reproductor de audio.
+      </audio>
+
+     <!-- Panel Oculto opcional para desplegar el iframe de la lista -->
+<div id="video-playlist-wrapper" class="hide">
+  <div class="youtube-playlist-container">
+    <iframe 
+      src="https://www.youtube-nocookie.com/embed/videoseries?list=PLbZSJRKE-GIFOzKiZ514GVx4DoDe1Ldpp&autoplay=0" 
+      title="Playlist MalaJunta FC" 
+      frameborder="0" 
+      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+      allowfullscreen>
+    </iframe>
+  </div>
+</div>
+
     <div id="status" class="loading">⏳ Cargando datos del club...</div>
 
     <div id="site" class="hide">
-      <!-- Menú Flotante Inferior (Panel DT con la clase "hide" para que solo aparezca al iniciar sesión) -->
+      <!-- Menú Flotante Inferior -->
       <nav class="tabs" id="main-nav">
         <button class="active" data-tab="resumen">
           <span>
@@ -435,6 +500,16 @@
     let isLoggedAdmin = false;
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
+
+    // EVENTO BOTÓN VER / OCULTAR LISTA EN VIDEO
+    document.getElementById('btn-toggle-video')?.addEventListener('click', () => {
+      const wrapper = document.getElementById('video-playlist-wrapper');
+      const btn = document.getElementById('btn-toggle-video');
+      if (!wrapper) return;
+      const isHidden = wrapper.classList.contains('hide');
+      wrapper.classList.toggle('hide', !isHidden);
+      btn.innerText = isHidden ? '✕ Ocultar video' : '📺 Ver lista en video';
+    });
 
     let formationSettings = { formation: '4-3-3', lineups: {}, bench: {} };
     try {
@@ -1328,7 +1403,7 @@
       const as = goals.filter(g => g.assist_id === p.id).length;
       const k = keeperStats(p);
       return `<details>
-        <summary>Ver estadísticas</summary>
+        <summary>Ver estadísticas y cervezas</summary>
         <div style="margin-top:8px; background:var(--panel2); padding:10px; border-radius:10px; border:1px solid var(--line);">
           <div style="display:flex; justify-content:space-around; text-align:center;">
             <div><b>${gs}</b><br><small class="muted">Goles</small></div>
