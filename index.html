@@ -179,6 +179,24 @@
     details { margin-top: 8px; }
     summary { cursor: pointer; color: var(--green); font-size: 11.5px; font-weight: 750; outline: none; }
 
+    .beer-counter {
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-top:12px; padding:10px; border:1px solid var(--line);
+      border-radius:10px; background:rgba(8,11,9,.45);
+    }
+    .beer-counter-info { display:flex; flex-direction:column; gap:2px; }
+    .beer-counter-info b { font-size:13px; }
+    .beer-counter-info small { color:var(--muted); font-size:10px; }
+    .beer-counter-controls { display:flex; align-items:center; gap:8px; }
+    .beer-counter-value { min-width:24px; text-align:center; color:var(--green); font-size:18px; font-weight:950; }
+    .beer-btn {
+      width:30px; height:30px; border-radius:8px; border:1px solid var(--line);
+      background:var(--panel2); color:var(--white); font-size:18px; font-weight:900;
+      cursor:pointer;
+    }
+    .beer-btn:disabled { opacity:.35; cursor:not-allowed; }
+    .beer-admin-hint { color:var(--muted); font-size:10px; margin-top:7px; }
+
     .perf-bar-wrap { background: var(--panel2); border-radius: 6px; height: 10px; width: 100%; display: flex; overflow: hidden; margin-top: 8px; border: 1px solid var(--line); }
     .perf-win { background: var(--green); height: 100%; }
     .perf-draw { background: var(--yellow); height: 100%; }
@@ -341,6 +359,7 @@
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let players = [], matches = [], goals = [], keepers = [];
+    let playerBeerCounts = {};
     let isLoggedAdmin = false;
     let currentMatchIdForView = null;
 let tournaments = [];
@@ -1526,8 +1545,59 @@ async function advanceTournamentRound() {
             <div><b>${gs + as}</b><br><small class="muted">Aportes</small></div>
           </div>
           ${p.position === 'Arquero' ? `<p class="muted" style="margin-top:8px; font-size:11px; text-align:center;">🧤 ${k.apps} PJ · ${k.clean} V.Inv. · ${k.against} Recibidos</p>` : ''}
+          <div class="beer-counter">
+            <div class="beer-counter-info">
+              <b>🍺 Cervezas</b>
+              <small>${isLoggedAdmin ? 'Contador individual · Solo DT puede modificar' : 'Registro histórico del jugador'}</small>
+            </div>
+            <div class="beer-counter-controls">
+              ${isLoggedAdmin ? `<button class="beer-btn" aria-label="Restar cerveza" onclick="changeBeerCount('${String(p.id)}', -1)" ${Number(playerBeerCounts[String(p.id)] || 0) <= 0 ? 'disabled' : ''}>−</button>` : ''}
+              <span class="beer-counter-value">${Number(playerBeerCounts[String(p.id)] || 0)}</span>
+              ${isLoggedAdmin ? `<button class="beer-btn" aria-label="Sumar cerveza" onclick="changeBeerCount('${String(p.id)}', 1)">+</button>` : ''}
+            </div>
+          </div>
+          ${isLoggedAdmin ? '' : ''}
         </div>
       </details>`;
+    }
+
+    async function loadPlayerBeerCounts() {
+      const { data, error } = await db
+        .from('player_beer_counts')
+        .select('player_id, beer_count');
+
+      if (error) throw error;
+
+      playerBeerCounts = {};
+      (data || []).forEach(row => {
+        playerBeerCounts[String(row.player_id)] = Number(row.beer_count || 0);
+      });
+    }
+
+    async function changeBeerCount(playerId, amount) {
+      if (!isLoggedAdmin) return;
+
+      const key = String(playerId);
+      const current = Number(playerBeerCounts[key] || 0);
+      const next = Math.max(0, current + Number(amount));
+
+      if (next === current) return;
+
+      const { error } = await db
+        .from('player_beer_counts')
+        .upsert({
+          player_id: key,
+          beer_count: next
+        }, { onConflict: 'player_id' });
+
+      if (error) {
+        console.error('Error al actualizar cervezas:', error);
+        alert('No se pudo actualizar el contador de cervezas: ' + error.message);
+        return;
+      }
+
+      playerBeerCounts[key] = next;
+      filterPlayers();
     }
 
     function filterPlayers() {
@@ -2079,6 +2149,9 @@ document.getElementById('btn-save-result').addEventListener('click', async () =>
         const { data: freshGoals, error: goalsErr } = await db.from('goals').select('*');
         if (goalsErr) throw goalsErr;
         goals = freshGoals || [];
+
+        // Contadores individuales de cervezas por jugador.
+        await loadPlayerBeerCounts();
 
         const { data: { user } } = await db.auth.getUser();
         isLoggedAdmin = !!user;
