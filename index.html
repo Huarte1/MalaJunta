@@ -219,6 +219,148 @@
       .hero { flex-direction: row; align-items: flex-end; padding: 25px; }
       .title { font-size: 28px; }
     }
+
+
+    /* ===== REDISEÑO VISUAL MALA JUNTA 2026 ===== */
+    :root {
+      --bg: #070a08;
+      --panel: #101713;
+      --panel2: #17221a;
+      --line: rgba(166,230,91,.16);
+      --green: #a6e65b;
+      --muted: #91a096;
+      --white: #f3f7f2;
+      --gold: #d8b75a;
+      --red: #ff6868;
+      --yellow: #f4ca65;
+      --surface-glow: rgba(166,230,91,.08);
+    }
+    html { scroll-behavior:smooth; background:var(--bg); }
+    body {
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(62,105,48,.18), transparent 34rem),
+        radial-gradient(ellipse at 100% 28%, rgba(35,76,45,.12), transparent 30rem),
+        var(--bg);
+      letter-spacing:.01em;
+    }
+    .wrap { max-width:1180px; padding:22px 18px 48px; }
+    header {
+      position:relative; padding:13px 16px; margin-bottom:18px;
+      background:linear-gradient(110deg,rgba(18,28,21,.96),rgba(10,15,11,.82));
+      border:1px solid var(--line); border-radius:18px;
+      box-shadow:0 12px 35px rgba(0,0,0,.2);
+    }
+    .brand-logo { width:56px;height:56px; filter:drop-shadow(0 0 12px rgba(166,230,91,.22)); }
+    .brand { font-size:23px; letter-spacing:1.3px; }
+    .sub { font-size:9px; letter-spacing:2.1px; }
+    .hero {
+      min-height:174px; overflow:hidden; isolation:isolate;
+      padding:25px 24px; border-radius:20px;
+      border:1px solid rgba(166,230,91,.23);
+      background:
+        linear-gradient(90deg,rgba(6,11,7,.97) 0%,rgba(8,15,9,.88) 58%,rgba(8,15,9,.66) 100%),
+        radial-gradient(circle at 86% 50%,rgba(166,230,91,.22),transparent 20rem),
+        url('cancha_fondo.jpg') center/cover;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 45px rgba(0,0,0,.25);
+    }
+    .hero:after {
+      content:'MJ'; position:absolute; z-index:-1; right:6%; top:50%; transform:translateY(-50%) rotate(-8deg);
+      font-size:clamp(100px,19vw,210px); line-height:1; font-weight:1000; letter-spacing:-.12em;
+      color:rgba(166,230,91,.055); pointer-events:none;
+    }
+    .eyebrow { letter-spacing:2.4px; font-size:10px; }
+    .title { font-size:clamp(22px,3vw,32px); max-width:680px; letter-spacing:-.035em; }
+    .pill { padding:6px 11px; letter-spacing:.8px; border:1px solid rgba(166,230,91,.22); }
+    #badge-status { box-shadow:0 0 22px rgba(166,230,91,.12); }
+    .tabs {
+      border-radius:16px; background:rgba(12,18,14,.94);
+      border:1px solid rgba(166,230,91,.2); box-shadow:0 14px 38px rgba(0,0,0,.38);
+    }
+    .tabs button { letter-spacing:.15px; }
+    .tabs button.active { box-shadow:inset 0 0 18px rgba(166,230,91,.07); }
+    .tab-content { animation:fadeIn .22s ease-out; }
+    .section { margin-top:22px; }
+    .section h2, .card h2 { font-size:15px; letter-spacing:-.01em; }
+    .card {
+      background:linear-gradient(145deg,rgba(18,27,21,.98),rgba(13,19,15,.98));
+      border:1px solid rgba(166,230,91,.13); border-radius:17px;
+      box-shadow:0 10px 28px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.025);
+      padding:17px;
+    }
+    .grid { gap:12px; }
+    .grid .card { min-height:112px; overflow:hidden; }
+    .metric { font-size:31px; letter-spacing:-.04em; color:#f6faef; }
+    .card-invicto-badge { border-radius:20px; }
+    .search-bar,.input-field,select,textarea {
+      background:#0b110d; border:1px solid rgba(166,230,91,.16); border-radius:11px;
+      transition:border-color .18s,box-shadow .18s;
+    }
+    .search-bar:focus,.input-field:focus,select:focus,textarea:focus {
+      border-color:rgba(166,230,91,.72); box-shadow:0 0 0 3px rgba(166,230,91,.08);
+    }
+    .btn-action {
+      border-radius:10px; background:linear-gradient(135deg,#b6f273,#91d64b);
+      box-shadow:0 5px 16px rgba(166,230,91,.12); transition:transform .16s,filter .16s;
+    }
+    .btn-action:hover { filter:brightness(1.06); }
+    .btn-action:active { transform:translateY(1px) scale(.99); }
+    .btn-danger { background:rgba(255,82,82,.11); box-shadow:none; }
+    .player-grid { gap:12px; }
+    .player {
+      position:relative; overflow:hidden; min-height:74px; padding:13px;
+      border-radius:15px; background:linear-gradient(125deg,#141e17,#0e1511);
+      border:1px solid rgba(166,230,91,.13); transition:transform .18s,border-color .18s,background .18s;
+    }
+    .player:before { content:'';position:absolute;left:0;top:13px;bottom:13px;width:3px;border-radius:0 4px 4px 0;background:var(--green);opacity:.65; }
+    .player:hover { transform:translateY(-2px);border-color:rgba(166,230,91,.32); }
+    .number {
+      width:46px;height:46px;border-radius:12px;background:rgba(166,230,91,.09);
+      border:1px solid rgba(166,230,91,.2);font-size:19px;
+    }
+    .player b { font-size:14px; letter-spacing:.1px; }
+    .player small { letter-spacing:.8px; }
+    details { padding-top:3px; }
+    summary { padding:7px 0; font-size:12px; }
+    .beer-counter { border-radius:12px;background:rgba(5,10,7,.55);border-color:rgba(166,230,91,.15); }
+    .beer-counter-value,.beer-counter-input { color:var(--green); }
+    .beer-btn { border-radius:9px;transition:background .15s,border-color .15s; }
+    .beer-btn:hover { border-color:var(--green);background:rgba(166,230,91,.1); }
+    .perf-bar-wrap { height:11px;border:0;background:#202c23; }
+    .table-wrap { border:1px solid rgba(166,230,91,.1);border-radius:12px; }
+    table { border-collapse:separate;border-spacing:0; }
+    th { background:#17221a;color:#a8b6aa;letter-spacing:1px; }
+    td,th { border-bottom:1px solid rgba(166,230,91,.1); }
+    tr:last-child td { border-bottom:0; }
+    .empty,.loading { padding:34px 12px; }
+    .error { border-radius:12px; }
+    .footer { border-color:rgba(166,230,91,.12);letter-spacing:.4px;padding-top:20px; }
+    #login-footer-container button { border-radius:20px!important;padding:9px 15px!important; }
+    #admin-modal .card { border-color:rgba(166,230,91,.25);box-shadow:0 25px 80px rgba(0,0,0,.6); }
+    @media (min-width:768px) {
+      .wrap { padding-top:28px; }
+      .tabs { min-width:0;max-width:760px;gap:7px;padding:7px;margin:22px auto 25px; }
+      .tabs button { border-radius:11px; }
+      .hero { min-height:190px; }
+      .player-grid { grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); }
+      .grid .card { padding:18px; }
+    }
+    @media (max-width:520px) {
+      .wrap { padding:12px 12px 36px; }
+      header { padding:11px 12px;border-radius:15px; }
+      .brand-logo { width:48px;height:48px; }
+      .brand { font-size:20px; }
+      .hero { min-height:158px;padding:20px 17px;border-radius:16px; }
+      .hero:after { right:2%;font-size:118px; }
+      .tabs { bottom:9px;width:calc(100% - 16px);padding:6px;border-radius:15px; }
+      .tabs button { font-size:9px;gap:4px;padding:8px 1px; }
+      .tabs button span { font-size:17px; }
+      .card { padding:14px;border-radius:14px; }
+      .metric { font-size:27px; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after { scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important; }
+    }
+
   </style>
 </head>
 <body>
