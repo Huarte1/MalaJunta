@@ -1,664 +1,659 @@
+esta es la ultima index.
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-  <meta name="theme-color" content="#080b09">
-  <title>MalaJunta FC · Plantel Oficial y Estadísticas</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Librería para exportar la cancha táctica a foto PNG -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <style>
-    :root {
-      --bg: #080b09;
-      --panel: #111713;
-      --panel2: #18221b;
-      --line: rgba(166,230,91,.16);
-      --green: #a6e65b;
-      --red: #ff5252;
-      --yellow: #ffd166;
-      --muted: #9aa79d;
-      --white: #f4f7f3;
-      --gold: #d4af37;
-    }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <meta name="theme-color" content="#080b09">
+  <title>MalaJunta FC · Plantel Oficial y Estadísticas</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Librería para exportar la cancha táctica a foto PNG -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #080b09;
+      --panel: #111713;
+      --panel2: #18221b;
+      --line: rgba(166,230,91,.16);
+      --green: #a6e65b;
+      --red: #ff5252;
+      --yellow: #ffd166;
+      --muted: #9aa79d;
+      --white: #f4f7f3;
+      --gold: #d4af37;
+    }
 
-    /* ESTILOS DE LA BARRA DE REPRODUCCIÓN PERSONALIZADA */
-    .custom-controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--panel2);
-      padding: 8px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-    }
+    /* ESTILOS DE LA BARRA DE REPRODUCCIÓN PERSONALIZADA */
+    .custom-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel2);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
 
-    .btn-play {
-      background: var(--green);
-      color: #10170c;
-      border: none;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      font-weight: 900;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
+    .btn-play {
+      background: var(--green);
+      color: #10170c;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
 
-    .time-label {
-      font-size: 11px;
-      color: var(--muted);
-      font-family: monospace;
-      min-width: 32px;
-    }
+    .time-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+      min-width: 32px;
+    }
 
-    .custom-seekbar {
-      flex: 1;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 6px;
-      border-radius: 3px;
-      background: rgba(166, 230, 91, 0.2);
-      outline: none;
-      cursor: pointer;
-    }
+    .custom-seekbar {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(166, 230, 91, 0.2);
+      outline: none;
+      cursor: pointer;
+    }
 
-    .custom-seekbar::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 6px rgba(166, 230, 91, 0.6);
-      cursor: pointer;
-    }
+    .custom-seekbar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px rgba(166, 230, 91, 0.6);
+      cursor: pointer;
+    }
 
-    .custom-seekbar::-moz-range-thumb {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--green);
-      border: none;
-      cursor: pointer;
-    }
+    .custom-seekbar::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      border: none;
+      cursor: pointer;
+    }
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { 
-      margin: 0; 
-      background: var(--bg); 
-      color: var(--white); 
-      font: 14px Inter, system-ui, -apple-system, sans-serif; 
-      -webkit-font-smoothing: antialiased; 
-      padding-bottom: 110px;
-    }
-    .wrap { max-width: 1120px; margin: auto; padding: 16px 14px 40px; }
-    
-    header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; background:linear-gradient(110deg,rgba(18,28,21,.96),rgba(10,15,11,.82)); border:1px solid var(--line); border-radius:18px; padding:12px 16px; }
-    .brand-logo { width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(166,230,91,0.25)); flex: none; }
-    .brand-text { display: flex; flex-direction: column; }
-    .brand { font-weight: 950; font-size: 22px; letter-spacing: 0.5px; line-height: 1.1; }
-    .brand span { color: var(--green); }
-    .sub { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); margin-top: 2px; font-weight: 700; text-transform: uppercase; }
-    
-    .hero { 
-      position: relative;
-      display: flex; 
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px; 
-      margin-bottom: 16px; 
-      padding: 18px 16px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(8, 11, 9, 0.7) 0%, rgba(8, 11, 9, 0.95) 100%), url('cancha_fondo.jpg');
-      background-size: cover;
-      background-position: center;
-    }
-    .eyebrow { font-size: 10px; letter-spacing: 1.5px; color: var(--green); font-weight: 800; }
-    .title { font-size: 20px; font-weight: 900; margin: 2px 0; line-height: 1.25; }
-    
-    .pill { display: inline-block; padding: 4px 9px; border-radius: 20px; background: #243321; color: var(--green); font-size: 10px; font-weight: 700; text-transform: uppercase; }
-    .badge-win { background: rgba(166, 230, 91, 0.2); color: var(--green); border: 1px solid var(--green); }
-    .badge-loss { background: rgba(255, 82, 82, 0.2); color: var(--red); border: 1px solid var(--red); }
-    .badge-draw { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
-    .badge-invicto { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { 
+      margin: 0; 
+      background: var(--bg); 
+      color: var(--white); 
+      font: 14px Inter, system-ui, -apple-system, sans-serif; 
+      -webkit-font-smoothing: antialiased; 
+      padding-bottom: 110px;
+    }
+    .wrap { max-width: 1120px; margin: auto; padding: 16px 14px 40px; }
+    
+    header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; background:linear-gradient(110deg,rgba(18,28,21,.96),rgba(10,15,11,.82)); border:1px solid var(--line); border-radius:18px; padding:12px 16px; }
+    .brand-logo { width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(166,230,91,0.25)); flex: none; }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand { font-weight: 950; font-size: 22px; letter-spacing: 0.5px; line-height: 1.1; }
+    .brand span { color: var(--green); }
+    .sub { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); margin-top: 2px; font-weight: 700; text-transform: uppercase; }
+    
+    .hero { 
+      position: relative;
+      display: flex; 
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px; 
+      margin-bottom: 16px; 
+      padding: 18px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(8, 11, 9, 0.7) 0%, rgba(8, 11, 9, 0.95) 100%), url('cancha_fondo.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+    .eyebrow { font-size: 10px; letter-spacing: 1.5px; color: var(--green); font-weight: 800; }
+    .title { font-size: 20px; font-weight: 900; margin: 2px 0; line-height: 1.25; }
+    
+    .pill { display: inline-block; padding: 4px 9px; border-radius: 20px; background: #243321; color: var(--green); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .badge-win { background: rgba(166, 230, 91, 0.2); color: var(--green); border: 1px solid var(--green); }
+    .badge-loss { background: rgba(255, 82, 82, 0.2); color: var(--red); border: 1px solid var(--red); }
+    .badge-draw { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
+    .badge-invicto { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
 
-    .audio-player-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .audio-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .audio-title {
-      font-size: 14px;
-      font-weight: 900;
-      color: var(--green);
-    }
-    .youtube-playlist-container {
-      position: relative;
-      width: 100%;
-      padding-bottom: 56.25%;
-      height: 0;
-      overflow: hidden;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      margin-top: 10px;
-    }
-    .youtube-playlist-container iframe {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
+    .audio-player-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .audio-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .audio-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--green);
+    }
+    .youtube-playlist-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      margin-top: 10px;
+    }
+    .youtube-playlist-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
 
-    .tabs {
-      position: fixed;
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 16px);
-      max-width: 680px;
-      z-index: 1000;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 3px;
-      padding: 6px;
-      background: rgba(12, 18, 14, .94);
-      border: 1px solid rgba(166, 230, 91, .16);
-      border-radius: 20px;
-      box-shadow: 0 10px 35px rgba(0,0,0,.5);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-    }
+    .tabs {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 16px);
+      max-width: 680px;
+      z-index: 1000;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+      padding: 6px;
+      background: rgba(12, 18, 14, .94);
+      border: 1px solid rgba(166, 230, 91, .16);
+      border-radius: 20px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.5);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
 
-    .tabs.admin-active {
-      grid-template-columns: repeat(6, 1fr);
-    }
+    .tabs.admin-active {
+      grid-template-columns: repeat(6, 1fr);
+    }
 
-    .tabs button {
-      min-width: 0;
-      border: 0;
-      border-radius: 14px;
-      background: transparent;
-      color: #9aa79d;
-      padding: 8px 2px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      font-size: 9px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: .2s ease;
-    }
+    .tabs button {
+      min-width: 0;
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+      color: #9aa79d;
+      padding: 8px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
+    }
 
-    .tabs button span {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .tabs button span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-    .tabs button span svg {
-      width: 18px;
-      height: 18px;
-      display: block;
-      stroke: currentColor;
-      transition: stroke 0.2s ease;
-    }
+    .tabs button span svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      stroke: currentColor;
+      transition: stroke 0.2s ease;
+    }
 
-    .tabs button.active {
-      background: rgba(166, 230, 91, .13);
-      color: #a6e65b;
-      border: 1px solid rgba(166, 230, 91, .18);
-    }
+    .tabs button.active {
+      background: rgba(166, 230, 91, .13);
+      color: #a6e65b;
+      border: 1px solid rgba(166, 230, 91, .18);
+    }
 
-    .tabs button:active { transform: scale(.94); }
+    .tabs button:active { transform: scale(.94); }
 
-    @media (min-width: 768px) {
-      .tabs {
-        position: relative;
-        left: auto;
-        bottom: auto;
-        transform: none;
-        width: auto;
-        min-width: 600px;
-        max-width: 750px;
-        margin: 20px auto;
-        background: rgba(12, 18, 14, .94);
-        border: 1px solid rgba(166, 230, 91, .16);
-      }
-      .tabs button { padding: 10px 8px; font-size: 10px; }
-      .tabs button.active { background: rgba(166, 230, 91, .13); color: #a6e65b; }
-    }
+    @media (min-width: 768px) {
+      .tabs {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        width: auto;
+        min-width: 600px;
+        max-width: 750px;
+        margin: 20px auto;
+        background: rgba(12, 18, 14, .94);
+        border: 1px solid rgba(166, 230, 91, .16);
+      }
+      .tabs button { padding: 10px 8px; font-size: 10px; }
+      .tabs button.active { background: rgba(166, 230, 91, .13); color: #a6e65b; }
+    }
 
-    .tab-content { animation: fadeIn 0.25s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .tab-content { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 17px; padding: 16px; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
-    .metric { font-size: 28px; font-weight: 900; margin-top: 4px; color: var(--white); }
-    .card-invicto-badge { position: absolute; top: 10px; right: 10px; font-size: 9px; padding: 2px 6px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 17px; padding: 16px; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .metric { font-size: 28px; font-weight: 900; margin-top: 4px; color: var(--white); }
+    .card-invicto-badge { position: absolute; top: 10px; right: 10px; font-size: 9px; padding: 2px 6px; }
 
-    .section { margin-top: 16px; }
-    .section h2 { font-size: 15px; margin: 0 0 10px; }
+    .section { margin-top: 16px; }
+    .section h2 { font-size: 15px; margin: 0 0 10px; }
 
-    .search-bar, .input-field { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--white); margin-bottom: 10px; font-size: 13px; outline: none; }
-    .search-bar:focus, .input-field:focus { border-color: var(--green); }
+    .search-bar, .input-field { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--white); margin-bottom: 10px; font-size: 13px; outline: none; }
+    .search-bar:focus, .input-field:focus { border-color: var(--green); }
 
-    .btn-action { background: linear-gradient(135deg,#b6f273,#91d64b); color: #10170c; border: 0; padding: 10px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; margin-top: 4px; }
-    .btn-danger { background: rgba(255, 82, 82, 0.2); color: var(--red); border: 1px solid var(--red); }
+    .btn-action { background: linear-gradient(135deg,#b6f273,#91d64b); color: #10170c; border: 0; padding: 10px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; margin-top: 4px; }
+    .btn-danger { background: rgba(255, 82, 82, 0.2); color: var(--red); border: 1px solid var(--red); }
 
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; border: 1px solid var(--line); border-radius: 12px; }
-    table { width: 100%; border-collapse: collapse; min-width: 480px; }
-    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
-    th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; background: var(--panel2); }
-    td { font-size: 12.5px; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; min-width: 480px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; background: var(--panel2); }
+    td { font-size: 12.5px; }
 
-    .pos-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
-    .pos-filter-btn { flex: none; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: .18s ease; }
-    .pos-filter-btn.active { background: rgba(166,230,91,.15); color: var(--green); border-color: var(--green); }
+    .pos-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
+    .pos-filter-btn { flex: none; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: .18s ease; }
+    .pos-filter-btn.active { background: rgba(166,230,91,.15); color: var(--green); border-color: var(--green); }
 
-    .player-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    .fut-card {
-      position: relative; overflow: hidden; background: linear-gradient(145deg, #141f17, #0b110c); border: 1px solid var(--line); border-radius: 16px; padding: 14px; transition: transform .18s, border-color .18s; box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    }
-    .fut-card:hover { transform: translateY(-2px); border-color: rgba(166,230,91,.35); }
-    .fut-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-    .fut-avatar-box { position: relative; width: 48px; height: 48px; flex: none; }
-    .fut-avatar { width: 100%; height: 100%; border-radius: 14px; background: rgba(166,230,91,.08); border: 1px solid rgba(166,230,91,.2); display: grid; place-items: center; font-size: 22px; font-weight: 900; color: var(--green); }
-    .fut-dorsal { position: absolute; bottom: -4px; right: -4px; background: var(--green); color: #10170c; font-size: 10px; font-weight: 900; padding: 1px 5px; border-radius: 6px; border: 1.5px solid #10170c; }
-    .fut-info { flex: 1; min-width: 0; }
-    .fut-name { font-size: 15px; font-weight: 900; color: #fff; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .fut-pos-badge { display: inline-block; margin-top: 3px; padding: 2px 7px; border-radius: 6px; background: rgba(255,255,255,.06); border: 1px solid var(--line); font-size: 9.5px; font-weight: 800; color: var(--green); letter-spacing: .5px; }
-    .fut-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); flex: none; }
+    .player-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .fut-card {
+      position: relative; overflow: hidden; background: linear-gradient(145deg, #141f17, #0b110c); border: 1px solid var(--line); border-radius: 16px; padding: 14px; transition: transform .18s, border-color .18s; box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .fut-card:hover { transform: translateY(-2px); border-color: rgba(166,230,91,.35); }
+    .fut-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .fut-avatar-box { position: relative; width: 48px; height: 48px; flex: none; }
+    .fut-avatar { width: 100%; height: 100%; border-radius: 14px; background: rgba(166,230,91,.08); border: 1px solid rgba(166,230,91,.2); display: grid; place-items: center; font-size: 22px; font-weight: 900; color: var(--green); }
+    .fut-dorsal { position: absolute; bottom: -4px; right: -4px; background: var(--green); color: #10170c; font-size: 10px; font-weight: 900; padding: 1px 5px; border-radius: 6px; border: 1.5px solid #10170c; }
+    .fut-info { flex: 1; min-width: 0; }
+    .fut-name { font-size: 15px; font-weight: 900; color: #fff; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fut-pos-badge { display: inline-block; margin-top: 3px; padding: 2px 7px; border-radius: 6px; background: rgba(255,255,255,.06); border: 1px solid var(--line); font-size: 9.5px; font-weight: 800; color: var(--green); letter-spacing: .5px; }
+    .fut-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); flex: none; }
 
-    .squad-summary-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
-    .squad-stat-box { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
-    .squad-stat-box b { font-size: 18px; color: var(--green); display: block; }
-    .squad-stat-box small { color: var(--muted); font-size: 10px; text-transform: uppercase; font-weight: 700; }
+    .squad-summary-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+    .squad-stat-box { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
+    .squad-stat-box b { font-size: 18px; color: var(--green); display: block; }
+    .squad-stat-box small { color: var(--muted); font-size: 10px; text-transform: uppercase; font-weight: 700; }
 
-    details { margin-top: 8px; }
-    summary { cursor: pointer; color: var(--green); font-size: 11.5px; font-weight: 750; outline: none; }
+    details { margin-top: 8px; }
+    summary { cursor: pointer; color: var(--green); font-size: 11.5px; font-weight: 750; outline: none; }
 
-    .beer-counter { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; padding:10px; border:1px solid var(--line); border-radius:10px; background:rgba(8,11,9,.45); }
-    .beer-counter-info { display:flex; flex-direction:column; gap:2px; }
-    .beer-counter-info b { font-size:13px; }
-    .beer-counter-info small { color:var(--muted); font-size:10px; }
-    .beer-counter-controls { display:flex; align-items:center; gap:8px; }
-    .beer-counter-value { min-width:24px; text-align:center; color:var(--green); font-size:18px; font-weight:950; }
-    .beer-counter-input { width:58px; height:32px; box-sizing:border-box; text-align:center; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--green); font-size:16px; font-weight:900; outline:none; }
-    .beer-btn { width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--white); font-size:18px; font-weight:900; cursor:pointer; }
-    .beer-btn:disabled { opacity:.35; cursor:not-allowed; }
+    .beer-counter { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px; padding:10px; border:1px solid var(--line); border-radius:10px; background:rgba(8,11,9,.45); }
+    .beer-counter-info { display:flex; flex-direction:column; gap:2px; }
+    .beer-counter-info b { font-size:13px; }
+    .beer-counter-info small { color:var(--muted); font-size:10px; }
+    .beer-counter-controls { display:flex; align-items:center; gap:8px; }
+    .beer-counter-value { min-width:24px; text-align:center; color:var(--green); font-size:18px; font-weight:950; }
+    .beer-counter-input { width:58px; height:32px; box-sizing:border-box; text-align:center; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--green); font-size:16px; font-weight:900; outline:none; }
+    .beer-btn { width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--white); font-size:18px; font-weight:900; cursor:pointer; }
+    .beer-btn:disabled { opacity:.35; cursor:not-allowed; }
 
-    .empty, .loading { padding: 30px 10px; text-align: center; color: var(--muted); font-weight: 600; font-size: 13px; }
-    .error { color: #ffb0a8; background: rgba(255, 82, 82, 0.1); padding: 12px; border-radius: 10px; border: 1px solid var(--red); font-size: 12px; }
-    .footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 16px; }
-    .hide { display: none !important; }
+    .formation-tools { display:flex; flex-wrap:wrap; align-items:center; gap:9px; margin:12px 0 14px; }
+    .formation-toggle { width:auto; margin:0; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+    .formation-panel { margin:0 0 16px; }
+    .formation-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .formation-toolbar select { min-width:145px; max-width:100%; padding:9px 11px; border-radius:9px; color:var(--white); }
+    .formation-actions { display:flex; gap:7px; flex-wrap:wrap; }
+    .formation-actions button { width:auto; margin:0; padding:8px 11px; font-size:11px; }
+    .pitch { position:relative; overflow:hidden; display:flex; flex-direction:column; justify-style:space-around; gap:8px; min-height:590px; padding:22px 8px; border:2px solid rgba(235,255,225,.48); border-radius:15px; background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0,rgba(255,255,255,.025) 48px,rgba(0,0,0,.035) 48px,rgba(0,0,0,.035) 96px),linear-gradient(135deg,#174d2d,#0d3b22 55%,#174d2d); box-shadow:inset 0 0 35px rgba(0,0,0,.2); }
+    .pitch:before { content:''; position:absolute; inset:9px; border:1px solid rgba(235,255,225,.48); border-radius:8px; pointer-events:none; }
+    .pitch-midline { position:absolute; top:50%; left:10px; right:10px; border-top:1px solid rgba(235,255,225,.42); pointer-events:none; }
+    .pitch-circle { position:absolute; width:108px; height:108px; border:1px solid rgba(235,255,225,.42); border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; }
+    .pitch-row { position:relative; z-index:1; display:flex; align-items:center; justify-content:space-evenly; gap:3px; width:100%; }
+    .pitch-slot { width:22%; max-width:104px; min-width:0; display:flex; flex-direction:column; align-items:center; gap:5px; }
+    
+    .pitch-shirt { width:44px; height:44px; display:flex; align-items:center; justify-content:center; position:relative; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.4)); }
+    .pitch-shirt svg { width:100%; height:100%; }
+    .pitch-shirt-label { position:absolute; top:52%; left:50%; transform:translate(-50%,-50%); color:#ffffff; font-size:9px; font-weight:900; text-shadow:0 1px 3px rgba(0,0,0,0.9); pointer-events:none; }
+    
+    .pitch-slot select { width:100%; min-width:0; padding:5px 2px; border-radius:7px; border:1px solid rgba(255,255,255,.28); background:rgba(5,15,8,.88); color:#fff; font-size:9px; text-align:center; outline:none; }
+    .pitch-slot select:focus { border-color:var(--green); }
+    .pitch-slot option { background:#101713; color:#fff; }
+    
+    .bench-box { margin-top: 14px; padding: 12px; background: rgba(5,10,7,.6); border: 1px dashed var(--line); border-radius: 12px; }
+    .bench-title { font-size: 11px; font-weight: 800; color: var(--gold); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
+    .bench-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+    .bench-slot select { width: 100%; padding: 6px; border-radius: 8px; background: var(--panel2); border: 1px solid var(--line); color: var(--white); font-size: 10px; }
 
-    @media (min-width: 768px) {
-      body { padding-bottom: 0; }
-      .grid { grid-template-columns: repeat(4, 1fr); }
-      .player-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-      .squad-summary-bar { grid-template-columns: repeat(4, 1fr); }
-    }
-  </style>
+    .perf-bar-wrap { background: var(--panel2); border-radius: 6px; height: 10px; width: 100%; display: flex; overflow: hidden; margin-top: 8px; border: 1px solid var(--line); }
+    .perf-win { background: var(--green); height: 100%; }
+    .perf-draw { background: var(--yellow); height: 100%; }
+    .perf-loss { background: var(--red); height: 100%; }
+
+    .empty, .loading { padding: 30px 10px; text-align: center; color: var(--muted); font-weight: 600; font-size: 13px; }
+    .error { color: #ffb0a8; background: rgba(255, 82, 82, 0.1); padding: 12px; border-radius: 10px; border: 1px solid var(--red); font-size: 12px; }
+    .footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 16px; }
+    .hide { display: none !important; }
+
+    @media (min-width: 768px) {
+      body { padding-bottom: 0; }
+      .grid { grid-template-columns: repeat(4, 1fr); }
+      .player-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+      .squad-summary-bar { grid-template-columns: repeat(4, 1fr); }
+    }
+  </style>
 </head>
 <body>
-  <main class="wrap">
-    <header>
-      <img src="logo_malajunta_transparente.png" alt="Escudo MalaJunta FC" class="brand-logo">
-      <div class="brand-text">
-        <div class="brand">MALA<span>JUNTA</span> FC</div>
-        <div class="sub">Plantel y Estadísticas</div>
-      </div>
-    </header>
+  <main class="wrap">
+    <header>
+      <img src="logo_malajunta_transparente.png" alt="Escudo MalaJunta FC" class="brand-logo">
+      <div class="brand-text">
+        <div class="brand">MALA<span>JUNTA</span> FC</div>
+        <div class="sub">Plantel y Estadísticas</div>
+      </div>
+    </header>
 
-    <section class="hero">
-      <div>
-        <div class="eyebrow">TEMPORADA ACTIVA</div>
-        <div class="title">"Jugamos como nunca, perdimos como siempre"</div>
-        <div class="muted" style="font-size: 12px;">Números oficiales del club.</div>
-      </div>
-      <span class="pill" id="badge-status">EN VIVO</span>
-    </section>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">TEMPORADA ACTIVA</div>
+        <div class="title">"Jugamos como nunca, perdimos como siempre"</div>
+        <div class="muted" style="font-size: 12px;">Números oficiales del club.</div>
+      </div>
+      <span class="pill" id="badge-status">EN VIVO</span>
+    </section>
 
-    <!-- REPRODUCTOR DE MÚSICA DE MALAJUNTA -->
-    <div class="audio-player-card">
-      <div class="audio-header">
-        <div class="audio-title">Artistas LNK en el MALA💚</div>
-        <button id="btn-toggle-video" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 10px; border-radius:8px; font-size:11px; cursor:pointer; font-weight:bold;">📺 Ver lista en video</button>
-      </div>
+    <!-- REPRODUCTOR DE MÚSICA DE MALAJUNTA -->
+    <div class="audio-player-card">
+      <div class="audio-header">
+        <div class="audio-title">Artistas LNK en el MALA💚</div>
+        <button id="btn-toggle-video" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 10px; border-radius:8px; font-size:11px; cursor:pointer; font-weight:bold;">📺 Ver lista en video</button>
+      </div>
 
-      <div id="current-track-title" style="font-size: 12px; color: var(--white); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 0;">
-        🎵 Seleccioná play para arrancar la previa...
-      </div>
+      <audio id="custom-audio" preload="metadata">
+        <source src="musica_malajunta.mp3" type="audio/mpeg">
+      </audio>
 
-      <audio id="custom-audio" preload="metadata"></audio>
+      <div class="custom-controls">
+        <button id="btn-play-pause" class="btn-play">▶</button>
+        <span id="current-time" class="time-label">0:00</span>
+        <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
+        <span id="duration-time" class="time-label">0:00</span>
+      </div>
 
-      <div class="custom-controls">
-        <button id="btn-play-pause" class="btn-play">▶</button>
-        <span id="current-time" class="time-label">0:00</span>
-        <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
-        <span id="duration-time" class="time-label">0:00</span>
-      </div>
+   <!-- Panel Oculto de YouTube con reproducción al azar -->
+<div id="video-playlist-wrapper" class="hide">
+  <div class="youtube-playlist-container">
+    <iframe 
+      src="https://www.youtube-nocookie.com/embed/videoseries?list=PLbZSJRKE-GIFOzKiZ514GVx4DoDe1Ldpp&autoplay=0&shuffle=1" 
+      title="Playlist MalaJunta FC" 
+      frameborder="0" 
+      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+      allowfullscreen>
+    </iframe>
+  </div>
+</div>
 
-      <!-- Panel Oculto de YouTube -->
-      <div id="video-playlist-wrapper" class="hide">
-        <div class="youtube-playlist-container">
-          <iframe 
-            src="https://www.youtube-nocookie.com/embed/videoseries?list=PLbZSJRKE-GIFOzKiZ514GVx4DoDe1Ldpp&autoplay=0&shuffle=1" 
-            title="Playlist MalaJunta FC" 
-            frameborder="0" 
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-            allowfullscreen>
-          </iframe>
-        </div>
-      </div>
-    </div>
+    <div id="status" class="loading">⏳ Cargando datos del club...</div>
 
-    <div id="status" class="loading">⏳ Cargando datos del club...</div>
+    <div id="site" class="hide">
+      <nav class="tabs" id="main-nav">
+        <button class="active" data-tab="resumen">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          </span>Resumen
+        </button>
+        
+        <button data-tab="plantel">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>Plantel
+        </button>
 
-    <div id="site" class="hide">
-      <nav class="tabs" id="main-nav">
-        <button class="active" data-tab="resumen">
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-          </span>Resumen
-        </button>
-        
-        <button data-tab="plantel">
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </span>Plantel
-        </button>
+        <button data-tab="partidos">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 2 3 5-3 3-3-3 3-5z"/><path d="M12 10v12"/><path d="m12 10 7 4"/><path d="m12 10-7 4"/><path d="M4.93 4.93 8.5 8"/><path d="m19.07 4.93-3.57 3.07"/></svg>
+          </span>Partidos
+        </button>
 
-        <button data-tab="partidos">
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 2 3 5-3 3-3-3 3-5z"/><path d="M12 10v12"/><path d="m12 10 7 4"/><path d="m12 10-7 4"/><path d="M4.93 4.93 8.5 8"/><path d="m19.07 4.93-3.57 3.07"/></svg>
-          </span>Partidos
-        </button>
+        <button data-tab="torneos">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+          </span>Torneos
+        </button>
 
-        <button data-tab="torneos">
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
-          </span>Torneos
-        </button>
+        <button data-tab="estadisticas">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </span>Números
+        </button>
 
-        <button data-tab="estadisticas">
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </span>Números
-        </button>
+        <button data-tab="admin" id="nav-admin-tab" class="hide">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+          </span>Panel DT
+        </button>
+      </nav>
 
-        <button data-tab="admin" id="nav-admin-tab" class="hide">
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
-          </span>Panel DT
-        </button>
-      </nav>
+      <section id="resumen" class="tab-content"></section>
+      <section id="plantel" class="tab-content hide"></section>
+      <section id="partidos" class="tab-content hide"></section>
+      <section id="estadisticas" class="tab-content hide"></section>
+      
+      <section id="torneos" class="tab-content hide">
+        <div class="card">
+          <h2>🏆 Campeonatos MalaJunta</h2>
+          <p class="muted">Torneos independientes de las estadísticas generales del club.</p>
+          <div id="tournament-public"></div>
+        </div>
+      </section>
 
-      <section id="resumen" class="tab-content"></section>
-      <section id="plantel" class="tab-content hide"></section>
-      <section id="partidos" class="tab-content hide"></section>
-      <section id="estadisticas" class="tab-content hide"></section>
-      
-      <section id="torneos" class="tab-content hide">
-        <div class="card">
-          <h2>🏆 Campeonatos MalaJunta</h2>
-          <p class="muted">Torneos independientes de las estadísticas generales del club.</p>
-          <div id="tournament-public"></div>
-        </div>
-      </section>
+      <section id="detalle" class="tab-content hide">
+        <div class="card" style="margin-bottom: 12px;">
+          <button onclick="switchTab('partidos')" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:6px 12px; border-radius:8px; cursor:pointer; font-size:11px; margin-bottom:10px;">← Volver a Partidos</button>
+          <h2 id="view-match-title" style="margin:0 0 4px; font-size: 18px;">Detalle del Partido</h2>
+          <div id="view-match-info" class="muted" style="font-size: 12px;"></div>
+        </div>
 
-      <section id="detalle" class="tab-content hide">
-        <div class="card" style="margin-bottom: 12px;">
-          <button onclick="switchTab('partidos')" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:6px 12px; border-radius:8px; cursor:pointer; font-size:11px; margin-bottom:10px;">← Volver a Partidos</button>
-          <h2 id="view-match-title" style="margin:0 0 4px; font-size: 18px;">Detalle del Partido</h2>
-          <div id="view-match-info" class="muted" style="font-size: 12px;"></div>
-        </div>
+        <div id="admin-goal-box" class="section card hide" style="border-color: var(--gold);">
+          <h2>🎯 Anotar Gol o Asistencia en este partido</h2>
+          <select id="detail-goal-scorer" class="input-field"></select>
+          <select id="detail-goal-assist" class="input-field"></select>
+          <button id="btn-detail-save-goal" class="btn-action" style="background: var(--gold); color: #10170c;">💾 Registrar Grito Sagrado</button>
+        </div>
 
-        <div id="admin-goal-box" class="section card hide" style="border-color: var(--gold);">
-          <h2>🎯 Anotar Gol o Asistencia en este partido</h2>
-          <select id="detail-goal-scorer" class="input-field"></select>
-          <select id="detail-goal-assist" class="input-field"></select>
-          <button id="btn-detail-save-goal" class="btn-action" style="background: var(--gold); color: #10170c;">💾 Registrar Grito Sagrado</button>
-        </div>
+        <div class="section card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="margin: 0;">⚽ Gritos Sagrados Registrados</h2>
+            <span id="goals-counter-pill" class="pill">0 / 0 Goles</span>
+          </div>
+          <div id="view-goals-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </section>
 
-        <div class="section card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h2 style="margin: 0;">⚽ Gritos Sagrados Registrados</h2>
-            <span id="goals-counter-pill" class="pill">0 / 0 Goles</span>
-          </div>
-          <div id="view-goals-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-        </div>
-      </section>
+      <section id="admin" class="tab-content hide">
+        <div class="card" style="margin-bottom: 15px; border-color: var(--green);">
+          <h2 style="margin-top:0;">📋 Pizarra de Control del DT</h2>
+          <p class="muted" style="font-size: 12px;">Manejo total de la pizarra, el plantel y los resultados.</p>
+          <button id="btn-logout" class="btn-action btn-danger" style="margin-top: 5px;">🚪 Cerrar Sesión DT</button>
+        </div>
 
-      <section id="admin" class="tab-content hide">
-        <div class="card" style="margin-bottom: 15px; border-color: var(--green);">
-          <h2 style="margin-top:0;">📋 Pizarra de Control del DT</h2>
-          <p class="muted" style="font-size: 12px;">Manejo total de la pizarra, el plantel y los resultados.</p>
-          <button id="btn-logout" class="btn-action btn-danger" style="margin-top: 5px;">🚪 Cerrar Sesión DT</button>
-        </div>
+        <div class="section card">
+          <h2>➕ Cargar Nuevo Jugador</h2>
+          <input type="text" id="add-player-name" class="input-field" placeholder="Nombre y Apellido">
+          <input type="text" id="add-player-pos" class="input-field" placeholder="Posición (ej: Delantero, Arquero)">
+          <input type="number" id="add-player-num" class="input-field" placeholder="Número de Camiseta (Dorsal)">
+          <button id="btn-save-player" class="btn-action">Guardar Jugador</button>
+        </div>
 
-        <div class="section card">
-          <h2>➕ Cargar Nuevo Jugador</h2>
-          <input type="text" id="add-player-name" class="input-field" placeholder="Nombre y Apellido">
-          <input type="text" id="add-player-pos" class="input-field" placeholder="Posición (ej: Delantero, Arquero)">
-          <input type="number" id="add-player-num" class="input-field" placeholder="Número de Camiseta (Dorsal)">
-          <button id="btn-save-player" class="btn-action">Guardar Jugador</button>
-        </div>
+        <div class="section card">
+          <h2>👥 Gestionar Plantel (Borrar / Editar)</h2>
+          <div id="admin-player-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
 
-        <div class="section card">
-          <h2>👥 Gestionar Plantel (Borrar / Editar)</h2>
-          <div id="admin-player-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
-        </div>
+        <div class="section card">
+          <h2>⚽ Programar Nuevo Partido</h2>
+          <input type="text" id="add-match-opponent" class="input-field" placeholder="Rival">
+          <input type="date" id="add-match-date" class="input-field">
+          <input type="text" id="add-match-time" class="input-field" placeholder="Horario (ej: 16:30 hs)">
+          <input type="text" id="add-match-venue" class="input-field" placeholder="Cancha / Sede">
+          <button id="btn-save-match" class="btn-action">Guardar Partido</button>
+        </div>
 
-        <div class="section card">
-          <h2>⚽ Programar Nuevo Partido</h2>
-          <input type="text" id="add-match-opponent" class="input-field" placeholder="Rival">
-          <input type="date" id="add-match-date" class="input-field">
-          <input type="text" id="add-match-time" class="input-field" placeholder="Horario (ej: 16:30 hs)">
-          <input type="text" id="add-match-venue" class="input-field" placeholder="Cancha / Sede">
-          <button id="btn-save-match" class="btn-action">Guardar Partido</button>
-        </div>
+        <div class="section card">
+          <h2>📝 Cargar Resultado de Partido</h2>
+          <select id="select-match-result" class="input-field"></select>
+          <div style="display:flex; gap:10px;">
+            <input type="number" id="res-gf" class="input-field" placeholder="Goles MalaJunta">
+            <input type="number" id="res-ga" class="input-field" placeholder="Goles Rival">
+          </div>
+          <button id="btn-save-result" class="btn-action">Finalizar y Guardar Resultado</button>
+        </div>
+      </section>
+    </div>
 
-        <div class="section card">
-          <h2>📝 Cargar Resultado de Partido</h2>
-          <select id="select-match-result" class="input-field"></select>
-          <div style="display:flex; gap:10px;">
-            <input type="number" id="res-gf" class="input-field" placeholder="Goles MalaJunta">
-            <input type="number" id="res-ga" class="input-field" placeholder="Goles Rival">
-          </div>
-          <button id="btn-save-result" class="btn-action">Finalizar y Guardar Resultado</button>
-        </div>
-      </section>
-    </div>
+    <div style="text-align: center; margin-top: 30px;" id="login-footer-container">
+      <button id="btn-admin-login" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; font-weight:bold;">🔐 Acceso DT / Admin</button>
+    </div>
 
-    <div style="text-align: center; margin-top: 30px;" id="login-footer-container">
-      <button id="btn-admin-login" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; font-weight:bold;">🔐 Acceso DT / Admin</button>
-    </div>
+    <div id="admin-modal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2000;">
+      <div class="card" style="width: 90%; max-width: 340px; background:var(--panel); text-align: left;">
+        <h3 style="margin-top:0;">Panel del DT 📋</h3>
+        <p class="muted" style="font-size:12px; margin-bottom:15px;">Ingresá tus datos para editar la pizarra.</p>
+        <input type="email" id="admin-email" class="search-bar" placeholder="Correo electrónico">
+        <input type="password" id="admin-pass" class="search-bar" placeholder="Contraseña">
+        <div style="display:flex; gap:10px;">
+          <button id="btn-login-submit" style="background:var(--green); color:#10170c; flex:1; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; border:0;">Entrar</button>
+          <button id="btn-login-cancel" style="background:var(--panel2); color:var(--white); border:1px solid var(--line); flex:1; padding:10px; border-radius:8px; cursor:pointer;">Cancelar</button>
+        </div>
+        <div id="login-error" class="error hide" style="margin-top:10px; width:100%;"></div>
+      </div>
+    </div>
 
-    <div id="admin-modal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2000;">
-      <div class="card" style="width: 90%; max-width: 340px; background:var(--panel); text-align: left;">
-        <h3 style="margin-top:0;">Panel del DT 📋</h3>
-        <p class="muted" style="font-size:12px; margin-bottom:15px;">Ingresá tus datos para editar la pizarra.</p>
-        <input type="email" id="admin-email" class="search-bar" placeholder="Correo electrónico">
-        <input type="password" id="admin-pass" class="search-bar" placeholder="Contraseña">
-        <div style="display:flex; gap:10px;">
-          <button id="btn-login-submit" style="background:var(--green); color:#10170c; flex:1; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; border:0;">Entrar</button>
-          <button id="btn-login-cancel" style="background:var(--panel2); color:var(--white); border:1px solid var(--line); flex:1; padding:10px; border-radius:8px; cursor:pointer;">Cancelar</button>
-        </div>
-        <div id="login-error" class="error hide" style="margin-top:10px; width:100%;"></div>
-      </div>
-    </div>
+    <div class="footer">MalaJunta FC · La redonda no se mancha 🧉</div>
+  </main>
 
-    <div class="footer">MalaJunta FC · La redonda no se mancha 🧉</div>
-  </main>
+  <script>
+    const SUPABASE_URL = 'https://jkytifivibiwnxkobkmr.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_5nfMkL9Grdgxwy2kNjs6PA_AQGG_w1H';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  <script>
-    const SUPABASE_URL = 'https://jkytifivibiwnxkobkmr.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_5nfMkL9Grdgxwy2kNjs6PA_AQGG_w1H';
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let players = [], matches = [], goals = [], keepers = [];
+    let playerBeerCounts = {};
+    let isLoggedAdmin = false;
+    let currentMatchIdForView = null;
+    let currentPosFilter = 'ALL';
 
-    let players = [], matches = [], goals = [], keepers = [];
-    let playerBeerCounts = {};
-    let isLoggedAdmin = false;
-    let currentMatchIdForView = null;
-    let currentPosFilter = 'ALL';
+// FUNCIÓN DE HISTORIAL DE PARTE SUPERIOR
+  function getHeadToHead(opponentName) {
+    if (!opponentName) return { wins: 0, draws: 0, losses: 0, total: 0 };
+    
+    const target = opponentName.toLowerCase().trim();
+    const pastMatches = matches.filter(m => 
+      m.status === 'Jugado' && 
+      m.opponent && 
+      m.opponent.toLowerCase().trim() === target
+    );
 
-    // --- REPRODUCTOR DE MÚSICA & PLAYLIST (42 TEMAS SUPABASE) ---
-    let playlist = [
-      { title: "Siempre Me Llama - gustirri", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema1.mp3" },
-      { title: "Santiago Bian Ft. Flak'00 - TRANKILIZAO", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema2.mp3" },
-      { title: "R4YFAND TU ERES FT FLAK'00 - R4YFAND", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema3.mp3" },
-      { title: "PUESTO PA MI - R4YFAND, SANTIAGO BIAN, G4GO, FLAK'00", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema4.mp3" },
-      { title: "Pitbull Remix RKT - Rustiko, LilLuke, Flak'00, Pastel, Giankaa, Gustirri", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema5.mp3" },
-      { title: "PASTEL, RUSTIKO - MI BANDIDA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema6.mp3" },
-      { title: "PASTEL X FLAK'00 - ME LO PRENDA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema7.mp3" },
-      { title: "PASTEL X FLAK'00 - HUARACHE", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema8.mp3" },
-      { title: "PASTEL - APAGAME LA LUZ", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema9.mp3" },
-      { title: "PASTEL - PUÑALA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema10.mp3" },
-      { title: "PASTEL - ORO SUIZO", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema11.mp3" },
-      { title: "PASTEL - HUMEDAD", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema12.mp3" },
-      { title: "PASTEL - 2k11", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema13.mp3" },
-      { title: "NYLON - PASTEL", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema14.mp3" },
-      { title: "Nasty - gustirri", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema15.mp3" },
-      { title: "NAN'00 X FLAK'00 - DRIP DEL 2000", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema16.mp3" },
-      { title: "LOQUITA - GUSTIRRI", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema17.mp3" },
-      { title: "JVISCIA X PATO XR X FLAK'00 X PASTEL - BYE BAE", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema18.mp3" },
-      { title: "J.VISCIA X FLAK'00 - RALLY IN ITALY", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema19.mp3" },
-      { title: "GUSTIRRI ft 2L - LUNA LLENA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema20.mp3" },
-      { title: "GUSTIRRI - RETUM B", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema21.mp3" },
-      { title: "GUSTIRRI - RESCATATE RKT", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema22.mp3" },
-      { title: "GUSTIRRI - QUEDATE", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema23.mp3" },
-      { title: "GUSTIRRI - PATRA'", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema24.mp3" },
-      { title: "GUSTIRRI - GATITA LINDA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema25.mp3" },
-      { title: "GUSTIRRI - 21 GRAMOS", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema26.mp3" },
-      { title: "GUSTIRRI - TOMA LA LUNA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema27.mp3" },
-      { title: "GUSTIRRI - CAUTIVADORA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema28.mp3" },
-      { title: "FLAK'00 x PASTEL - DOBLE PIPA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema29.mp3" },
-      { title: "FLAK'00 X NANO - TODA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema30.mp3" },
-      { title: "FLAK'00 X NAN'00 X JVISCIA - TO2", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema31.mp3" },
-      { title: "FLAK'00 X HUARTE - LE ENSEÑE", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema32.mp3" },
-      { title: "FLAK'00 X FREEDOM X NANO - PABLO'S", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema33.mp3" },
-      { title: "FLAK'00 - TIEMPO", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema34.mp3" },
-      { title: "FLAK'00 - HISTORY", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema35.mp3" },
-      { title: "FLAK'00 - 2355", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema36.mp3" },
-      { title: "FLAK '00 X PASTEL - FUCK THAT", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema37.mp3" },
-      { title: "F1 - Pastel x Gustirri x Huarte", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema38.mp3" },
-      { title: "BANDOLERO - GUSTIRRI X HUARTE", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema39.mp3" },
-      { title: "PERDER - GUSTIRRI", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema40.mp3" },
-      { title: "LOCO POR VERNOS - GUSTIRRI MA", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema41.mp3" },
-      { title: "LINDA NOCHE - GUSTIRRI", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema42.mp3" }
-    ];
+    let wins = 0, draws = 0, losses = 0;
 
-    let currentTrackIndex = 0;
-    const audio = document.getElementById('custom-audio');
-    const playBtn = document.getElementById('btn-play-pause');
-    const seekBar = document.getElementById('seek-bar');
-    const currentTimeLabel = document.getElementById('current-time');
-    const durationLabel = document.getElementById('duration-time');
-    const trackTitleLabel = document.getElementById('current-track-title');
+    pastMatches.forEach(m => {
+      const gf = Number(m.goals_for || 0);
+      const ga = Number(m.goals_against || 0);
+      if (gf > ga) wins++;
+      else if (gf === ga) draws++;
+      else losses++;
+    });
 
-    function shufflePlaylist() {
-      for (let i = playlist.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
-      }
-    }
+    return { wins, draws, losses, total: pastMatches.length };
+  }
 
-    function initPlaylist() {
-      if (!playlist.length) return;
-      shufflePlaylist();
-      loadTrack(currentTrackIndex);
-    }
+   // LÓGICA DEL REPRODUCTOR PERSONALIZADO (FIX NaN / Infinity)
+const audio = document.getElementById('custom-audio');
+const playBtn = document.getElementById('btn-play-pause');
+const seekBar = document.getElementById('seek-bar');
+const currentTimeLabel = document.getElementById('current-time');
+const durationLabel = document.getElementById('duration-time');
 
-    function loadTrack(index) {
-      currentTrackIndex = index;
-      audio.src = playlist[index].src;
-      audio.load();
-      if (trackTitleLabel) {
-        trackTitleLabel.innerText = `🎶 Sonando: ${playlist[index].title}`;
-      }
-    }
+function formatTime(seconds) {
+  if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+  const min = Math.floor(seconds / 60);
+  const sec = Math.floor(seconds % 60);
+  return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+}
 
-    playBtn?.addEventListener('click', () => {
-      if (audio.paused) {
-        audio.play().then(() => {
-          playBtn.innerText = '⏸';
-        }).catch(err => {
-          console.error("Error al reproducir audio:", err);
-        });
-      } else {
-        audio.pause();
-        playBtn.innerText = '▶';
-      }
-    });
+playBtn?.addEventListener('click', () => {
+  if (audio.paused) {
+    audio.play();
+    playBtn.innerText = '⏸';
+  } else {
+    audio.pause();
+    playBtn.innerText = '▶';
+  }
+});
 
-    audio?.addEventListener('ended', () => {
-      currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-      loadTrack(currentTrackIndex);
-      audio.play();
-    });
+audio?.addEventListener('loadedmetadata', () => {
+  if (isFinite(audio.duration)) {
+    durationLabel.innerText = formatTime(audio.duration);
+  }
+});
 
-    audio?.addEventListener('loadedmetadata', () => {
-      if (isFinite(audio.duration)) {
-        durationLabel.innerText = formatTime(audio.duration);
-      }
-    });
+audio?.addEventListener('timeupdate', () => {
+  if (isFinite(audio.duration) && audio.duration > 0) {
+    const progress = (audio.currentTime / audio.duration) * 100;
+    seekBar.value = progress;
+    currentTimeLabel.innerText = formatTime(audio.currentTime);
+    durationLabel.innerText = formatTime(audio.duration);
+  }
+});
 
-    audio?.addEventListener('timeupdate', () => {
-      if (isFinite(audio.duration) && audio.duration > 0) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        seekBar.value = progress;
-        currentTimeLabel.innerText = formatTime(audio.currentTime);
-        durationLabel.innerText = formatTime(audio.duration);
-      }
-    });
+seekBar?.addEventListener('input', () => {
+  if (isFinite(audio.duration) && audio.duration > 0) {
+    const seekTo = (seekBar.value / 100) * audio.duration;
+    audio.currentTime = seekTo;
+  }
+});
 
-    seekBar?.addEventListener('input', () => {
-      if (isFinite(audio.duration) && audio.duration > 0) {
-        const seekTo = (seekBar.value / 100) * audio.duration;
-        audio.currentTime = seekTo;
-      }
-    });
+    audio?.addEventListener('loadedmetadata', () => {
+      durationLabel.innerText = formatTime(audio.duration);
+    });
 
-    function formatTime(seconds) {
-      if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
-      const min = Math.floor(seconds / 60);
-      const sec = Math.floor(seconds % 60);
-      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-    }
+    audio?.addEventListener('timeupdate', () => {
+      if (!isNaN(audio.duration)) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        seekBar.value = progress;
+        currentTimeLabel.innerText = formatTime(audio.currentTime);
+      }
+    });
 
-    initPlaylist();
+    seekBar?.addEventListener('input', () => {
+      if (!isNaN(audio.duration)) {
+        const seekTo = (seekBar.value / 100) * audio.duration;
+        audio.currentTime = seekTo;
+      }
+    });
 
-    document.getElementById('btn-toggle-video')?.addEventListener('click', () => {
-      const wrapper = document.getElementById('video-playlist-wrapper');
-      const btn = document.getElementById('btn-toggle-video');
-      if (!wrapper) return;
-      const isHidden = wrapper.classList.contains('hide');
-      wrapper.classList.toggle('hide', !isHidden);
-      btn.innerText = isHidden ? '✕ Ocultar video' : '📺 Ver lista en video';
-    });
+    document.getElementById('btn-toggle-video')?.addEventListener('click', () => {
+      const wrapper = document.getElementById('video-playlist-wrapper');
+      const btn = document.getElementById('btn-toggle-video');
+      if (!wrapper) return;
+      const isHidden = wrapper.classList.contains('hide');
+      wrapper.classList.toggle('hide', !isHidden);
+      btn.innerText = isHidden ? '✕ Ocultar video' : '📺 Ver lista en video';
+    });
 
-    // --- CARGA DE DATOS ORIGINAL DE LA PIZARRA (SUPABASE) ---
-    // (Acá continúa todo tu código original de carga de plantel, partidos, pestañas y admin)
-  </script>
-</body>
-</html>
+    let formationSettings = { formation: '4-3-3', lineups: {}, bench: {} };
+    try {
+      const savedFormation = JSON.parse(localStorage.getItem('malajunta_formation_v2') || 'null');
+      if (savedFormation && typeof savedFormation === 'object') {
+        formationSettings = { ...formationSettings, ...savedFormation, lineups: savedFormation.lineups || {}, bench: savedFormation.bench || {} };
+      }
+    } catch 
