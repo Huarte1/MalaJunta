@@ -523,7 +523,7 @@
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
 
-// Lista oficial de temas del vestuario de MalaJunta FC (Conectados a Supabase Storage y modo Aleatorio)
+    // Lista oficial de temas del vestuario de MalaJunta FC (Conectados a Supabase Storage y modo Aleatorio)
     let playlist = [
       { title: "Siempre Me Llama - gustirri", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema1.mp3" },
       { title: "Santiago Bian Ft. Flak'00 - TRANKILIZAO", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema2.mp3" },
@@ -595,7 +595,6 @@
       currentTrackIndex = index;
       audio.src = playlist[index].src;
       audio.load();
-      // Actualizamos el texto en pantalla con el título real del tema
       if (trackTitleLabel) {
         trackTitleLabel.innerText = `🎶 Sonando: ${playlist[index].title}`;
       }
@@ -603,8 +602,11 @@
 
     playBtn?.addEventListener('click', () => {
       if (audio.paused) {
-        audio.play();
-        playBtn.innerText = '⏸';
+        audio.play().then(() => {
+          playBtn.innerText = '⏸';
+        }).catch(err => {
+          console.error("Error al reproducir audio:", err);
+        });
       } else {
         audio.pause();
         playBtn.innerText = '▶';
@@ -648,6 +650,7 @@
 
     // Arrancamos el reproductor con los temas mezclados
     initPlaylist();
+  </script>
 
     // Llamar a esta función al iniciar la página
     initPlaylist();
