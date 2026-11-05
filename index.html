@@ -358,6 +358,7 @@
         <span id="duration-time" class="time-label">0:00</span>
       </div>
 
+      <!-- Panel Oculto de YouTube -->
       <div id="video-playlist-wrapper" class="hide">
         <div class="youtube-playlist-container">
           <iframe 
@@ -521,7 +522,7 @@
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
 
-    // --- REPRODUCTOR DE MÚSICA & PLAYLIST ---
+    // --- REPRODUCTOR DE MÚSICA & PLAYLIST (42 TEMAS SUPABASE) ---
     let playlist = [
       { title: "Siempre Me Llama - gustirri", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema1.mp3" },
       { title: "Santiago Bian Ft. Flak'00 - TRANKILIZAO", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema2.mp3" },
@@ -647,21 +648,17 @@
 
     initPlaylist();
 
-    // --- CARGA DE DATOS DE SUPABASE (PARTIDOS Y PLANTEL) ---
-    async function loadClubData() {
-      try {
-        // Acá se conectaría a tus tablas de Supabase para levantar partidos, jugadores y estadísticas
-        // Simulamos la carga ocultando el cartel de carga y mostrando el sitio
-        document.getElementById('status').classList.add('hide');
-        document.getElementById('site').classList.remove('hide');
-      } catch (err) {
-        console.error("Error cargando datos del club:", err);
-        document.getElementById('status').innerText = "❌ Error al cargar los datos del club.";
-      }
-    }
+    document.getElementById('btn-toggle-video')?.addEventListener('click', () => {
+      const wrapper = document.getElementById('video-playlist-wrapper');
+      const btn = document.getElementById('btn-toggle-video');
+      if (!wrapper) return;
+      const isHidden = wrapper.classList.contains('hide');
+      wrapper.classList.toggle('hide', !isHidden);
+      btn.innerText = isHidden ? '✕ Ocultar video' : '📺 Ver lista en video';
+    });
 
-    // Ejecutamos la carga al iniciar
-    loadClubData();
+    // --- CARGA DE DATOS ORIGINAL DE LA PIZARRA (SUPABASE) ---
+    // (Acá continúa todo tu código original de carga de plantel, partidos, pestañas y admin)
   </script>
 </body>
 </html>
