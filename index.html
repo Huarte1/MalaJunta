@@ -62,7 +62,7 @@
     .badge-draw { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
     .badge-invicto { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
 
-    /* BARRA DE NAVEGACIÓN PREMIUM CON ÍCONOS SVG (6 SOLAPAS) */
+    /* BARRA DE NAVEGACIÓN PREMIUM CON ÍCONOS SVG */
     .tabs {
       position: fixed;
       bottom: 14px;
@@ -72,7 +72,7 @@
       max-width: 680px;
       z-index: 1000;
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(5, 1fr); /* 5 columnas por defecto para usuarios */
       gap: 3px;
       padding: 6px;
       background: rgba(12, 18, 14, .94);
@@ -81,6 +81,11 @@
       box-shadow: 0 10px 35px rgba(0,0,0,.5);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
+    }
+
+    /* Cuando el DT se loguea, pasa a 6 columnas */
+    .tabs.admin-active {
+      grid-template-columns: repeat(6, 1fr);
     }
 
     .tabs button {
@@ -279,7 +284,7 @@
     <div id="status" class="loading">⏳ Cargando datos del club...</div>
 
     <div id="site" class="hide">
-      <!-- Menú Flotante Inferior con SVG Vectoriales (6 Pestañas integradas) -->
+      <!-- Menú Flotante Inferior (Panel DT con la clase "hide" para que solo aparezca al iniciar sesión) -->
       <nav class="tabs" id="main-nav">
         <button class="active" data-tab="resumen">
           <span>
@@ -311,7 +316,7 @@
           </span>Números
         </button>
 
-        <button data-tab="admin" id="nav-admin-tab">
+        <button data-tab="admin" id="nav-admin-tab" class="hide">
           <span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
           </span>Panel DT
@@ -1612,11 +1617,15 @@
     // --- MODO DT / ADMIN UI ---
     function updateAdminUI(user) {
       isLoggedAdmin = !!user;
+      const navAdminTab = document.getElementById('nav-admin-tab');
+      const mainNav = document.getElementById('main-nav');
       const badgeStatus = document.getElementById('badge-status');
       const loginFooter = document.getElementById('login-footer-container');
       const adminGoalBox = document.getElementById('admin-goal-box');
 
       if (user) {
+        if(navAdminTab) navAdminTab.classList.remove('hide');
+        if(mainNav) mainNav.classList.add('admin-active');
         if(badgeStatus) {
           badgeStatus.innerText = "MODO DT ACTIVO";
           badgeStatus.style.background = "var(--green)";
@@ -1625,6 +1634,8 @@
         if(loginFooter) loginFooter.classList.add('hide');
         if(adminGoalBox) adminGoalBox.classList.remove('hide');
       } else {
+        if(navAdminTab) navAdminTab.classList.add('hide');
+        if(mainNav) mainNav.classList.remove('admin-active');
         if(badgeStatus) {
           badgeStatus.innerText = "EN VIVO";
           badgeStatus.style.background = "#243321";
