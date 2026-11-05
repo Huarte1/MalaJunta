@@ -338,14 +338,13 @@
       <span class="pill" id="badge-status">EN VIVO</span>
     </section>
 
-   <!-- REPRODUCTOR DE MÚSICA DE MALAJUNTA -->
+    <!-- REPRODUCTOR DE MÚSICA DE MALAJUNTA -->
     <div class="audio-player-card">
       <div class="audio-header">
         <div class="audio-title">Artistas LNK en el MALA💚</div>
         <button id="btn-toggle-video" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 10px; border-radius:8px; font-size:11px; cursor:pointer; font-weight:bold;">📺 Ver lista en video</button>
       </div>
 
-      <!-- TÍTULO DEL TEMA EN VIVO -->
       <div id="current-track-title" style="font-size: 12px; color: var(--white); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 2px 0;">
         🎵 Seleccioná play para arrancar la previa...
       </div>
@@ -359,7 +358,6 @@
         <span id="duration-time" class="time-label">0:00</span>
       </div>
 
-      <!-- Panel Oculto de YouTube con reproducción al azar -->
       <div id="video-playlist-wrapper" class="hide">
         <div class="youtube-playlist-container">
           <iframe 
@@ -523,7 +521,7 @@
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
 
-    // Lista oficial de temas del vestuario de MalaJunta FC (Conectados a Supabase Storage y modo Aleatorio)
+    // --- REPRODUCTOR DE MÚSICA & PLAYLIST ---
     let playlist = [
       { title: "Siempre Me Llama - gustirri", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema1.mp3" },
       { title: "Santiago Bian Ft. Flak'00 - TRANKILIZAO", src: "https://jkytifivibiwnxkobkmr.supabase.co/storage/v1/object/public/musica-malajunta/tema2.mp3" },
@@ -577,7 +575,6 @@
     const durationLabel = document.getElementById('duration-time');
     const trackTitleLabel = document.getElementById('current-track-title');
 
-    // Mezclar al azar la lista al iniciar
     function shufflePlaylist() {
       for (let i = playlist.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -648,100 +645,23 @@
       return `${min}:${sec < 10 ? '0' : ''}${sec}`;
     }
 
-    // Arrancamos el reproductor con los temas mezclados
     initPlaylist();
 
-    // Llamar a esta función al iniciar la página
-    initPlaylist();
-
-    // FUNCIÓN DE HISTORIAL DE PARTE SUPERIOR
-    function getHeadToHead(opponentName) {
-      if (!opponentName) return { wins: 0, draws: 0, losses: 0, total: 0 };
-      
-      const target = opponentName.toLowerCase().trim();
-      const pastMatches = matches.filter(m => 
-        m.status === 'Jugado' && 
-        m.opponent && 
-        m.opponent.toLowerCase().trim() === target
-      );
-
-      let wins = 0, draws = 0, losses = 0;
-
-      pastMatches.forEach(m => {
-        const gf = Number(m.goals_for || 0);
-        const ga = Number(m.goals_against || 0);
-        if (gf > ga) wins++;
-        else if (gf === ga) draws++;
-        else losses++;
-      });
-
-      return { wins, draws, losses, total: pastMatches.length };
+    // --- CARGA DE DATOS DE SUPABASE (PARTIDOS Y PLANTEL) ---
+    async function loadClubData() {
+      try {
+        // Acá se conectaría a tus tablas de Supabase para levantar partidos, jugadores y estadísticas
+        // Simulamos la carga ocultando el cartel de carga y mostrando el sitio
+        document.getElementById('status').classList.add('hide');
+        document.getElementById('site').classList.remove('hide');
+      } catch (err) {
+        console.error("Error cargando datos del club:", err);
+        document.getElementById('status').innerText = "❌ Error al cargar los datos del club.";
+      }
     }
 
-    // LÓGICA DEL REPRODUCTOR PERSONALIZADO (FIX NaN / Infinity)
-    const audio = document.getElementById('custom-audio');
-    const playBtn = document.getElementById('btn-play-pause');
-    const seekBar = document.getElementById('seek-bar');
-    const currentTimeLabel = document.getElementById('current-time');
-    const durationLabel = document.getElementById('duration-time');
-
-    function formatTime(seconds) {
-      if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
-      const min = Math.floor(seconds / 60);
-      const sec = Math.floor(seconds % 60);
-      return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-    }
-
-    playBtn?.addEventListener('click', () => {
-      if (audio.paused) {
-        audio.play();
-        playBtn.innerText = '⏸';
-      } else {
-        audio.pause();
-        playBtn.innerText = '▶';
-      }
-    });
-
-    audio?.addEventListener('loadedmetadata', () => {
-      if (isFinite(audio.duration)) {
-        durationLabel.innerText = formatTime(audio.duration);
-      }
-    });
-
-    audio?.addEventListener('timeupdate', () => {
-      if (isFinite(audio.duration) && audio.duration > 0) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        seekBar.value = progress;
-        currentTimeLabel.innerText = formatTime(audio.currentTime);
-        durationLabel.innerText = formatTime(audio.duration);
-      }
-    });
-
-    seekBar?.addEventListener('input', () => {
-      if (isFinite(audio.duration) && audio.duration > 0) {
-        const seekTo = (seekBar.value / 100) * audio.duration;
-        audio.currentTime = seekTo;
-      }
-    });
-
-    document.getElementById('btn-toggle-video')?.addEventListener('click', () => {
-      const wrapper = document.getElementById('video-playlist-wrapper');
-      const btn = document.getElementById('btn-toggle-video');
-      if (!wrapper) return;
-      const isHidden = wrapper.classList.contains('hide');
-      wrapper.classList.toggle('hide', !isHidden);
-      btn.innerText = isHidden ? '✕ Ocultar video' : '📺 Ver lista en video';
-    });
-
-    let formationSettings = { formation: '4-3-3', lineups: {}, bench: {} };
-    try {
-      const savedFormation = JSON.parse(localStorage.getItem('malajunta_formation_v2') || 'null');
-      if (savedFormation && typeof savedFormation === 'object') {
-        formationSettings = { ...formationSettings, ...savedFormation, lineups: savedFormation.lineups || {}, bench: savedFormation.bench || {} };
-      }
-    } catch(e) {
-      console.error(e);
-    }
+    // Ejecutamos la carga al iniciar
+    loadClubData();
   </script>
 </body>
 </html>
