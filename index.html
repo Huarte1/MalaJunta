@@ -551,6 +551,30 @@
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
 
+// FUNCIÓN DE HISTORIAL DE PARTE SUPERIOR
+  function getHeadToHead(opponentName) {
+    if (!opponentName) return { wins: 0, draws: 0, losses: 0, total: 0 };
+    
+    const target = opponentName.toLowerCase().trim();
+    const pastMatches = matches.filter(m => 
+      m.status === 'Jugado' && 
+      m.opponent && 
+      m.opponent.toLowerCase().trim() === target
+    );
+
+    let wins = 0, draws = 0, losses = 0;
+
+    pastMatches.forEach(m => {
+      const gf = Number(m.goals_for || 0);
+      const ga = Number(m.goals_against || 0);
+      if (gf > ga) wins++;
+      else if (gf === ga) draws++;
+      else losses++;
+    });
+
+    return { wins, draws, losses, total: pastMatches.length };
+  }
+
    // LÓGICA DEL REPRODUCTOR PERSONALIZADO (FIX NaN / Infinity)
 const audio = document.getElementById('custom-audio');
 const playBtn = document.getElementById('btn-play-pause');
@@ -1481,26 +1505,37 @@ seekBar?.addEventListener('input', () => {
       return `<span class="pill badge-draw">E (${gf}-${ga})</span>`;
     }
 
-    function matchRows(arr) {
-      return arr.length ? `<div class="table-wrap"><table>
-        <thead><tr><th>Fecha</th><th>Rival</th><th>Res.</th><th>Acción</th></tr></thead>
-        <tbody>${arr.map(m => `
-          <tr>
-            <td>${date(m.match_date)}</td>
-            <td><b>${esc(m.opponent || 'Rival')}</b></td>
-            <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
-            <td>
-              <div style="display:flex; gap:4px; align-items:center;">
-                <button onclick="viewMatchDetail('${m.id}')" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Goles</button>
-                ${isLoggedAdmin ? `
-                  <button onclick="editMatch('${m.id}', '${esc(m.opponent).replace(/'/g, "\\'")}', '${m.match_date || ''}', '${esc(m.venue || '').replace(/'/g, "\\'")}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">✏️</button>
-                  <button onclick="deleteMatch('${m.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">🗑️</button>
-                ` : ''}
-              </div>
-            </td>
-          </tr>`).join('')}
-        </tbody></table></div>` : '<div class="empty">No hay partidos cargados.</div>';
-    }
+   function matchRows(arr) {
+  return arr.length ? `<div class="table-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Rival</th><th>Res.</th><th>Acción</th></tr></thead>
+    <tbody>${arr.map(m => {
+      // Calculamos cuántas veces se jugó contra este rival
+      const h2h = getHeadToHead(m.opponent);
+      const totalEnfrentamientos = h2h.total;
+      const countBadge = totalEnfrentamientos > 0 
+        ? `<span class="pill" style="margin-left:4px; font-size:9px; padding:1px 5px; background:rgba(166,230,91,0.15); color:var(--green); border:1px solid var(--line);" title="Enfrentamientos jugados">x${totalEnfrentamientos}</span>`
+        : '';
+
+      return `
+      <tr>
+        <td>${date(m.match_date)}</td>
+        <td>
+          <b>${esc(m.opponent || 'Rival')}</b>${countBadge}
+        </td>
+        <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
+        <td>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <button onclick="viewMatchDetail('${m.id}')" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Goles</button>
+            ${isLoggedAdmin ? `
+              <button onclick="editMatch('${m.id}', '${esc(m.opponent).replace(/'/g, "\\'")}', '${m.match_date || ''}', '${esc(m.venue || '').replace(/'/g, "\\'")}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">✏️</button>
+              <button onclick="deleteMatch('${m.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">🗑️</button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>` : '<div class="empty">No hay partidos cargados.</div>';
+}
 
     function keeperStats(p) {
       const a = keepers.filter(k => k.player_id === p.id);
