@@ -53,19 +53,37 @@
       border: 1px solid var(--line);
     }
     .btn-play {
-      background: var(--green);
-      color: #10170c;
-      border: none;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      font-weight: 900;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
+  background: var(--green);
+  color: #10170c;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.btn-play:active {
+  transform: scale(0.92);
+}
+.btn-play svg {
+  width: 20px;
+  height: 20px;
+}
+.btn-play.btn-nav {
+  width: 30px;
+  height: 30px;
+  background: var(--panel);
+  color: var(--green);
+  border: 1px solid var(--line);
+}
+.btn-play.btn-nav svg {
+  width: 15px;
+  height: 15px;
+}
     .time-label {
       font-size: 11px;
       color: var(--muted);
@@ -328,15 +346,26 @@
       <audio id="custom-audio" preload="metadata"></audio>
 
       <div class="custom-controls">
-        <button id="btn-prev" class="btn-play" style="width:28px; height:28px; font-size:11px;" title="Anterior">⏮</button>
-        <button id="btn-play-pause" class="btn-play">▶</button>
-        <button id="btn-next" class="btn-play" style="width:28px; height:28px; font-size:11px;" title="Siguiente">⏭</button>
+  <!-- Botón Anterior -->
+  <button id="btn-prev" class="btn-play btn-nav" title="Anterior">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+  </button>
 
-        <span id="current-time" class="time-label">0:00</span>
-        <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
-        <span id="duration-time" class="time-label">0:00</span>
-      </div>
-    </div>
+  <!-- Botón Play / Pause -->
+  <button id="btn-play-pause" class="btn-play" title="Reproducir/Pausar">
+    <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor" class="hide"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+  </button>
+
+  <!-- Botón Siguiente -->
+  <button id="btn-next" class="btn-play btn-nav" title="Siguiente">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+  </button>
+
+  <span id="current-time" class="time-label">0:00</span>
+  <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
+  <span id="duration-time" class="time-label">0:00</span>
+</div>
 
     <div id="status" class="loading">⏳ Cargando datos del club...</div>
 
@@ -560,34 +589,43 @@
       audio.load();
     }
 
-    playBtn?.addEventListener('click', () => {
-      if (!playlist.length) return;
-      if (audio.paused) {
-        audio.play();
-        playBtn.innerText = '⏸';
-      } else {
-        audio.pause();
-        playBtn.innerText = '▶';
-      }
-    });
+ // Reemplazá el evento del click de Play/Pause por este:
+playBtn?.addEventListener('click', () => {
+  if (!playlist.length) return;
+  const iconPlay = document.getElementById('icon-play');
+  const iconPause = document.getElementById('icon-pause');
 
-    nextBtn?.addEventListener('click', () => {
-      if (!playlist.length) return;
-      let nextIndex = currentSongIndex + 1;
-      if (nextIndex >= playlist.length) nextIndex = 0;
-      loadSong(nextIndex);
-      audio.play();
-      playBtn.innerText = '⏸';
-    });
+  if (audio.paused) {
+    audio.play();
+    iconPlay?.classList.add('hide');
+    iconPause?.classList.remove('hide');
+  } else {
+    audio.pause();
+    iconPlay?.classList.remove('hide');
+    iconPause?.classList.add('hide');
+  }
+});
 
-    prevBtn?.addEventListener('click', () => {
-      if (!playlist.length) return;
-      let prevIndex = currentSongIndex - 1;
-      if (prevIndex < 0) prevIndex = playlist.length - 1;
-      loadSong(prevIndex);
-      audio.play();
-      playBtn.innerText = '⏸';
-    });
+// Y en los botones Next/Prev asegurate de restablecer el ícono a Pause cuando cambia el tema:
+nextBtn?.addEventListener('click', () => {
+  if (!playlist.length) return;
+  let nextIndex = currentSongIndex + 1;
+  if (nextIndex >= playlist.length) nextIndex = 0;
+  loadSong(nextIndex);
+  audio.play();
+  document.getElementById('icon-play')?.classList.add('hide');
+  document.getElementById('icon-pause')?.classList.remove('hide');
+});
+
+prevBtn?.addEventListener('click', () => {
+  if (!playlist.length) return;
+  let prevIndex = currentSongIndex - 1;
+  if (prevIndex < 0) prevIndex = playlist.length - 1;
+  loadSong(prevIndex);
+  audio.play();
+  document.getElementById('icon-play')?.classList.add('hide');
+  document.getElementById('icon-pause')?.classList.remove('hide');
+});
 
     audio?.addEventListener('ended', () => {
       nextBtn?.click();
@@ -1515,7 +1553,7 @@
       const as = goals.filter(g => g.assist_id === p.id).length;
       const k = keeperStats(p);
       return `<details>
-        <summary>Ver estadísticas y cervezas</summary>
+        <summary>Ver estadísticas</summary>
         <div style="margin-top:8px; background:var(--panel2); padding:10px; border-radius:10px; border:1px solid var(--line);">
           <div style="display:flex; justify-content:space-around; text-align:center;">
             <div><b>${gs}</b><br><small class="muted">Goles</small></div>
