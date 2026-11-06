@@ -53,37 +53,37 @@
       border: 1px solid var(--line);
     }
     .btn-play {
-  background: var(--green);
-  color: #10170c;
-  border: none;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.15s ease, background 0.15s ease;
-}
-.btn-play:active {
-  transform: scale(0.92);
-}
-.btn-play svg {
-  width: 20px;
-  height: 20px;
-}
-.btn-play.btn-nav {
-  width: 30px;
-  height: 30px;
-  background: var(--panel);
-  color: var(--green);
-  border: 1px solid var(--line);
-}
-.btn-play.btn-nav svg {
-  width: 15px;
-  height: 15px;
-}
+      background: var(--green);
+      color: #10170c;
+      border: none;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .btn-play:active {
+      transform: scale(0.92);
+    }
+    .btn-play svg {
+      width: 20px;
+      height: 20px;
+    }
+    .btn-play.btn-nav {
+      width: 30px;
+      height: 30px;
+      background: var(--panel);
+      color: var(--green);
+      border: 1px solid var(--line);
+    }
+    .btn-play.btn-nav svg {
+      width: 15px;
+      height: 15px;
+    }
     .time-label {
       font-size: 11px;
       color: var(--muted);
@@ -308,6 +308,8 @@
     .footer { text-align: center; color: var(--muted); font-size: 11px; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 16px; }
     .hide { display: none !important; }
 
+    .team-roster-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel); border: 1px solid var(--line); padding: 4px 8px; border-radius: 14px; font-size: 11px; margin: 3px; }
+
     @media (min-width: 768px) {
       body { padding-bottom: 0; }
       .grid { grid-template-columns: repeat(4, 1fr); }
@@ -327,13 +329,13 @@
     </header>
 
     <section class="hero">
-  <div>
-    <div class="eyebrow">TEMPORADA ACTIVA</div>
-    <div class="title" id="hero-quote">"Jugamos como nunca, perdimos como siempre"</div>
-    <div class="muted" style="font-size: 12px;">Números oficiales del club.</div>
-  </div>
-  <span class="pill" id="badge-status">EN VIVO</span>
-</section>
+      <div>
+        <div class="eyebrow">TEMPORADA ACTIVA</div>
+        <div class="title" id="hero-quote">"Jugamos como nunca, perdimos como siempre"</div>
+        <div class="muted" style="font-size: 12px;">Números oficiales del club.</div>
+      </div>
+      <span class="pill" id="badge-status">EN VIVO</span>
+    </section>
 
     <!-- REPRODUCTOR DE AUDIO CONECTADO A SUPABASE STORAGE -->
     <div class="audio-player-card">
@@ -346,26 +348,27 @@
       <audio id="custom-audio" preload="metadata"></audio>
 
       <div class="custom-controls">
-  <!-- Botón Anterior -->
-  <button id="btn-prev" class="btn-play btn-nav" title="Anterior">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-  </button>
+        <!-- Botón Anterior -->
+        <button id="btn-prev" class="btn-play btn-nav" title="Anterior">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
 
-  <!-- Botón Play / Pause -->
-  <button id="btn-play-pause" class="btn-play" title="Reproducir/Pausar">
-    <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-    <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor" class="hide"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-  </button>
+        <!-- Botón Play / Pause -->
+        <button id="btn-play-pause" class="btn-play" title="Reproducir/Pausar">
+          <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor" class="hide"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
 
-  <!-- Botón Siguiente -->
-  <button id="btn-next" class="btn-play btn-nav" title="Siguiente">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-  </button>
+        <!-- Botón Siguiente -->
+        <button id="btn-next" class="btn-play btn-nav" title="Siguiente">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
 
-  <span id="current-time" class="time-label">0:00</span>
-  <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
-  <span id="duration-time" class="time-label">0:00</span>
-</div>
+        <span id="current-time" class="time-label">0:00</span>
+        <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
+        <span id="duration-time" class="time-label">0:00</span>
+      </div>
+    </div>
 
     <div id="status" class="loading">⏳ Cargando datos del club...</div>
 
@@ -505,33 +508,32 @@
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
 
-// Frases oficiales de los artistas de LNK y MalaJunta FC
-const frasesMalaJunta = [
-  '"Con mi camada le dimos un susto, lo sienten porque andan hablando de gusto" - Pastel',
-  '"Otra vez la caravana, famoso fin de semana" - Flak\'00',
-  '"Tiempo puede que pase lento, si juega el mala vamos en contra del viento" - Flak\'00',
-  '"La nota sostenida, lujos de mala vida. La vibra positiva, ustedes que tiran" - JViscia',
-  '"Perdido en el limbo que me va a sacar de las malas" - Gustirri',
-  '"Esperando el día que llegue lo bueno" - Gustirri',
-  '"Tengo un estado en el que me enferma no verte" - Pastel',
-  '"Estar con vos es solo para valientes" - Gustirri',
-  '"Somos los negretios feos con el cora bonito" - Gustirri',
-  '"La vida es un vaivén y yo la juego bien" - JViscia',
-  '"Fútbol de día, gira por la night" - PatoXR',
-  '"A todo pelota? Todo pelota entonces" - Pablo A',
-  '"Jugamos como nunca, perdimos como siempre" - JViscia'
-];
+    // Frases oficiales de los artistas de LNK y MalaJunta FC
+    const frasesMalaJunta = [
+      '"Con mi camada le dimos un susto, lo sienten porque andan hablando de gusto" - Pastel',
+      '"Otra vez la caravana, famoso fin de semana" - Flak\'00',
+      '"Tiempo puede que pase lento, si juega el mala vamos en contra del viento" - Flak\'00',
+      '"La nota sostenida, lujos de mala vida. La vibra positiva, ustedes que tiran" - JViscia',
+      '"Perdido en el limbo que me va a sacar de las malas" - Gustirri',
+      '"Esperando el día que llegue lo bueno" - Gustirri',
+      '"Tengo un estado en el que me enferma no verte" - Pastel',
+      '"Estar con vos es solo para valientes" - Gustirri',
+      '"Somos los negretios feos con el cora bonito" - Gustirri',
+      '"La vida es un vaivén y yo la juego bien" - JViscia',
+      '"Fútbol de día, gira por la night" - PatoXR',
+      '"A todo pelota? Todo pelota entonces" - Pablo A',
+      '"Jugamos como nunca, perdimos como siempre" - JViscia'
+    ];
 
-function setRandomQuote() {
-  const quoteEl = document.getElementById('hero-quote');
-  if (quoteEl) {
-    const randomIndex = Math.floor(Math.random() * frasesMalaJunta.length);
-    quoteEl.innerText = frasesMalaJunta[randomIndex];
-  }
-}
+    function setRandomQuote() {
+      const quoteEl = document.getElementById('hero-quote');
+      if (quoteEl) {
+        const randomIndex = Math.floor(Math.random() * frasesMalaJunta.length);
+        quoteEl.innerText = frasesMalaJunta[randomIndex];
+      }
+    }
 
-// Ejecutar la selección aleatoria al entrar a la web
-setRandomQuote();
+    setRandomQuote();
 
     // 1. FUNCIÓN DE HISTORIAL HEAD-TO-HEAD
     function getHeadToHead(opponentName) {
@@ -617,43 +619,41 @@ setRandomQuote();
       audio.load();
     }
 
- // Reemplazá el evento del click de Play/Pause por este:
-playBtn?.addEventListener('click', () => {
-  if (!playlist.length) return;
-  const iconPlay = document.getElementById('icon-play');
-  const iconPause = document.getElementById('icon-pause');
+    playBtn?.addEventListener('click', () => {
+      if (!playlist.length) return;
+      const iconPlay = document.getElementById('icon-play');
+      const iconPause = document.getElementById('icon-pause');
 
-  if (audio.paused) {
-    audio.play();
-    iconPlay?.classList.add('hide');
-    iconPause?.classList.remove('hide');
-  } else {
-    audio.pause();
-    iconPlay?.classList.remove('hide');
-    iconPause?.classList.add('hide');
-  }
-});
+      if (audio.paused) {
+        audio.play();
+        iconPlay?.classList.add('hide');
+        iconPause?.classList.remove('hide');
+      } else {
+        audio.pause();
+        iconPlay?.classList.remove('hide');
+        iconPause?.classList.add('hide');
+      }
+    });
 
-// Y en los botones Next/Prev asegurate de restablecer el ícono a Pause cuando cambia el tema:
-nextBtn?.addEventListener('click', () => {
-  if (!playlist.length) return;
-  let nextIndex = currentSongIndex + 1;
-  if (nextIndex >= playlist.length) nextIndex = 0;
-  loadSong(nextIndex);
-  audio.play();
-  document.getElementById('icon-play')?.classList.add('hide');
-  document.getElementById('icon-pause')?.classList.remove('hide');
-});
+    nextBtn?.addEventListener('click', () => {
+      if (!playlist.length) return;
+      let nextIndex = currentSongIndex + 1;
+      if (nextIndex >= playlist.length) nextIndex = 0;
+      loadSong(nextIndex);
+      audio.play();
+      document.getElementById('icon-play')?.classList.add('hide');
+      document.getElementById('icon-pause')?.classList.remove('hide');
+    });
 
-prevBtn?.addEventListener('click', () => {
-  if (!playlist.length) return;
-  let prevIndex = currentSongIndex - 1;
-  if (prevIndex < 0) prevIndex = playlist.length - 1;
-  loadSong(prevIndex);
-  audio.play();
-  document.getElementById('icon-play')?.classList.add('hide');
-  document.getElementById('icon-pause')?.classList.remove('hide');
-});
+    prevBtn?.addEventListener('click', () => {
+      if (!playlist.length) return;
+      let prevIndex = currentSongIndex - 1;
+      if (prevIndex < 0) prevIndex = playlist.length - 1;
+      loadSong(prevIndex);
+      audio.play();
+      document.getElementById('icon-play')?.classList.add('hide');
+      document.getElementById('icon-pause')?.classList.remove('hide');
+    });
 
     audio?.addEventListener('ended', () => {
       nextBtn?.click();
@@ -916,6 +916,23 @@ prevBtn?.addEventListener('click', () => {
     // 4. MÓDULO TORNEOS Y CAMPEONATOS
     let tournaments = [], tournamentTeams = [], tournamentMatches = [];
     let activeTournamentId = null, tournamentView = 'list';
+    let selectedTournamentTeamId = null;
+
+    // Almacenamiento local para nóminas y formaciones tácticas de equipos del torneo
+    let tournamentTeamRosters = {};
+    let tournamentTeamFormations = {};
+
+    try {
+      tournamentTeamRosters = JSON.parse(localStorage.getItem('malajunta_t_rosters') || '{}');
+      tournamentTeamFormations = JSON.parse(localStorage.getItem('malajunta_t_formations') || '{}');
+    } catch(e) { console.warn('Error leyendo formaciones de torneo:', e); }
+
+    function saveTournamentRostersAndFormations() {
+      try {
+        localStorage.setItem('malajunta_t_rosters', JSON.stringify(tournamentTeamRosters));
+        localStorage.setItem('malajunta_t_formations', JSON.stringify(tournamentTeamFormations));
+      } catch(e) { console.warn('Error guardando nóminas de torneo:', e); }
+    }
 
     function tournamentTeam(id) {
       return tournamentTeams.find(t => t.id === id)?.name || 'Por definir';
@@ -1050,6 +1067,143 @@ prevBtn?.addEventListener('click', () => {
       await loadTournaments();
     }
 
+    // --- NUEVAS FUNCIONES PARA NÓMINA Y FORMACIÓN EN TORNEOS ---
+
+    function renderTeamRosterSection(teams) {
+      if (!teams.length) return '';
+      if (!selectedTournamentTeamId || !teams.some(t => t.id === selectedTournamentTeamId)) {
+        selectedTournamentTeamId = teams[0].id;
+      }
+
+      const activeTeam = teams.find(t => t.id === selectedTournamentTeamId);
+      const rosterIds = tournamentTeamRosters[selectedTournamentTeamId] || [];
+      const rosterPlayers = players.filter(p => rosterIds.includes(String(p.id)));
+
+      // Configuración táctica de este equipo
+      let tForm = tournamentTeamFormations[selectedTournamentTeamId] || { formation: '4-3-3', lineup: {}, bench: [] };
+      const layout = formationLayouts[tForm.formation] || formationLayouts['4-3-3'];
+
+      const shirtSVG = `
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 28 22 L 40 14 L 60 14 L 72 22 L 88 30 L 80 48 L 72 42 L 72 88 A 4 4 0 0 1 68 92 L 32 92 A 4 4 0 0 1 28 88 L 28 42 L 20 48 L 12 30 Z" fill="#2d5e38" stroke="#112415" stroke-width="1.5"/>
+          <path d="M 40 14 L 50 26 L 60 14" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`;
+
+      const occurrences = {};
+      const rows = layout.map(line => {
+        const slots = line.map(label => {
+          occurrences[label] = (occurrences[label] || 0) + 1;
+          const key = formationSlotKey(label, occurrences[label]);
+          const selectedId = String(tForm.lineup[key] || '');
+
+          const options = rosterPlayers.map(p => `
+            <option value="${p.id}" ${String(p.id) === selectedId ? 'selected' : ''}>${esc(p.name)} (${esc(p.position || 'Jugador')})</option>
+          `).join('');
+
+          return `
+            <div class="pitch-slot">
+              <div class="pitch-shirt">
+                ${shirtSVG}
+                <span class="pitch-shirt-label">${esc(label)}</span>
+              </div>
+              <select onchange="setTournamentFormationPlayer('${selectedTournamentTeamId}', '${key}', this.value)">
+                <option value="">➕ ${esc(label)}</option>
+                ${options}
+              </select>
+            </div>`;
+        }).join('');
+        return `<div class="pitch-row">${slots}</div>`;
+      }).join('');
+
+      return `
+        <div class="section card" style="border-color: var(--gold);">
+          <h2>👥 Plantel y Formación por Equipo</h2>
+          <p class="muted" style="font-size:12px; margin-bottom:12px;">Seleccioná un equipo para asignarle jugadores del plantel y armar su 11 táctico.</p>
+          
+          <label style="font-size:11px; font-weight:bold; color:var(--green)">Elegir Equipo:</label>
+          <select class="input-field" onchange="selectedTournamentTeamId=this.value; renderTournaments();">
+            ${teams.map(t => `<option value="${t.id}" ${t.id === selectedTournamentTeamId ? 'selected' : ''}>${esc(t.name)} (Zona ${esc(t.group_name || 'A')})</option>`).join('')}
+          </select>
+
+          <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px;">
+            <h3 style="margin-top:0; font-size:13px; color:var(--white);">1. Seleccionar Integrantes de ${esc(activeTeam.name)}</h3>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+              ${rosterPlayers.length ? rosterPlayers.map(p => `
+                <span class="team-roster-chip">
+                  <b>#${p.number || '-'} ${esc(p.name)}</b>
+                  ${isLoggedAdmin ? `<button onclick="removePlayerFromTournamentTeam('${selectedTournamentTeamId}', '${p.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>` : ''}
+                </span>
+              `).join('') : '<span class="muted" style="font-size:11px">Aún no hay jugadores en la lista de este equipo.</span>'}
+            </div>
+            ${isLoggedAdmin ? `
+              <div style="display:flex; gap:6px;">
+                <select id="select-add-roster-player" class="input-field" style="margin:0">
+                  <option value="">-- Agregar Jugador del Club --</option>
+                  ${players.filter(p => !rosterIds.includes(String(p.id))).map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.position || 'Sin pos.')})</option>`).join('')}
+                </select>
+                <button class="btn-action" style="width:auto; margin:0; white-space:nowrap" onclick="addPlayerToTournamentTeam('${selectedTournamentTeamId}')">➕ Agregar</button>
+              </div>` : ''}
+          </div>
+
+          <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <h3 style="margin:0; font-size:13px; color:var(--white);">2. Pizarra Táctica de ${esc(activeTeam.name)}</h3>
+              <select style="width:auto; padding:5px 8px; font-size:11px;" onchange="changeTournamentTeamScheme('${selectedTournamentTeamId}', this.value)">
+                ${Object.keys(formationLayouts).map(s => `<option value="${s}" ${s === tForm.formation ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </div>
+            
+            <div class="pitch" style="min-height:480px; padding:14px 4px;">
+              <div class="pitch-midline"></div>
+              <div class="pitch-circle"></div>
+              ${rows}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function addPlayerToTournamentTeam(teamId) {
+      const select = document.getElementById('select-add-roster-player');
+      if (!select || !select.value) return alert('Seleccioná un jugador.');
+      const pid = String(select.value);
+
+      if (!tournamentTeamRosters[teamId]) tournamentTeamRosters[teamId] = [];
+      if (!tournamentTeamRosters[teamId].includes(pid)) {
+        tournamentTeamRosters[teamId].push(pid);
+        saveTournamentRostersAndFormations();
+        renderTournaments();
+      }
+    }
+
+    function removePlayerFromTournamentTeam(teamId, playerId) {
+      if (!tournamentTeamRosters[teamId]) return;
+      tournamentTeamRosters[teamId] = tournamentTeamRosters[teamId].filter(id => String(id) !== String(playerId));
+      saveTournamentRostersAndFormations();
+      renderTournaments();
+    }
+
+    function setTournamentFormationPlayer(teamId, slotKey, playerId) {
+      if (!tournamentTeamFormations[teamId]) {
+        tournamentTeamFormations[teamId] = { formation: '4-3-3', lineup: {} };
+      }
+      if (playerId) {
+        tournamentTeamFormations[teamId].lineup[slotKey] = String(playerId);
+      } else {
+        delete tournamentTeamFormations[teamId].lineup[slotKey];
+      }
+      saveTournamentRostersAndFormations();
+    }
+
+    function changeTournamentTeamScheme(teamId, scheme) {
+      if (!tournamentTeamFormations[teamId]) {
+        tournamentTeamFormations[teamId] = { formation: scheme, lineup: {} };
+      } else {
+        tournamentTeamFormations[teamId].formation = scheme;
+      }
+      saveTournamentRostersAndFormations();
+      renderTournaments();
+    }
+
     function renderTournaments() {
       const root = document.getElementById('tournament-public');
       if (!root) return;
@@ -1126,6 +1280,7 @@ prevBtn?.addEventListener('click', () => {
         </div>
         ${tournamentManagementButtons(t)}
         ${tournamentAdmin()}
+        ${renderTeamRosterSection(teams)}
         ${teams.length ? groups.map(group => {
           const groupTeams = teams.filter(x => (x.group_name || 'Sin zona') === group);
           const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
@@ -1581,7 +1736,7 @@ prevBtn?.addEventListener('click', () => {
       const as = goals.filter(g => g.assist_id === p.id).length;
       const k = keeperStats(p);
       return `<details>
-        <summary>Ver estadísticas</summary>
+        <summary>Ver estadísticas y cervezas</summary>
         <div style="margin-top:8px; background:var(--panel2); padding:10px; border-radius:10px; border:1px solid var(--line);">
           <div style="display:flex; justify-content:space-around; text-align:center;">
             <div><b>${gs}</b><br><small class="muted">Goles</small></div>
