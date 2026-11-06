@@ -1728,6 +1728,13 @@
     const date = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'Por def.';
     const name = id => players.find(p => p.id === id)?.name || 'Jugador';
 
+    function getNextMatch() {
+      const pending = matches
+        .filter(m => m.status === 'Programado' && m.match_date)
+        .sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
+      return pending[0] || null;
+    }
+
     function metric(label, value, isInvicto = false) {
       if(isInvicto){
         return `<div class="card" style="border-color: var(--gold);"><div class="muted" style="font-size:11px;">${label}</div><div class="metric" style="color: var(--gold);">${value}</div><span class="pill badge-invicto card-invicto-badge">Racha</span></div>`;
@@ -1969,84 +1976,131 @@
       if (as) as.innerHTML = `<option value="">-- Sin Asistencia (Opcional) --</option>` + optionsHtml;
     }
 
-    function render() {
-      const played = matches.filter(m => m.status === 'Jugado');
-      const gf = played.reduce((s, m) => s + Number(m.goals_for || 0), 0);
-      const ga = played.reduce((s, m) => s + Number(m.goals_against || 0), 0);
-      const wins = played.filter(m => Number(m.goals_for || 0) > Number(m.goals_against || 0)).length;
-      const draws = played.filter(m => Number(m.goals_for || 0) === Number(m.goals_against || 0)).length;
-      const losses = played.filter(m => Number(m.goals_for || 0) < Number(m.goals_against || 0)).length;
-      const invicto = getInvictoStreak(matches);
-      const totalPlayed = played.length || 1;
+  function render() {
+  const played = matches.filter(m => m.status === 'Jugado');
+  const gf = played.reduce((s, m) => s + Number(m.goals_for || 0), 0);
+  const ga = played.reduce((s, m) => s + Number(m.goals_against || 0), 0);
+  const wins = played.filter(m => Number(m.goals_for || 0) > Number(m.goals_against || 0)).length;
+  const draws = played.filter(m => Number(m.goals_for || 0) === Number(m.goals_against || 0)).length;
+  const losses = played.filter(m => Number(m.goals_for || 0) < Number(m.goals_against || 0)).length;
+  const invicto = getInvictoStreak(matches);
+  const totalPlayed = played.length || 1;
 
-      document.getElementById('resumen').innerHTML = `
-        <div class="grid">
-          ${metric('Plantel', players.length)}
-          ${metric('Jugados', played.length)}
-          ${metric('Victorias', wins)}
-          ${metric('Invicto', invicto + ' PJ', true)}
-        </div>
-        <div class="section card">
-          <h2>Últimos Partidos</h2>
-          ${matchRows(matches.sort((a,b) => new Date(b.match_date) - new Date(a.match_date)).slice(0, 4))}
-        </div>`;
+  // Obtenemos los torneos que están en curso
+  const activeTournaments = tournaments.filter(t => !tournamentChampion(t));
+  const nextMatch = getNextMatch();
 
-      document.getElementById('plantel').innerHTML = `
-        <div class="formation-tools">
-          <button id="formation-toggle" class="btn-action formation-toggle" onclick="toggleFormationBuilder()">⚽ Armar formación</button>
-          <span class="pill">ESQUEMA TÁCTICO</span>
-        </div>
-        <div id="formation-builder" class="hide"></div>
-        
-        <div id="squad-summary-container"></div>
-
-        <div class="pos-filters">
-          <button class="pos-filter-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">Todos</button>
-          <button class="pos-filter-btn" data-pos="ARQ" onclick="setPosFilter('ARQ')">🧤 Arqueros</button>
-          <button class="pos-filter-btn" data-pos="DEF" onclick="setPosFilter('DEF')">🛡️ Defensores</button>
-          <button class="pos-filter-btn" data-pos="MED" onclick="setPosFilter('MED')">⚙️ Volantes</button>
-          <button class="pos-filter-btn" data-pos="DEL" onclick="setPosFilter('DEL')">🎯 Delanteros</button>
-        </div>
-
-        <input type="text" id="search-player" class="search-bar" placeholder="🔍 Buscar por nombre..." oninput="filterPlayers()">
-        <div class="player-grid" id="player-list-container"></div>`;
-      
-      renderSquadSummary();
-      filterPlayers();
-
-      document.getElementById('partidos').innerHTML = `<div class="card"><h2>Fixture Temporada</h2>${matchRows(matches.sort((a,b) => new Date(a.match_date) - new Date(b.match_date)))}</div>`;
-
-      document.getElementById('estadisticas').innerHTML = `
-        <div class="grid">
-          ${metric('Goles A Favor', gf)}
-          ${metric('Goles En Contra', ga)}
-          ${metric('Dif. Gol', gf - ga)}
-          ${metric('Puntos', (wins * 3) + draws)}
-        </div>
-        <div class="section card">
-          <h2>📊 Rendimiento (${played.length} partidos)</h2>
-          <div style="font-size:11px; color:var(--muted); display:flex; justify-content:space-between;">
-            <span>🟢 ${wins}V</span>
-            <span>🟡 ${draws}E</span>
-            <span>🔴 ${losses}D</span>
+  document.getElementById('resumen').innerHTML = `
+    <!-- PRÓXIMO PARTIDO EN RESUMEN -->
+    <div class="section card" style="border-color: var(--green); background: linear-gradient(135deg, var(--panel2), var(--panel)); margin-bottom: 14px;">
+      <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
+      ${nextMatch ? `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+          <div>
+            <h2 style="margin:0; font-size:18px;">MalaJunta FC <span class="muted">vs</span> ${esc(nextMatch.opponent)}</h2>
+            <div class="muted" style="font-size:12px; margin-top:4px;">
+              📅 ${date(nextMatch.match_date)} ${nextMatch.match_time ? '· ⏰ ' + esc(nextMatch.match_time) : ''}
+              ${nextMatch.venue ? '<br>📍 Sede: ' + esc(nextMatch.venue) : ''}
+            </div>
           </div>
-          <div class="perf-bar-wrap">
-            <div class="perf-win" style="width: ${(wins/totalPlayed)*100}%"></div>
-            <div class="perf-draw" style="width: ${(draws/totalPlayed)*100}%"></div>
-            <div class="perf-loss" style="width: ${(losses/totalPlayed)*100}%"></div>
-          </div>
+          <span class="pill badge-win" style="font-size:11px;">PROGRAMADO</span>
         </div>
-        <div class="section card"><h2>🏆 Goleadores</h2>${ranking('goal')}</div>
-        <div class="section card"><h2>🎯 Asistidores</h2>${ranking('assist')}</div>`;
+      ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay partidos programados en la agenda.</div>'}
+    </div>
 
-      populateMatchSelect();
-      renderAdminLists();
+    <!-- TORNEOS EN CURSO EN RESUMEN -->
+    <div class="section card" style="border-color: var(--gold); margin-bottom: 14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="margin:0; font-size:15px; color:var(--gold);">🏆 Torneos En Curso (${activeTournaments.length})</h2>
+        <button onclick="switchTab('torneos')" style="background:none; border:none; color:var(--green); font-size:11px; font-weight:bold; cursor:pointer;">Ver todos →</button>
+      </div>
+      ${activeTournaments.length ? `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          ${activeTournaments.map(t => {
+            const teamCount = tournamentTeams.filter(x => x.tournament_id === t.id).length;
+            return `
+              <div onclick="openTournament('${t.id}')" style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:10px; border:1px solid var(--line); cursor:pointer;">
+                <div>
+                  <b style="font-size:13px; color:var(--white);">⚽ ${esc(t.name)}</b>
+                  <div class="muted" style="font-size:10.5px;">${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}${teamCount} equipos</div>
+                </div>
+                <span style="font-size:14px; color:var(--green); font-weight:bold;">Entrar ›</span>
+              </div>`;
+          }).join('')}
+        </div>
+      ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay campeonatos activos en este momento.</div>'}
+    </div>
 
-      if (currentMatchIdForView) {
-        populateDetailGoalSelects();
-        renderMatchDetail(currentMatchIdForView);
-      }
-    }
+    <!-- MÉTRICAS GENERALES -->
+    <div class="grid">
+      ${metric('Plantel', players.length)}
+      ${metric('Jugados', played.length)}
+      ${metric('Victorias', wins)}
+      ${metric('Invicto', invicto + ' PJ', true)}
+    </div>
+
+    <!-- ÚLTIMOS PARTIDOS -->
+    <div class="section card">
+      <h2>Últimos Partidos</h2>
+      ${matchRows(matches.sort((a,b) => new Date(b.match_date) - new Date(a.match_date)).slice(0, 4))}
+    </div>`;
+
+  document.getElementById('plantel').innerHTML = `
+    <div class="formation-tools">
+      <button id="formation-toggle" class="btn-action formation-toggle" onclick="toggleFormationBuilder()">⚽ Armar formación</button>
+      <span class="pill">ESQUEMA TÁCTICO</span>
+    </div>
+    <div id="formation-builder" class="hide"></div>
+    
+    <div id="squad-summary-container"></div>
+
+    <div class="pos-filters">
+      <button class="pos-filter-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">Todos</button>
+      <button class="pos-filter-btn" data-pos="ARQ" onclick="setPosFilter('ARQ')">🧤 Arqueros</button>
+      <button class="pos-filter-btn" data-pos="DEF" onclick="setPosFilter('DEF')">🛡️ Defensores</button>
+      <button class="pos-filter-btn" data-pos="MED" onclick="setPosFilter('MED')">⚙️ Volantes</button>
+      <button class="pos-filter-btn" data-pos="DEL" onclick="setPosFilter('DEL')">🎯 Delanteros</button>
+    </div>
+
+    <input type="text" id="search-player" class="search-bar" placeholder="🔍 Buscar por nombre..." oninput="filterPlayers()">
+    <div class="player-grid" id="player-list-container"></div>`;
+  
+  renderSquadSummary();
+  filterPlayers();
+
+  document.getElementById('partidos').innerHTML = `<div class="card"><h2>Fixture Temporada</h2>${matchRows(matches.sort((a,b) => new Date(a.match_date) - new Date(b.match_date)))}</div>`;
+
+  document.getElementById('estadisticas').innerHTML = `
+    <div class="grid">
+      ${metric('Goles A Favor', gf)}
+      ${metric('Goles En Contra', ga)}
+      ${metric('Dif. Gol', gf - ga)}
+      ${metric('Puntos', (wins * 3) + draws)}
+    </div>
+    <div class="section card">
+      <h2>📊 Rendimiento (${played.length} partidos)</h2>
+      <div style="font-size:11px; color:var(--muted); display:flex; justify-content:space-between;">
+        <span>🟢 ${wins}V</span>
+        <span>🟡 ${draws}E</span>
+        <span>🔴 ${losses}D</span>
+      </div>
+      <div class="perf-bar-wrap">
+        <div class="perf-win" style="width: ${(wins/totalPlayed)*100}%"></div>
+        <div class="perf-draw" style="width: ${(draws/totalPlayed)*100}%"></div>
+        <div class="perf-loss" style="width: ${(losses/totalPlayed)*100}%"></div>
+      </div>
+    </div>
+    <div class="section card"><h2>🏆 Goleadores</h2>${ranking('goal')}</div>
+    <div class="section card"><h2>🎯 Asistidores</h2>${ranking('assist')}</div>`;
+
+  populateMatchSelect();
+  renderAdminLists();
+
+  if (currentMatchIdForView) {
+    populateDetailGoalSelects();
+    renderMatchDetail(currentMatchIdForView);
+  }
+}
 
     function ranking(kind) {
       const counts = {};
