@@ -916,9 +916,8 @@
     // 4. MÓDULO TORNEOS Y CAMPEONATOS
     let tournaments = [], tournamentTeams = [], tournamentMatches = [];
     let activeTournamentId = null, tournamentView = 'list';
-    let selectedTournamentTeamId = null;
 
-    // Almacenamiento local para nóminas y formaciones tácticas de equipos del torneo
+    // Almacenamiento local para nóminas y formaciones tácticas de MalaJunta en torneos
     let tournamentTeamRosters = {};
     let tournamentTeamFormations = {};
 
@@ -1067,25 +1066,34 @@
       await loadTournaments();
     }
 
-    // --- NUEVAS FUNCIONES PARA NÓMINA Y FORMACIÓN EN TORNEOS ---
+    // --- SECCIÓN EXCLUSIVA PARA EL EQUIPO MALAJUNTA EN EL TORNEO ---
 
     function renderTeamRosterSection(teams) {
-      if (!teams.length) return '';
-      if (!selectedTournamentTeamId || !teams.some(t => t.id === selectedTournamentTeamId)) {
-        selectedTournamentTeamId = teams[0].id;
-      }
+      // Buscar únicamente al equipo "MalaJunta" o "MalaJunta FC" en el torneo actual
+      const malaJuntaTeam = teams.find(t => {
+        const clean = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return clean.includes('malajunta');
+      });
 
-      const activeTeam = teams.find(t => t.id === selectedTournamentTeamId);
-      const rosterIds = tournamentTeamRosters[selectedTournamentTeamId] || [];
+      if (!malaJuntaTeam) return '';
+
+      const teamId = malaJuntaTeam.id;
+      const rosterIds = tournamentTeamRosters[teamId] || [];
       const rosterPlayers = players.filter(p => rosterIds.includes(String(p.id)));
 
-      // Configuración táctica de este equipo
-      let tForm = tournamentTeamFormations[selectedTournamentTeamId] || { formation: '4-3-3', lineup: {}, bench: [] };
+      // Configuración táctica de MalaJunta para este torneo
+      let tForm = tournamentTeamFormations[teamId] || { formation: '4-3-3', lineup: {} };
       const layout = formationLayouts[tForm.formation] || formationLayouts['4-3-3'];
 
       const shirtSVG = `
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 28 22 L 40 14 L 60 14 L 72 22 L 88 30 L 80 48 L 72 42 L 72 88 A 4 4 0 0 1 68 92 L 32 92 A 4 4 0 0 1 28 88 L 28 42 L 20 48 L 12 30 Z" fill="#2d5e38" stroke="#112415" stroke-width="1.5"/>
+          <defs>
+            <pattern id="mj-stripes-t" width="20" height="100" patternUnits="userSpaceOnUse">
+              <rect x="0" width="10" height="100" fill="#2d5e38"/>
+              <rect x="10" width="10" height="100" fill="#1b3d23"/>
+            </pattern>
+          </defs>
+          <path d="M 28 22 L 40 14 L 60 14 L 72 22 L 88 30 L 80 48 L 72 42 L 72 88 A 4 4 0 0 1 68 92 L 32 92 A 4 4 0 0 1 28 88 L 28 42 L 20 48 L 12 30 Z" fill="url(#mj-stripes-t)" stroke="#112415" stroke-width="1.5"/>
           <path d="M 40 14 L 50 26 L 60 14" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>`;
 
@@ -1106,7 +1114,7 @@
                 ${shirtSVG}
                 <span class="pitch-shirt-label">${esc(label)}</span>
               </div>
-              <select onchange="setTournamentFormationPlayer('${selectedTournamentTeamId}', '${key}', this.value)">
+              <select onchange="setTournamentFormationPlayer('${teamId}', '${key}', this.value)">
                 <option value="">➕ ${esc(label)}</option>
                 ${options}
               </select>
@@ -1116,39 +1124,34 @@
       }).join('');
 
       return `
-        <div class="section card" style="border-color: var(--gold);">
-          <h2>👥 Plantel y Formación por Equipo</h2>
-          <p class="muted" style="font-size:12px; margin-bottom:12px;">Seleccioná un equipo para asignarle jugadores del plantel y armar su 11 táctico.</p>
-          
-          <label style="font-size:11px; font-weight:bold; color:var(--green)">Elegir Equipo:</label>
-          <select class="input-field" onchange="selectedTournamentTeamId=this.value; renderTournaments();">
-            ${teams.map(t => `<option value="${t.id}" ${t.id === selectedTournamentTeamId ? 'selected' : ''}>${esc(t.name)} (Zona ${esc(t.group_name || 'A')})</option>`).join('')}
-          </select>
+        <div class="section card" style="border-color: var(--green);">
+          <h2>💚 Plantel y Formación de ${esc(malaJuntaTeam.name)} en este Torneo</h2>
+          <p class="muted" style="font-size:12px; margin-bottom:12px;">Asigná los jugadores del club convocados a este torneo y armá su 11 titular.</p>
 
           <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px;">
-            <h3 style="margin-top:0; font-size:13px; color:var(--white);">1. Seleccionar Integrantes de ${esc(activeTeam.name)}</h3>
+            <h3 style="margin-top:0; font-size:13px; color:var(--white);">1. Convocados de MalaJunta FC</h3>
             <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
               ${rosterPlayers.length ? rosterPlayers.map(p => `
                 <span class="team-roster-chip">
                   <b>#${p.number || '-'} ${esc(p.name)}</b>
-                  ${isLoggedAdmin ? `<button onclick="removePlayerFromTournamentTeam('${selectedTournamentTeamId}', '${p.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>` : ''}
+                  ${isLoggedAdmin ? `<button onclick="removePlayerFromTournamentTeam('${teamId}', '${p.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>` : ''}
                 </span>
-              `).join('') : '<span class="muted" style="font-size:11px">Aún no hay jugadores en la lista de este equipo.</span>'}
+              `).join('') : '<span class="muted" style="font-size:11px">Aún no agregaste convocados a la lista.</span>'}
             </div>
             ${isLoggedAdmin ? `
               <div style="display:flex; gap:6px;">
                 <select id="select-add-roster-player" class="input-field" style="margin:0">
-                  <option value="">-- Agregar Jugador del Club --</option>
+                  <option value="">-- Convocar Jugador del Plantel --</option>
                   ${players.filter(p => !rosterIds.includes(String(p.id))).map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.position || 'Sin pos.')})</option>`).join('')}
                 </select>
-                <button class="btn-action" style="width:auto; margin:0; white-space:nowrap" onclick="addPlayerToTournamentTeam('${selectedTournamentTeamId}')">➕ Agregar</button>
+                <button class="btn-action" style="width:auto; margin:0; white-space:nowrap" onclick="addPlayerToTournamentTeam('${teamId}')">➕ Convocar</button>
               </div>` : ''}
           </div>
 
           <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <h3 style="margin:0; font-size:13px; color:var(--white);">2. Pizarra Táctica de ${esc(activeTeam.name)}</h3>
-              <select style="width:auto; padding:5px 8px; font-size:11px;" onchange="changeTournamentTeamScheme('${selectedTournamentTeamId}', this.value)">
+              <h3 style="margin:0; font-size:13px; color:var(--white);">2. Pizarra Táctica de MalaJunta</h3>
+              <select style="width:auto; padding:5px 8px; font-size:11px;" onchange="changeTournamentTeamScheme('${teamId}', this.value)">
                 ${Object.keys(formationLayouts).map(s => `<option value="${s}" ${s === tForm.formation ? 'selected' : ''}>${s}</option>`).join('')}
               </select>
             </div>
