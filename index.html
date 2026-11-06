@@ -700,7 +700,7 @@
       '5-3-2': [['DC','DC'],['MC','MC','MC'],['LI','DFC','DFC','DFC','LD'],['ARQ']],
       '4-1-4-1': [['DC'],['EI','MC','MC','ED'],['MCD'],['LI','DFC','DFC','LD'],['ARQ']],
       '4-3-1-2': [['DC','DC'],['MCO'],['MC','MCD','MC'],['LI','DFC','DFC','LD'],['ARQ']],
-      '3-4-3': [['EI','DC','ED'],['MI','MC','MC','MD'],['DFC','DFC','DFC'],['ARQ']],
+      '3-4-3': [['EI','DC','ED'],['MI','MC','MC','MD'],['DFC','DFC','DFC']],
       '5-4-1': [['DC'],['MI','MC','MC','MD'],['LI','DFC','DFC','DFC','LD'],['ARQ']]
     };
 
@@ -917,22 +917,6 @@
     let tournaments = [], tournamentTeams = [], tournamentMatches = [];
     let activeTournamentId = null, tournamentView = 'list';
 
-    // Almacenamiento local para nóminas y formaciones tácticas de MalaJunta en torneos
-    let tournamentTeamRosters = {};
-    let tournamentTeamFormations = {};
-
-    try {
-      tournamentTeamRosters = JSON.parse(localStorage.getItem('malajunta_t_rosters') || '{}');
-      tournamentTeamFormations = JSON.parse(localStorage.getItem('malajunta_t_formations') || '{}');
-    } catch(e) { console.warn('Error leyendo formaciones de torneo:', e); }
-
-    function saveTournamentRostersAndFormations() {
-      try {
-        localStorage.setItem('malajunta_t_rosters', JSON.stringify(tournamentTeamRosters));
-        localStorage.setItem('malajunta_t_formations', JSON.stringify(tournamentTeamFormations));
-      } catch(e) { console.warn('Error guardando nóminas de torneo:', e); }
-    }
-
     function tournamentTeam(id) {
       return tournamentTeams.find(t => t.id === id)?.name || 'Por definir';
     }
@@ -1066,10 +1050,36 @@
       await loadTournaments();
     }
 
-    // --- SECCIÓN EXCLUSIVA PARA EL EQUIPO MALAJUNTA EN EL TORNEO ---
+    // --- SECCIÓN EXCLUSIVA PARA MALAJUNTA EN EL TORNEO (SINCRONIZADO EN SUPABASE) ---
 
-    function renderTeamRosterSection(teams) {
-      // Buscar únicamente al equipo "MalaJunta" o "MalaJunta FC" en el torneo actual
+    // Función auxiliar para parsear los datos tácticos de MalaJunta desde la columna 'description' del torneo
+    function getTournamentDataFromDescription(t) {
+      try {
+        if (!t || !t.description) return { roster: [], formation: '4-3-3', lineup: {} };
+        const data = JSON.parse(t.description);
+        return {
+          roster: data.roster || [],
+          formation: data.formation || '4-3-3',
+          lineup: data.lineup || {}
+        };
+      } catch (e) {
+        return { roster: [], formation: '4-3-3', lineup: {} };
+      }
+    }
+
+    // Guardar los datos en Supabase para que cualquier persona en el mundo los vea
+    async function saveTournamentDataToSupabase(tournamentId, dataObj) {
+      const jsonStr = JSON.stringify(dataObj);
+      const { error } = await db.from('tournaments').update({ description: jsonStr }).eq('id', tournamentId);
+      if (error) {
+        console.error('Error al guardar en Supabase:', error);
+        alert('❌ Error al guardar datos en vivo: ' + error.message);
+      } else {
+        await loadTournaments();
+      }
+    }
+
+    function renderTeamRosterSection(teams, currentTournament) {
       const malaJuntaTeam = teams.find(t => {
         const clean = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
         return clean.includes('malajunta');
@@ -1077,13 +1087,10 @@
 
       if (!malaJuntaTeam) return '';
 
-      const teamId = malaJuntaTeam.id;
-      const rosterIds = tournamentTeamRosters[teamId] || [];
+      const tData = getTournamentDataFromDescription(currentTournament);
+      const rosterIds = tData.roster || [];
       const rosterPlayers = players.filter(p => rosterIds.includes(String(p.id)));
-
-      // Configuración táctica de MalaJunta para este torneo
-      let tForm = tournamentTeamFormations[teamId] || { formation: '4-3-3', lineup: {} };
-      const layout = formationLayouts[tForm.formation] || formationLayouts['4-3-3'];
+      const layout = formationLayouts[tData.formation] || formationLayouts['4-3-3'];
 
       const shirtSVG = `
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -1102,7 +1109,7 @@
         const slots = line.map(label => {
           occurrences[label] = (occurrences[label] || 0) + 1;
           const key = formationSlotKey(label, occurrences[label]);
-          const selectedId = String(tForm.lineup[key] || '');
+          const selectedId = String(tData.lineup[key] || '');
 
           const options = rosterPlayers.map(p => `
             <option value="${p.id}" ${String(p.id) === selectedId ? 'selected' : ''}>${esc(p.name)} (${esc(p.position || 'Jugador')})</option>
@@ -1114,7 +1121,7 @@
                 ${shirtSVG}
                 <span class="pitch-shirt-label">${esc(label)}</span>
               </div>
-              <select onchange="setTournamentFormationPlayer('${teamId}', '${key}', this.value)">
+              <select ${!isLoggedAdmin ? 'disabled' : ''} onchange="setTournamentFormationPlayer('${currentTournament.id}', '${key}', this.value)">
                 <option value="">➕ ${esc(label)}</option>
                 ${options}
               </select>
@@ -1125,18 +1132,18 @@
 
       return `
         <div class="section card" style="border-color: var(--green);">
-          <h2>💚 Plantel y Formación de ${esc(malaJuntaTeam.name)} en este Torneo</h2>
-          <p class="muted" style="font-size:12px; margin-bottom:12px;">Asigná los jugadores del club convocados a este torneo y armá su 11 titular.</p>
+          <h2>💚 Convocados y Formación En Vivo (${esc(malaJuntaTeam.name)})</h2>
+          <p class="muted" style="font-size:12px; margin-bottom:12px;">Pizarra táctica oficial de MalaJunta para este torneo.</p>
 
           <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px;">
-            <h3 style="margin-top:0; font-size:13px; color:var(--white);">1. Convocados de MalaJunta FC</h3>
+            <h3 style="margin-top:0; font-size:13px; color:var(--white);">1. Convocados (${rosterPlayers.length})</h3>
             <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
               ${rosterPlayers.length ? rosterPlayers.map(p => `
                 <span class="team-roster-chip">
                   <b>#${p.number || '-'} ${esc(p.name)}</b>
-                  ${isLoggedAdmin ? `<button onclick="removePlayerFromTournamentTeam('${teamId}', '${p.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>` : ''}
+                  ${isLoggedAdmin ? `<button onclick="removePlayerFromTournamentTeam('${currentTournament.id}', '${p.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>` : ''}
                 </span>
-              `).join('') : '<span class="muted" style="font-size:11px">Aún no agregaste convocados a la lista.</span>'}
+              `).join('') : '<span class="muted" style="font-size:11px">Aún no hay convocados cargados para este torneo.</span>'}
             </div>
             ${isLoggedAdmin ? `
               <div style="display:flex; gap:6px;">
@@ -1144,15 +1151,15 @@
                   <option value="">-- Convocar Jugador del Plantel --</option>
                   ${players.filter(p => !rosterIds.includes(String(p.id))).map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.position || 'Sin pos.')})</option>`).join('')}
                 </select>
-                <button class="btn-action" style="width:auto; margin:0; white-space:nowrap" onclick="addPlayerToTournamentTeam('${teamId}')">➕ Convocar</button>
+                <button class="btn-action" style="width:auto; margin:0; white-space:nowrap" onclick="addPlayerToTournamentTeam('${currentTournament.id}')">➕ Convocar</button>
               </div>` : ''}
           </div>
 
           <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <h3 style="margin:0; font-size:13px; color:var(--white);">2. Pizarra Táctica de MalaJunta</h3>
-              <select style="width:auto; padding:5px 8px; font-size:11px;" onchange="changeTournamentTeamScheme('${teamId}', this.value)">
-                ${Object.keys(formationLayouts).map(s => `<option value="${s}" ${s === tForm.formation ? 'selected' : ''}>${s}</option>`).join('')}
+              <h3 style="margin:0; font-size:13px; color:var(--white);">2. Pizarra Táctica</h3>
+              <select ${!isLoggedAdmin ? 'disabled' : ''} style="width:auto; padding:5px 8px; font-size:11px;" onchange="changeTournamentTeamScheme('${currentTournament.id}', this.value)">
+                ${Object.keys(formationLayouts).map(s => `<option value="${s}" ${s === tData.formation ? 'selected' : ''}>${s}</option>`).join('')}
               </select>
             </div>
             
@@ -1165,46 +1172,57 @@
         </div>`;
     }
 
-    function addPlayerToTournamentTeam(teamId) {
+    async function addPlayerToTournamentTeam(tournamentId) {
+      if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
       const select = document.getElementById('select-add-roster-player');
       if (!select || !select.value) return alert('Seleccioná un jugador.');
       const pid = String(select.value);
 
-      if (!tournamentTeamRosters[teamId]) tournamentTeamRosters[teamId] = [];
-      if (!tournamentTeamRosters[teamId].includes(pid)) {
-        tournamentTeamRosters[teamId].push(pid);
-        saveTournamentRostersAndFormations();
-        renderTournaments();
+      const t = tournaments.find(x => x.id === tournamentId);
+      const data = getTournamentDataFromDescription(t);
+
+      if (!data.roster.includes(pid)) {
+        data.roster.push(pid);
+        await saveTournamentDataToSupabase(tournamentId, data);
       }
     }
 
-    function removePlayerFromTournamentTeam(teamId, playerId) {
-      if (!tournamentTeamRosters[teamId]) return;
-      tournamentTeamRosters[teamId] = tournamentTeamRosters[teamId].filter(id => String(id) !== String(playerId));
-      saveTournamentRostersAndFormations();
-      renderTournaments();
+    async function removePlayerFromTournamentTeam(tournamentId, playerId) {
+      if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
+      const t = tournaments.find(x => x.id === tournamentId);
+      const data = getTournamentDataFromDescription(t);
+
+      data.roster = data.roster.filter(id => String(id) !== String(playerId));
+      
+      // Limpiar también si estaba puesto en la cancha táctica
+      Object.keys(data.lineup).forEach(k => {
+        if (String(data.lineup[k]) === String(playerId)) delete data.lineup[k];
+      });
+
+      await saveTournamentDataToSupabase(tournamentId, data);
     }
 
-    function setTournamentFormationPlayer(teamId, slotKey, playerId) {
-      if (!tournamentTeamFormations[teamId]) {
-        tournamentTeamFormations[teamId] = { formation: '4-3-3', lineup: {} };
-      }
+    async function setTournamentFormationPlayer(tournamentId, slotKey, playerId) {
+      if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
+      const t = tournaments.find(x => x.id === tournamentId);
+      const data = getTournamentDataFromDescription(t);
+
       if (playerId) {
-        tournamentTeamFormations[teamId].lineup[slotKey] = String(playerId);
+        data.lineup[slotKey] = String(playerId);
       } else {
-        delete tournamentTeamFormations[teamId].lineup[slotKey];
+        delete data.lineup[slotKey];
       }
-      saveTournamentRostersAndFormations();
+
+      await saveTournamentDataToSupabase(tournamentId, data);
     }
 
-    function changeTournamentTeamScheme(teamId, scheme) {
-      if (!tournamentTeamFormations[teamId]) {
-        tournamentTeamFormations[teamId] = { formation: scheme, lineup: {} };
-      } else {
-        tournamentTeamFormations[teamId].formation = scheme;
-      }
-      saveTournamentRostersAndFormations();
-      renderTournaments();
+    async function changeTournamentTeamScheme(tournamentId, scheme) {
+      if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
+      const t = tournaments.find(x => x.id === tournamentId);
+      const data = getTournamentDataFromDescription(t);
+
+      data.formation = scheme;
+      await saveTournamentDataToSupabase(tournamentId, data);
     }
 
     function renderTournaments() {
@@ -1283,7 +1301,7 @@
         </div>
         ${tournamentManagementButtons(t)}
         ${tournamentAdmin()}
-        ${renderTeamRosterSection(teams)}
+        ${renderTeamRosterSection(teams, t)}
         ${teams.length ? groups.map(group => {
           const groupTeams = teams.filter(x => (x.group_name || 'Sin zona') === group);
           const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
