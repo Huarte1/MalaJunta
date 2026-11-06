@@ -1976,7 +1976,7 @@
       if (as) as.innerHTML = `<option value="">-- Sin Asistencia (Opcional) --</option>` + optionsHtml;
     }
 
-  function render() {
+ function render() {
   const played = matches.filter(m => m.status === 'Jugado');
   const gf = played.reduce((s, m) => s + Number(m.goals_for || 0), 0);
   const ga = played.reduce((s, m) => s + Number(m.goals_against || 0), 0);
@@ -1986,12 +1986,20 @@
   const invicto = getInvictoStreak(matches);
   const totalPlayed = played.length || 1;
 
-  // Obtenemos los torneos que están en curso
+  // Obtenemos los torneos en curso y el próximo partido
   const activeTournaments = tournaments.filter(t => !tournamentChampion(t));
   const nextMatch = getNextMatch();
 
   document.getElementById('resumen').innerHTML = `
-    <!-- PRÓXIMO PARTIDO EN RESUMEN -->
+    <!-- 1. MÉTRICAS GENERALES (ARRIBA DE TODO) -->
+    <div class="grid" style="margin-bottom: 14px;">
+      ${metric('Plantel', players.length)}
+      ${metric('Jugados', played.length)}
+      ${metric('Victorias', wins)}
+      ${metric('Invicto', invicto + ' PJ', true)}
+    </div>
+
+    <!-- 2. PRÓXIMO COMPROMISO -->
     <div class="section card" style="border-color: var(--green); background: linear-gradient(135deg, var(--panel2), var(--panel)); margin-bottom: 14px;">
       <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
       ${nextMatch ? `
@@ -2008,7 +2016,7 @@
       ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay partidos programados en la agenda.</div>'}
     </div>
 
-    <!-- TORNEOS EN CURSO EN RESUMEN -->
+    <!-- 3. TORNEOS EN CURSO -->
     <div class="section card" style="border-color: var(--gold); margin-bottom: 14px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <h2 style="margin:0; font-size:15px; color:var(--gold);">🏆 Torneos En Curso (${activeTournaments.length})</h2>
@@ -2031,15 +2039,7 @@
       ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay campeonatos activos en este momento.</div>'}
     </div>
 
-    <!-- MÉTRICAS GENERALES -->
-    <div class="grid">
-      ${metric('Plantel', players.length)}
-      ${metric('Jugados', played.length)}
-      ${metric('Victorias', wins)}
-      ${metric('Invicto', invicto + ' PJ', true)}
-    </div>
-
-    <!-- ÚLTIMOS PARTIDOS -->
+    <!-- 4. ÚLTIMOS PARTIDOS JUGADOS -->
     <div class="section card">
       <h2>Últimos Partidos</h2>
       ${matchRows(matches.sort((a,b) => new Date(b.match_date) - new Date(a.match_date)).slice(0, 4))}
