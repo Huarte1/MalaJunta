@@ -1102,104 +1102,104 @@
       }
     }
 
-    // 1. CONVOCADOS Y PIZARRA TÁCTICA EN DESPLEGABLE (ABIERTO POR DEFECTO)
-function renderTeamRosterSection(teams, currentTournament) {
-  const malaJuntaTeam = teams.find(t => {
-    const clean = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return clean.includes('malajunta');
-  });
+    // CONVOCADOS Y FORMACIÓN EN DESPLEGABLE (ABIERTO POR DEFECTO)
+    function renderTeamRosterSection(teams, currentTournament) {
+      const malaJuntaTeam = teams.find(t => {
+        const clean = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return clean.includes('malajunta');
+      });
 
-  if (!malaJuntaTeam) return '';
+      if (!malaJuntaTeam) return '';
 
-  const tData = getTournamentDataFromDescription(currentTournament);
-  const rosterIds = tData.roster || [];
-  const rosterPlayers = players.filter(p => rosterIds.includes(String(p.id)));
-  const layout = formationLayouts[tData.formation] || formationLayouts['4-3-3'];
+      const tData = getTournamentDataFromDescription(currentTournament);
+      const rosterIds = tData.roster || [];
+      const rosterPlayers = players.filter(p => rosterIds.includes(String(p.id)));
+      const layout = formationLayouts[tData.formation] || formationLayouts['4-3-3'];
 
-  const shirtSVG = `
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="mj-stripes-t" width="20" height="100" patternUnits="userSpaceOnUse">
-          <rect x="0" width="10" height="100" fill="#2d5e38"/>
-          <rect x="10" width="10" height="100" fill="#1b3d23"/>
-        </pattern>
-      </defs>
-      <path d="M 28 22 L 40 14 L 60 14 L 72 22 L 88 30 L 80 48 L 72 42 L 72 88 A 4 4 0 0 1 68 92 L 32 92 A 4 4 0 0 1 28 88 L 28 42 L 20 48 L 12 30 Z" fill="url(#mj-stripes-t)" stroke="#112415" stroke-width="1.5"/>
-      <path d="M 40 14 L 50 26 L 60 14" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`;
+      const shirtSVG = `
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="mj-stripes-t" width="20" height="100" patternUnits="userSpaceOnUse">
+              <rect x="0" width="10" height="100" fill="#2d5e38"/>
+              <rect x="10" width="10" height="100" fill="#1b3d23"/>
+            </pattern>
+          </defs>
+          <path d="M 28 22 L 40 14 L 60 14 L 72 22 L 88 30 L 80 48 L 72 42 L 72 88 A 4 4 0 0 1 68 92 L 32 92 A 4 4 0 0 1 28 88 L 28 42 L 20 48 L 12 30 Z" fill="url(#mj-stripes-t)" stroke="#112415" stroke-width="1.5"/>
+          <path d="M 40 14 L 50 26 L 60 14" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`;
 
-  const occurrences = {};
-  const rows = layout.map(line => {
-    const slots = line.map(label => {
-      occurrences[label] = (occurrences[label] || 0) + 1;
-      const key = formationSlotKey(label, occurrences[label]);
-      const selectedId = String(tData.lineup[key] || '');
+      const occurrences = {};
+      const rows = layout.map(line => {
+        const slots = line.map(label => {
+          occurrences[label] = (occurrences[label] || 0) + 1;
+          const key = formationSlotKey(label, occurrences[label]);
+          const selectedId = String(tData.lineup[key] || '');
 
-      const options = rosterPlayers.map(p => `
-        <option value="${p.id}" ${String(p.id) === selectedId ? 'selected' : ''}>${esc(p.name)} (${esc(p.position || 'Jugador')})</option>
-      `).join('');
+          const options = rosterPlayers.map(p => `
+            <option value="${p.id}" ${String(p.id) === selectedId ? 'selected' : ''}>${esc(p.name)} (${esc(p.position || 'Jugador')})</option>
+          `).join('');
+
+          return `
+            <div class="pitch-slot">
+              <div class="pitch-shirt">
+                ${shirtSVG}
+                <span class="pitch-shirt-label">${esc(label)}</span>
+              </div>
+              <select ${!isLoggedAdmin ? 'disabled' : ''} onchange="setTournamentFormationPlayer('${currentTournament.id}', '${key}', this.value)">
+                <option value="">➕ ${esc(label)}</option>
+                ${options}
+              </select>
+            </div>`;
+        }).join('');
+        return `<div class="pitch-row">${slots}</div>`;
+      }).join('');
 
       return `
-        <div class="pitch-slot">
-          <div class="pitch-shirt">
-            ${shirtSVG}
-            <span class="pitch-shirt-label">${esc(label)}</span>
-          </div>
-          <select ${!isLoggedAdmin ? 'disabled' : ''} onchange="setTournamentFormationPlayer('${currentTournament.id}', '${key}', this.value)">
-            <option value="">➕ ${esc(label)}</option>
-            ${options}
-          </select>
-        </div>`;
-    }).join('');
-    return `<div class="pitch-row">${slots}</div>`;
-  }).join('');
+        <details class="section card" open style="border-color: var(--green);">
+          <summary style="font-size:16px; font-weight:900; color:var(--green); cursor:pointer;">
+            💚 Convocados y Formación En Vivo (${esc(malaJuntaTeam.name)})
+          </summary>
 
-  return `
-    <details class="section card" open style="border-color: var(--green);">
-      <summary style="font-size:16px; font-weight:900; color:var(--green); cursor:pointer;">
-        💚 Convocados y Formación En Vivo (${esc(malaJuntaTeam.name)})
-      </summary>
+          <div style="margin-top:14px;">
+            <p class="muted" style="font-size:12px; margin-bottom:12px;">Pizarra táctica oficial de MalaJunta para este torneo.</p>
 
-      <div style="margin-top:14px;">
-        <p class="muted" style="font-size:12px; margin-bottom:12px;">Pizarra táctica oficial de MalaJunta para este torneo.</p>
+            <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px;">
+              <h3 style="margin-top:0; font-size:13px; color:var(--white);">1. Convocados (${rosterPlayers.length})</h3>
+              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                ${rosterPlayers.length ? rosterPlayers.map(p => `
+                  <span class="team-roster-chip">
+                    <b>#${p.number || '-'} ${esc(p.name)}</b>
+                    ${isLoggedAdmin ? `<button onclick="removePlayerFromTournamentTeam('${currentTournament.id}', '${p.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>` : ''}
+                  </span>
+                `).join('') : '<span class="muted" style="font-size:11px">Aún no hay convocados cargados para este torneo.</span>'}
+              </div>
+              ${isLoggedAdmin ? `
+                <div style="display:flex; gap:6px;">
+                  <select id="select-add-roster-player" class="input-field" style="margin:0">
+                    <option value="">-- Convocar Jugador del Plantel --</option>
+                    ${players.filter(p => !rosterIds.includes(String(p.id))).map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.position || 'Sin pos.')})</option>`).join('')}
+                  </select>
+                  <button class="btn-action" style="width:auto; margin:0; white-space:nowrap" onclick="addPlayerToTournamentTeam('${currentTournament.id}')">➕ Convocar</button>
+                </div>` : ''}
+            </div>
 
-        <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px;">
-          <h3 style="margin-top:0; font-size:13px; color:var(--white);">1. Convocados (${rosterPlayers.length})</h3>
-          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-            ${rosterPlayers.length ? rosterPlayers.map(p => `
-              <span class="team-roster-chip">
-                <b>#${p.number || '-'} ${esc(p.name)}</b>
-                ${isLoggedAdmin ? `<button onclick="removePlayerFromTournamentTeam('${currentTournament.id}', '${p.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>` : ''}
-              </span>
-            `).join('') : '<span class="muted" style="font-size:11px">Aún no hay convocados cargados para este torneo.</span>'}
+            <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0; font-size:13px; color:var(--white);">2. Pizarra Táctica</h3>
+                <select ${!isLoggedAdmin ? 'disabled' : ''} style="width:auto; padding:5px 8px; font-size:11px;" onchange="changeTournamentTeamScheme('${currentTournament.id}', this.value)">
+                  ${Object.keys(formationLayouts).map(s => `<option value="${s}" ${s === tData.formation ? 'selected' : ''}>${s}</option>`).join('')}
+                </select>
+              </div>
+              
+              <div class="pitch" style="min-height:480px; padding:14px 4px;">
+                <div class="pitch-midline"></div>
+                <div class="pitch-circle"></div>
+                ${rows}
+              </div>
+            </div>
           </div>
-          ${isLoggedAdmin ? `
-            <div style="display:flex; gap:6px;">
-              <select id="select-add-roster-player" class="input-field" style="margin:0">
-                <option value="">-- Convocar Jugador del Plantel --</option>
-                ${players.filter(p => !rosterIds.includes(String(p.id))).map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.position || 'Sin pos.')})</option>`).join('')}
-              </select>
-              <button class="btn-action" style="width:auto; margin:0; white-space:nowrap" onclick="addPlayerToTournamentTeam('${currentTournament.id}')">➕ Convocar</button>
-            </div>` : ''}
-        </div>
-
-        <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 style="margin:0; font-size:13px; color:var(--white);">2. Pizarra Táctica</h3>
-            <select ${!isLoggedAdmin ? 'disabled' : ''} style="width:auto; padding:5px 8px; font-size:11px;" onchange="changeTournamentTeamScheme('${currentTournament.id}', this.value)">
-              ${Object.keys(formationLayouts).map(s => `<option value="${s}" ${s === tData.formation ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </div>
-          
-          <div class="pitch" style="min-height:480px; padding:14px 4px;">
-            <div class="pitch-midline"></div>
-            <div class="pitch-circle"></div>
-            ${rows}
-          </div>
-        </div>
-      </div>
-    </details>`;
-}
+        </details>`;
+    }
 
     async function addPlayerToTournamentTeam(tournamentId) {
       if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
@@ -1253,135 +1253,64 @@ function renderTeamRosterSection(teams, currentTournament) {
       await saveTournamentDataToSupabase(tournamentId, data);
     }
 
-    // 2. VISTA DE TORNEO CON ZONAS Y ELIMINATORIAS DESPLEGABLES
-function renderTournaments() {
-  const root = document.getElementById('tournament-public');
-  if (!root) return;
+    function renderTournaments() {
+      const root = document.getElementById('tournament-public');
+      if (!root) return;
 
-  if (tournamentView === 'list' || !activeTournamentId) {
-    const champions = tournaments.filter(t => tournamentChampion(t));
-    const activeTournaments = tournaments.filter(t => !tournamentChampion(t));
+      if (tournamentView === 'list' || !activeTournamentId) {
+        const champions = tournaments.filter(t => tournamentChampion(t));
+        const activeTournaments = tournaments.filter(t => !tournamentChampion(t));
 
-    root.innerHTML = `
-      <div class="section">
-        <h2 style="color:var(--green)">🏆 Campeonatos</h2>
-        <p class="muted" style="font-size:12px">Seleccioná un torneo para ver sus equipos, partidos y resultados.</p>
-      </div>
-
-      ${tournamentCreateForm()}
-
-      ${champions.length ? `
-        <div class="section" style="margin-bottom:22px">
-          <h2 style="color:var(--gold);font-size:16px">👑 HISTORIAL DE CAMPEONES</h2>
-          <div style="display:flex;flex-direction:column;gap:12px">
-            ${champions.map(t => {
-              const champion = tournamentChampion(t);
-              return `
-                <div style="position:relative; overflow:hidden; padding:20px 16px; border-radius:16px; border:1px solid var(--gold); background:linear-gradient(135deg,#282314,#151810 65%,#111713); box-shadow:0 8px 25px rgba(0,0,0,.3);">
-                  <div style="text-align:center">
-                    <div style="font-size:30px;margin-bottom:5px">🏆</div>
-                    <div style="color:var(--gold); font-size:10px; font-weight:900; letter-spacing:2px;">CAMPEÓN DEL TORNEO</div>
-                    <div style="font-size:23px; font-weight:950; margin:9px 0; color:#fff;">${esc(champion.name)}</div>
-                    <div style="color:#c9b978; font-size:11px; font-weight:700;">${esc(t.name)} ${t.season ? ' · TEMPORADA ' + esc(t.season) : ''}</div>
-                    <button onclick="openTournament('${t.id}')" style="width:100%; margin-top:17px; padding:12px; border:0; border-radius:9px; background:var(--gold); color:#15130b; font-weight:900; cursor:pointer;">VER TORNEO Y RECORRIDO →</button>
-                  </div>
-                </div>`;
-            }).join('')}
+        root.innerHTML = `
+          <div class="section">
+            <h2 style="color:var(--green)">🏆 Campeonatos</h2>
+            <p class="muted" style="font-size:12px">Seleccioná un torneo para ver sus equipos, partidos y resultados.</p>
           </div>
-        </div>` : ''}
 
-      <div class="section">
-        <h2 style="color:var(--green)">⚽ Torneos en curso</h2>
-        ${activeTournaments.length ? `
-          <div style="display:flex;flex-direction:column;gap:10px">
-            ${activeTournaments.map(t => {
-              const teamCount = tournamentTeams.filter(x => x.tournament_id === t.id).length;
-              const matchCount = tournamentMatches.filter(x => x.tournament_id === t.id).length;
-              return `
-                <button onclick="openTournament('${t.id}')" style="width:100%; text-align:left; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px; background:var(--panel); color:var(--white); border:1px solid var(--line); border-radius:14px; cursor:pointer;">
-                  <div style="min-width:0">
-                    <div style="font-size:16px;font-weight:900;margin-bottom:5px">⚽ ${esc(t.name)}</div>
-                    <div class="muted" style="font-size:11px">${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}${teamCount} equipos · ${matchCount} partidos</div>
-                    <div style="margin-top:9px"><span class="pill">${esc(t.status || 'En curso')}</span></div>
-                  </div>
-                  <span style="font-size:23px;color:var(--green)">›</span>
-                </button>`;
-            }).join('')}
-          </div>` : '<div class="empty">No hay torneos en curso.</div>'}
-      </div>
-      ${!tournaments.length ? '<div class="empty">Todavía no hay torneos creados.</div>' : ''}`;
-    return;
-  }
+          ${tournamentCreateForm()}
 
-  const t = tournaments.find(x => x.id === activeTournamentId);
-  if (!t) { tournamentView = 'list'; renderTournaments(); return; }
+          ${champions.length ? `
+            <div class="section" style="margin-bottom:22px">
+              <h2 style="color:var(--gold);font-size:16px">👑 HISTORIAL DE CAMPEONES</h2>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                ${champions.map(t => {
+                  const champion = tournamentChampion(t);
+                  return `
+                    <div style="position:relative; overflow:hidden; padding:20px 16px; border-radius:16px; border:1px solid var(--gold); background:linear-gradient(135deg,#282314,#151810 65%,#111713); box-shadow:0 8px 25px rgba(0,0,0,.3);">
+                      <div style="text-align:center">
+                        <div style="font-size:30px;margin-bottom:5px">🏆</div>
+                        <div style="color:var(--gold); font-size:10px; font-weight:900; letter-spacing:2px;">CAMPEÓN DEL TORNEO</div>
+                        <div style="font-size:23px; font-weight:950; margin:9px 0; color:#fff;">${esc(champion.name)}</div>
+                        <div style="color:#c9b978; font-size:11px; font-weight:700;">${esc(t.name)} ${t.season ? ' · TEMPORADA ' + esc(t.season) : ''}</div>
+                        <button onclick="openTournament('${t.id}')" style="width:100%; margin-top:17px; padding:12px; border:0; border-radius:9px; background:var(--gold); color:#15130b; font-weight:900; cursor:pointer;">VER TORNEO Y RECORRIDO →</button>
+                      </div>
+                    </div>`;
+                }).join('')}
+              </div>
+            </div>` : ''}
 
-  const teams = tournamentTeams.filter(x => x.tournament_id === t.id);
-  const matches = tournamentMatches.filter(x => x.tournament_id === t.id);
-  const groups = [...new Set(teams.map(x => x.group_name || 'Sin zona'))];
-
-  root.innerHTML = `
-    <button onclick="backToTournaments()" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:9px 13px; border-radius:9px; cursor:pointer; font-weight:800; margin-bottom:14px">← Volver a torneos</button>
-    <div class="card" style="border-color:var(--green); margin-bottom:14px">
-      <div class="eyebrow">CAMPEONATO</div>
-      <h2 style="font-size:22px; margin:6px 0; color:var(--green)">🏆 ${esc(t.name)}</h2>
-      <div class="muted" style="font-size:12px">${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}${teams.length} equipos · ${matches.length} partidos</div>
-      <div style="margin-top:10px"><span class="pill">${esc(t.status || 'En curso')}</span></div>
-    </div>
-    ${tournamentManagementButtons(t)}
-    ${renderTeamRosterSection(teams, t)}
-    ${tournamentAdmin()}
-    ${teams.length ? groups.map(group => {
-      const groupTeams = teams.filter(x => (x.group_name || 'Sin zona') === group);
-      const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
-      const table = calculateGroupTable(groupTeams, groupMatches);
-      return `
-        <details class="section card">
-          <summary style="font-size:16px; font-weight:900; color:var(--green); cursor:pointer;">
-            🟢 Zona ${esc(group)} (Posiciones y Partidos)
-          </summary>
-          
-          <div style="margin-top:14px;">
-            <div class="table-wrap">
-              <table style="min-width:520px">
-                <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
-                <tbody>
-                  ${table.map((r,i) => `
-                    <tr>
-                      <td>${i+1}</td>
-                      <td><b>${esc(r.name)}</b></td>
-                      <td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg}</td>
-                      <td><b style="color:var(--green)">${r.pts}</b></td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-            <h3 style="margin-top:14px;">Partidos de zona</h3>
-            ${renderTournamentMatches(groupMatches)}
+          <div class="section">
+            <h2 style="color:var(--green)">⚽ Torneos en curso</h2>
+            ${activeTournaments.length ? `
+              <div style="display:flex;flex-direction:column;gap:10px">
+                ${activeTournaments.map(t => {
+                  const teamCount = tournamentTeams.filter(x => x.tournament_id === t.id).length;
+                  const matchCount = tournamentMatches.filter(x => x.tournament_id === t.id).length;
+                  return `
+                    <button onclick="openTournament('${t.id}')" style="width:100%; text-align:left; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px; background:var(--panel); color:var(--white); border:1px solid var(--line); border-radius:14px; cursor:pointer;">
+                      <div style="min-width:0">
+                        <div style="font-size:16px;font-weight:900;margin-bottom:5px">⚽ ${esc(t.name)}</div>
+                        <div class="muted" style="font-size:11px">${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}${teamCount} equipos · ${matchCount} partidos</div>
+                        <div style="margin-top:9px"><span class="pill">${esc(t.status || 'En curso')}</span></div>
+                      </div>
+                      <span style="font-size:23px;color:var(--green)">›</span>
+                    </button>`;
+                }).join('')}
+              </div>` : '<div class="empty">No hay torneos en curso.</div>'}
           </div>
-        </details>`;
-    }).join('') : `<div class="card empty">Todavía no hay equipos cargados en este torneo.${isLoggedAdmin ? '<br>Podés agregarlos desde Administración del torneo.' : ''}</div>`}
-
-    <details class="section card">
-      <summary style="font-size:16px; font-weight:900; color:var(--gold); cursor:pointer;">
-        🏆 Fase eliminatoria
-      </summary>
-      
-      <div style="margin-top:14px;">
-        ${['Octavos de final', 'Cuartos de final', 'Semifinal', 'Tercer puesto', 'Final'].map(round => {
-          const roundMatches = matches.filter(x => x.phase === 'Eliminatorias' && x.round_name === round);
-          if (!roundMatches.length) return '';
-          return `
-            <div style="margin-top:15px">
-              <h3 style="color:var(--green);font-size:14px">${round === 'Final' ? '🏆 GRAN FINAL' : round === 'Tercer puesto' ? '🥉 TERCER PUESTO' : '⚔️ ' + round.toUpperCase()}</h3>
-              ${renderTournamentMatches(roundMatches)}
-            </div>`;
-        }).join('')}
-        ${matches.some(x => x.phase === 'Eliminatorias') ? '' : '<div class="empty">Las eliminatorias todavía no fueron generadas.</div>'}
-      </div>
-    </details>`;
-}
+          ${!tournaments.length ? '<div class="empty">Todavía no hay torneos creados.</div>' : ''}`;
+        return;
+      }
 
       const t = tournaments.find(x => x.id === activeTournamentId);
       if (!t) { tournamentView = 'list'; renderTournaments(); return; }
@@ -1406,41 +1335,51 @@ function renderTournaments() {
           const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
           const table = calculateGroupTable(groupTeams, groupMatches);
           return `
-            <div class="section card">
-              <h2>🟢 Zona ${esc(group)}</h2>
-              <div class="table-wrap">
-                <table style="min-width:520px">
-                  <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
-                  <tbody>
-                    ${table.map((r,i) => `
-                      <tr>
-                        <td>${i+1}</td>
-                        <td><b>${esc(r.name)}</b></td>
-                        <td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg}</td>
-                        <td><b style="color:var(--green)">${r.pts}</b></td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
+            <details class="section card">
+              <summary style="font-size:16px; font-weight:900; color:var(--green); cursor:pointer;">
+                🟢 Zona ${esc(group)} (Posiciones y Partidos)
+              </summary>
+              
+              <div style="margin-top:14px;">
+                <div class="table-wrap">
+                  <table style="min-width:520px">
+                    <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
+                    <tbody>
+                      ${table.map((r,i) => `
+                        <tr>
+                          <td>${i+1}</td>
+                          <td><b>${esc(r.name)}</b></td>
+                          <td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg}</td>
+                          <td><b style="color:var(--green)">${r.pts}</b></td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+                <h3 style="margin-top:14px;">Partidos de zona</h3>
+                ${renderTournamentMatches(groupMatches)}
               </div>
-              <h3>Partidos de zona</h3>
-              ${renderTournamentMatches(groupMatches)}
-            </div>`;
+            </details>`;
         }).join('') : `<div class="card empty">Todavía no hay equipos cargados en este torneo.${isLoggedAdmin ? '<br>Podés agregarlos desde Administración del torneo.' : ''}</div>`}
 
-        <div class="section card">
-          <h2>🏆 Fase eliminatoria</h2>
-          ${['Octavos de final', 'Cuartos de final', 'Semifinal', 'Tercer puesto', 'Final'].map(round => {
-            const roundMatches = matches.filter(x => x.phase === 'Eliminatorias' && x.round_name === round);
-            if (!roundMatches.length) return '';
-            return `
-              <div style="margin-top:15px">
-                <h3 style="color:var(--green);font-size:14px">${round === 'Final' ? '🏆 GRAN FINAL' : round === 'Tercer puesto' ? '🥉 TERCER PUESTO' : '⚔️ ' + round.toUpperCase()}</h3>
-                ${renderTournamentMatches(roundMatches)}
-              </div>`;
-          }).join('')}
-          ${matches.some(x => x.phase === 'Eliminatorias') ? '' : '<div class="empty">Las eliminatorias todavía no fueron generadas.</div>'}
-        </div>`;
+        <details class="section card">
+          <summary style="font-size:16px; font-weight:900; color:var(--gold); cursor:pointer;">
+            🏆 Fase eliminatoria
+          </summary>
+          
+          <div style="margin-top:14px;">
+            ${['Octavos de final', 'Cuartos de final', 'Semifinal', 'Tercer puesto', 'Final'].map(round => {
+              const roundMatches = matches.filter(x => x.phase === 'Eliminatorias' && x.round_name === round);
+              if (!roundMatches.length) return '';
+              return `
+                <div style="margin-top:15px">
+                  <h3 style="color:var(--green);font-size:14px">${round === 'Final' ? '🏆 GRAN FINAL' : round === 'Tercer puesto' ? '🥉 TERCER PUESTO' : '⚔️ ' + round.toUpperCase()}</h3>
+                  ${renderTournamentMatches(roundMatches)}
+                </div>`;
+            }).join('')}
+            ${matches.some(x => x.phase === 'Eliminatorias') ? '' : '<div class="empty">Las eliminatorias todavía no fueron generadas.</div>'}
+          </div>
+        </details>`;
     }
 
     function tournamentManagementButtons(t) {
