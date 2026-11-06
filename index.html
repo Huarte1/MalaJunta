@@ -972,21 +972,33 @@
     }
 
     function tournamentAdmin() {
-      if (!isLoggedAdmin) return '';
-      const teams = tournamentTeams.filter(x => x.tournament_id === activeTournamentId);
-      const groups = [...new Set(teams.map(x => x.group_name || 'A'))];
+  if (!isLoggedAdmin) return '';
+  const teams = tournamentTeams.filter(x => x.tournament_id === activeTournamentId);
+  const groups = [...new Set(teams.map(x => x.group_name || 'A'))];
 
-      return `
-        <div class="section card" style="border-color:var(--green)">
-          <h2>⚙️ Administración del campeonato</h2>
-          <div style="background:var(--panel2);padding:12px;border-radius:10px;margin-bottom:14px">
-            <h3>👥 1. Cargar equipos y zonas</h3>
+  return `
+    <details class="section card" style="border-color:var(--green)">
+      <summary style="font-size:16px; font-weight:900; color:var(--green); cursor:pointer;">
+        ⚙️ Administración del campeonato
+      </summary>
+      
+      <div style="margin-top:14px;">
+        <details style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px; border:1px solid var(--line);">
+          <summary style="font-size:13px; font-weight:800; color:var(--white); cursor:pointer;">
+            👥 1. Cargar equipos y zonas
+          </summary>
+          <div style="margin-top:10px;">
             <p class="muted" style="font-size:11px">Un equipo por línea. Indicá la zona después de un guion.</p>
             <textarea id="bulk-team-list" class="input-field" rows="6" placeholder="MalaJunta - A&#10;Los Pibes - A&#10;La Quinta - B&#10;Pelusa FC - B" style="resize:vertical"></textarea>
             <button class="btn-action" onclick="addTournamentTeamsBulk()">➕ Cargar equipos</button>
           </div>
-          <div style="background:var(--panel2);padding:12px;border-radius:10px;margin-bottom:14px">
-            <h3>📋 2. Equipos y grupos (${teams.length})</h3>
+        </details>
+
+        <details style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px; border:1px solid var(--line);">
+          <summary style="font-size:13px; font-weight:800; color:var(--white); cursor:pointer;">
+            📋 2. Equipos y grupos (${teams.length})
+          </summary>
+          <div style="margin-top:10px;">
             ${groups.map(group => `
               <div style="margin-bottom:12px">
                 <b style="color:var(--green)">ZONA ${esc(group)}</b>
@@ -1002,175 +1014,31 @@
               </div>
             `).join('')}
           </div>
-          <div style="background:var(--panel2);padding:12px;border-radius:10px;margin-bottom:14px">
-            <h3>⚽ 3. Fixture de grupos</h3>
+        </details>
+
+        <details style="background:var(--panel2); padding:12px; border-radius:10px; margin-bottom:14px; border:1px solid var(--line);">
+          <summary style="font-size:13px; font-weight:800; color:var(--white); cursor:pointer;">
+            ⚽ 3. Fixture de grupos
+          </summary>
+          <div style="margin-top:10px;">
             <p class="muted" style="font-size:11px">Genera partidos de todos contra todos dentro de cada zona.</p>
             <button class="btn-action" onclick="generateGroupFixtures()">⚽ Generar fixture</button>
           </div>
-          <div style="background:var(--panel2);padding:12px;border-radius:10px">
-            <h3>🏆 4. Clasificación a eliminatorias</h3>
+        </details>
+
+        <details style="background:var(--panel2); padding:12px; border-radius:10px; border:1px solid var(--line);">
+          <summary style="font-size:13px; font-weight:800; color:var(--white); cursor:pointer;">
+            🏆 4. Clasificación a eliminatorias
+          </summary>
+          <div style="margin-top:10px;">
             <label class="muted" style="font-size:11px">Cantidad de equipos que clasifican por zona</label>
             <input id="qualifiers-per-group" type="number" min="1" max="16" value="2" class="input-field">
             <p class="muted" style="font-size:11px;line-height:1.5">La cantidad total de clasificados debe ser 2, 4, 8 o 16 para armar una llave completa sin equipos libres.</p>
             <button class="btn-action" onclick="generateKnockout()">🏆 Crear cuadro eliminatorio</button>
           </div>
-        </div>`;
-    }
-
-    async function editTournamentTeam(id) {
-      if (!isLoggedAdmin) return;
-      const team = tournamentTeams.find(x => String(x.id) === String(id));
-      if (!team) return;
-      const newName = prompt('Nombre del equipo:', team.name);
-      if (newName === null) return;
-      const newGroup = prompt('Zona del equipo (A, B, C...):', team.group_name || 'A');
-      if (newGroup === null) return;
-      if (!newName.trim() || !newGroup.trim()) return alert('Completá el nombre y la zona.');
-
-      const { error } = await db.from('tournament_teams').update({
-        name: newName.trim(), group_name: newGroup.trim().toUpperCase()
-      }).eq('id', id);
-
-      if (error) return alert('Error: ' + error.message);
-      await loadTournaments();
-      alert('Equipo actualizado.');
-    }
-
-    async function deleteTournamentTeam(id) {
-      if (!isLoggedAdmin) return;
-      const team = tournamentTeams.find(x => String(x.id) === String(id));
-      if (!team) return;
-
-      if (tournamentMatches.some(m => String(m.home_team_id) === String(id) || String(m.away_team_id) === String(id))) {
-        return alert('Este equipo ya tiene partidos asociados. No se puede eliminar sin borrar primero esos partidos.');
-      }
-
-      if (!confirm('¿Eliminar a ' + team.name + ' de este campeonato?')) return;
-      const { error } = await db.from('tournament_teams').delete().eq('id', id);
-      if (error) return alert('Error: ' + error.message);
-      await loadTournaments();
-    }
-
-    // --- SECCIÓN EXCLUSIVA PARA MALAJUNTA EN EL TORNEO (SINCRONIZADO EN SUPABASE) ---
-
-    // Función auxiliar para parsear los datos tácticos de MalaJunta desde la columna 'description' del torneo
-    function getTournamentDataFromDescription(t) {
-      try {
-        if (!t || !t.description) return { roster: [], formation: '4-3-3', lineup: {} };
-        const data = JSON.parse(t.description);
-        return {
-          roster: data.roster || [],
-          formation: data.formation || '4-3-3',
-          lineup: data.lineup || {}
-        };
-      } catch (e) {
-        return { roster: [], formation: '4-3-3', lineup: {} };
-      }
-    }
-
-    // Guardar los datos en Supabase para que cualquier persona en el mundo los vea
-    async function saveTournamentDataToSupabase(tournamentId, dataObj) {
-      const jsonStr = JSON.stringify(dataObj);
-      const { error } = await db.from('tournaments').update({ description: jsonStr }).eq('id', tournamentId);
-      if (error) {
-        console.error('Error al guardar en Supabase:', error);
-        alert('❌ Error al guardar datos en vivo: ' + error.message);
-      } else {
-        await loadTournaments();
-      }
-    }
-
-   function renderTeamRosterSection(teams, currentTournament) {
-  const malaJuntaTeam = teams.find(t => {
-    const clean = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return clean.includes('malajunta');
-  });
-
-  if (!malaJuntaTeam) return '';
-
-  const tData = getTournamentDataFromDescription(currentTournament);
-  const rosterIds = tData.roster || [];
-  const rosterPlayers = players.filter(p => rosterIds.includes(String(p.id)));
-  const layout = formationLayouts[tData.formation] || formationLayouts['4-3-3'];
-
-  const shirtSVG = `
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="mj-stripes-t" width="20" height="100" patternUnits="userSpaceOnUse">
-          <rect x="0" width="10" height="100" fill="#2d5e38"/>
-          <rect x="10" width="10" height="100" fill="#1b3d23"/>
-        </pattern>
-      </defs>
-      <path d="M 28 22 L 40 14 L 60 14 L 72 22 L 88 30 L 80 48 L 72 42 L 72 88 A 4 4 0 0 1 68 92 L 32 92 A 4 4 0 0 1 28 88 L 28 42 L 20 48 L 12 30 Z" fill="url(#mj-stripes-t)" stroke="#112415" stroke-width="1.5"/>
-      <path d="M 40 14 L 50 26 L 60 14" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>`;
-
-  const occurrences = {};
-  const rows = layout.map(line => {
-    const slots = line.map(label => {
-      occurrences[label] = (occurrences[label] || 0) + 1;
-      const key = formationSlotKey(label, occurrences[label]);
-      const selectedId = String(tData.lineup[key] || '');
-
-      const options = rosterPlayers.map(p => `
-        <option value="${p.id}" ${String(p.id) === selectedId ? 'selected' : ''}>${esc(p.name)} (${esc(p.position || 'Jugador')})</option>
-      `).join('');
-
-      return `
-        <div class="pitch-slot">
-          <div class="pitch-shirt">
-            ${shirtSVG}
-            <span class="pitch-shirt-label">${esc(label)}</span>
-          </div>
-          <select ${!isLoggedAdmin ? 'disabled' : ''} onchange="setTournamentFormationPlayer('${currentTournament.id}', '${key}', this.value)">
-            <option value="">➕ ${esc(label)}</option>
-            ${options}
-          </select>
-        </div>`;
-    }).join('');
-    return `<div class="pitch-row">${slots}</div>`;
-  }).join('');
-
-  return `
-    <div class="section card" style="border-color: var(--green);">
-      <h2>💚 Convocados y Formación En Vivo (${esc(malaJuntaTeam.name)})</h2>
-      <p class="muted" style="font-size:12px; margin-bottom:12px;">Pizarra táctica oficial de MalaJunta para este torneo.</p>
-
-      <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px;">
-        <h3 style="margin-top:0; font-size:13px; color:var(--white);">1. Convocados (${rosterPlayers.length})</h3>
-        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-          ${rosterPlayers.length ? rosterPlayers.map(p => `
-            <span class="team-roster-chip">
-              <b>#${p.number || '-'} ${esc(p.name)}</b>
-              ${isLoggedAdmin ? `<button onclick="removePlayerFromTournamentTeam('${currentTournament.id}', '${p.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>` : ''}
-            </span>
-          `).join('') : '<span class="muted" style="font-size:11px">Aún no hay convocados cargados para este torneo.</span>'}
-        </div>
-        ${isLoggedAdmin ? `
-          <div style="display:flex; gap:6px;">
-            <select id="select-add-roster-player" class="input-field" style="margin:0">
-              <option value="">-- Convocar Jugador del Plantel --</option>
-              ${players.filter(p => !rosterIds.includes(String(p.id))).map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.position || 'Sin pos.')})</option>`).join('')}
-            </select>
-            <button class="btn-action" style="width:auto; margin:0; white-space:nowrap" onclick="addPlayerToTournamentTeam('${currentTournament.id}')">➕ Convocar</button>
-          </div>` : ''}
+        </details>
       </div>
-
-      <div style="background:var(--panel2); padding:12px; border-radius:12px; border:1px solid var(--line);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h3 style="margin:0; font-size:13px; color:var(--white);">2. Pizarra Táctica</h3>
-          <select ${!isLoggedAdmin ? 'disabled' : ''} style="width:auto; padding:5px 8px; font-size:11px;" onchange="changeTournamentTeamScheme('${currentTournament.id}', this.value)">
-            ${Object.keys(formationLayouts).map(s => `<option value="${s}" ${s === tData.formation ? 'selected' : ''}>${s}</option>`).join('')}
-          </select>
-        </div>
-        
-        <div class="pitch" style="min-height:480px; padding:14px 4px;">
-          <div class="pitch-midline"></div>
-          <div class="pitch-circle"></div>
-          ${rows}
-        </div>
-      </div>
-    </div>`;
+    </details>`;
 }
 
     async function addPlayerToTournamentTeam(tournamentId) {
