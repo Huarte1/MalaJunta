@@ -21,7 +21,45 @@
       --white: #f4f7f3;
       --gold: #d4af37;
     }
+/* Agregá esto a tu bloque <style> */
+.card-glow-green {
+  box-shadow: 0 0 20px rgba(166, 230, 91, 0.15);
+  border: 1px solid rgba(166, 230, 91, 0.4) !important;
+}
 
+.card-glow-gold {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.4) !important;
+}
+
+/* Transición suave para todos los botones */
+button, select, input {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+    /* Reemplazá el estilo .fut-card en tu CSS por este */
+.fut-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #18261b 0%, #0d140e 100%);
+  border: 1px solid rgba(166, 230, 91, 0.25);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.fut-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -50%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transform: skewX(-25deg);
+  pointer-events: none;
+}
     /* ESTILOS DE LA BARRA DE REPRODUCCIÓN PERSONALIZADA */
     .audio-player-card {
       background: var(--panel);
