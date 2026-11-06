@@ -327,13 +327,13 @@
     </header>
 
     <section class="hero">
-      <div>
-        <div class="eyebrow">TEMPORADA ACTIVA</div>
-        <div class="title">"Jugamos como nunca, perdimos como siempre"</div>
-        <div class="muted" style="font-size: 12px;">Números oficiales del club.</div>
-      </div>
-      <span class="pill" id="badge-status">EN VIVO</span>
-    </section>
+  <div>
+    <div class="eyebrow">TEMPORADA ACTIVA</div>
+    <div class="title" id="hero-quote">"Jugamos como nunca, perdimos como siempre"</div>
+    <div class="muted" style="font-size: 12px;">Números oficiales del club.</div>
+  </div>
+  <span class="pill" id="badge-status">EN VIVO</span>
+</section>
 
     <!-- REPRODUCTOR DE AUDIO CONECTADO A SUPABASE STORAGE -->
     <div class="audio-player-card">
@@ -504,6 +504,34 @@
     let isLoggedAdmin = false;
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
+
+// Frases oficiales de los artistas de LNK y MalaJunta FC
+const frasesMalaJunta = [
+  '"Con mi camada le dimos un susto, lo sienten porque andan hablando de gusto" - Pastel',
+  '"Otra vez la caravana, famoso fin de semana" - Flak\'00',
+  '"Tiempo puede que pase lento, si juega el mala vamos en contra del viento" - Flak\'00',
+  '"La nota sostenida, lujos de mala vida. La vibra positiva, ustedes que tiran" - JViscia',
+  '"Perdido en el limbo que me va a sacar de las malas" - Gustirri',
+  '"Esperando el día que llegue lo bueno" - Gustirri',
+  '"Tengo un estado en el que me enferma no verte" - Pastel',
+  '"Estar con vos es solo para valientes" - Gustirri',
+  '"Somos los negretios feos con el cora bonito" - Gustirri',
+  '"La vida es un vaivén y yo la juego bien" - JViscia',
+  '"Fútbol de día, gira por la night" - PatoXR',
+  '"A todo pelota? Todo pelota entonces" - Pablo A',
+  '"Jugamos como nunca, perdimos como siempre" - JViscia'
+];
+
+function setRandomQuote() {
+  const quoteEl = document.getElementById('hero-quote');
+  if (quoteEl) {
+    const randomIndex = Math.floor(Math.random() * frasesMalaJunta.length);
+    quoteEl.innerText = frasesMalaJunta[randomIndex];
+  }
+}
+
+// Ejecutar la selección aleatoria al entrar a la web
+setRandomQuote();
 
     // 1. FUNCIÓN DE HISTORIAL HEAD-TO-HEAD
     function getHeadToHead(opponentName) {
