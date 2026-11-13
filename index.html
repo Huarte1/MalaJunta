@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#080b09">
   <title>MalaJunta FC · Plantel Oficial y Estadísticas</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Librería para exportar la cancha táctica a foto PNG -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
@@ -21,45 +20,26 @@
       --white: #f4f7f3;
       --gold: #d4af37;
     }
-/* Agregá esto a tu bloque <style> */
-.card-glow-green {
-  box-shadow: 0 0 20px rgba(166, 230, 91, 0.15);
-  border: 1px solid rgba(166, 230, 91, 0.4) !important;
-}
 
-.card-glow-gold {
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.4) !important;
-}
+    .card-glow-green {
+      box-shadow: 0 0 20px rgba(166, 230, 91, 0.15) !important;
+      border: 1px solid rgba(166, 230, 91, 0.4) !important;
+    }
 
-/* Transición suave para todos los botones */
-button, select, input {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
+    .card-glow-gold {
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.15) !important;
+      border: 1px solid rgba(212, 175, 55, 0.4) !important;
+    }
 
-button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.1);
-}
-    /* Reemplazá el estilo .fut-card en tu CSS por este */
-.fut-card {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(135deg, #18261b 0%, #0d140e 100%);
-  border: 1px solid rgba(166, 230, 91, 0.25);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
+    button, select, input {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-.fut-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -50%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-  transform: skewX(-25deg);
-  pointer-events: none;
-}
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
     /* ESTILOS DE LA BARRA DE REPRODUCCIÓN PERSONALIZADA */
     .audio-player-card {
       background: var(--panel);
@@ -102,15 +82,9 @@ button:hover {
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      transition: transform 0.15s ease, background 0.15s ease;
     }
-    .btn-play:active {
-      transform: scale(0.92);
-    }
-    .btn-play svg {
-      width: 20px;
-      height: 20px;
-    }
+    .btn-play:active { transform: scale(0.92); }
+    .btn-play svg { width: 20px; height: 20px; }
     .btn-play.btn-nav {
       width: 30px;
       height: 30px;
@@ -118,10 +92,7 @@ button:hover {
       color: var(--green);
       border: 1px solid var(--line);
     }
-    .btn-play.btn-nav svg {
-      width: 15px;
-      height: 15px;
-    }
+    .btn-play.btn-nav svg { width: 15px; height: 15px; }
     .time-label {
       font-size: 11px;
       color: var(--muted);
@@ -233,10 +204,9 @@ button:hover {
       font-size: 9px;
       font-weight: 700;
       cursor: pointer;
-      transition: .2s ease;
     }
     .tabs button span { display: flex; align-items: center; justify-content: center; }
-    .tabs button span svg { width: 18px; height: 18px; display: block; stroke: currentColor; transition: stroke 0.2s ease; }
+    .tabs button span svg { width: 18px; height: 18px; display: block; stroke: currentColor; }
     .tabs button.active { background: rgba(166, 230, 91, .13); color: #a6e65b; border: 1px solid rgba(166, 230, 91, .18); }
     .tabs button:active { transform: scale(.94); }
 
@@ -247,11 +217,8 @@ button:hover {
         transform: none; width: auto;
         min-width: 600px; max-width: 750px;
         margin: 20px auto;
-        background: rgba(12, 18, 14, .94);
-        border: 1px solid rgba(166, 230, 91, .16);
       }
       .tabs button { padding: 10px 8px; font-size: 10px; }
-      .tabs button.active { background: rgba(166, 230, 91, .13); color: #a6e65b; }
     }
 
     .tab-content { animation: fadeIn 0.25s ease-out; }
@@ -278,12 +245,28 @@ button:hover {
     td { font-size: 12.5px; }
 
     .pos-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
-    .pos-filter-btn { flex: none; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; transition: .18s ease; }
+    .pos-filter-btn { flex: none; background: var(--panel2); border: 1px solid var(--line); color: var(--muted); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; }
     .pos-filter-btn.active { background: rgba(166,230,91,.15); color: var(--green); border-color: var(--green); }
 
     .player-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    .fut-card { position: relative; overflow: hidden; background: linear-gradient(145deg, #141f17, #0b110c); border: 1px solid var(--line); border-radius: 16px; padding: 14px; transition: transform .18s, border-color .18s; box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
-    .fut-card:hover { transform: translateY(-2px); border-color: rgba(166,230,91,.35); }
+    .fut-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #18261b 0%, #0d140e 100%);
+      border: 1px solid rgba(166, 230, 91, 0.25);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+    .fut-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -50%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+      transform: skewX(-25deg);
+      pointer-events: none;
+    }
+    .fut-card:hover { transform: translateY(-2px); border-color: rgba(166,230,91,.45); }
     .fut-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
     .fut-avatar-box { position: relative; width: 48px; height: 48px; flex: none; }
     .fut-avatar { width: 100%; height: 100%; border-radius: 14px; background: rgba(166,230,91,.08); border: 1px solid rgba(166,230,91,.2); display: grid; place-items: center; font-size: 22px; font-weight: 900; color: var(--green); }
@@ -386,18 +369,15 @@ button:hover {
       <audio id="custom-audio" preload="metadata"></audio>
 
       <div class="custom-controls">
-        <!-- Botón Anterior -->
         <button id="btn-prev" class="btn-play btn-nav" title="Anterior">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
         </button>
 
-        <!-- Botón Play / Pause -->
         <button id="btn-play-pause" class="btn-play" title="Reproducir/Pausar">
           <svg id="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           <svg id="icon-pause" viewBox="0 0 24 24" fill="currentColor" class="hide"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         </button>
 
-        <!-- Botón Siguiente -->
         <button id="btn-next" class="btn-play btn-nav" title="Siguiente">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
         </button>
@@ -445,7 +425,7 @@ button:hover {
       <section id="torneos" class="tab-content hide">
         <div class="card">
           <h2>🏆 Campeonatos MalaJunta</h2>
-          <p class="muted">Torneos independientes de las estadísticas generales del club.</p>
+          <p class="muted">Torneos oficiales y copas disputadas por el club.</p>
           <div id="tournament-public"></div>
         </div>
       </section>
@@ -546,7 +526,6 @@ button:hover {
     let currentMatchIdForView = null;
     let currentPosFilter = 'ALL';
 
-    // Frases oficiales de los artistas de LNK y MalaJunta FC
     const frasesMalaJunta = [
       '"Con mi camada le dimos un susto, lo sienten porque andan hablando de gusto" - Pastel',
       '"Otra vez la caravana, famoso fin de semana" - Flak\'00',
@@ -570,22 +549,16 @@ button:hover {
         quoteEl.innerText = frasesMalaJunta[randomIndex];
       }
     }
-
     setRandomQuote();
 
     // 1. FUNCIÓN DE HISTORIAL HEAD-TO-HEAD
     function getHeadToHead(opponentName) {
       if (!opponentName) return { wins: 0, draws: 0, losses: 0, total: 0 };
-      
       const target = opponentName.toLowerCase().trim();
       const pastMatches = matches.filter(m => 
-        m.status === 'Jugado' && 
-        m.opponent && 
-        m.opponent.toLowerCase().trim() === target
+        m.status === 'Jugado' && m.opponent && m.opponent.toLowerCase().trim() === target
       );
-
       let wins = 0, draws = 0, losses = 0;
-
       pastMatches.forEach(m => {
         const gf = Number(m.goals_for || 0);
         const ga = Number(m.goals_against || 0);
@@ -593,13 +566,11 @@ button:hover {
         else if (gf === ga) draws++;
         else losses++;
       });
-
       return { wins, draws, losses, total: pastMatches.length };
     }
 
-    // 2. LÓGICA DEL REPRODUCTOR CONECTADO A SUPABASE STORAGE (BUCKET 'canciones')
+    // 2. REPRODUCTOR DE AUDIO SUPABASE STORAGE
     const BUCKET_NAME = 'canciones';
-
     const audio = document.getElementById('custom-audio');
     const playBtn = document.getElementById('btn-play-pause');
     const prevBtn = document.getElementById('btn-prev');
@@ -624,16 +595,12 @@ button:hover {
         const { data, error } = await db.storage.from(BUCKET_NAME).list('', {
           limit: 100, offset: 0, sortBy: { column: 'name', order: 'asc' }
         });
-
         if (error) throw error;
-
         playlist = (data || []).filter(file => file.name.toLowerCase().endsWith('.mp3'));
-
         if (playlist.length === 0) {
           if (songTitleLabel) songTitleLabel.innerText = 'No se encontraron temas en el Bucket.';
           return;
         }
-
         playlist.sort(() => Math.random() - 0.5);
         loadSong(0);
       } catch (err) {
@@ -644,16 +611,12 @@ button:hover {
 
     function loadSong(index) {
       if (!playlist.length || index < 0 || index >= playlist.length) return;
-      
       currentSongIndex = index;
       const file = playlist[currentSongIndex];
-
       const { data } = db.storage.from(BUCKET_NAME).getPublicUrl(file.name);
-      
       audio.src = data.publicUrl;
       const cleanName = file.name.replace('.mp3', '').replace(/_/g, ' ').replace(/-/g, ' ');
       if (songTitleLabel) songTitleLabel.innerText = `▶ ${cleanName}`;
-      
       audio.load();
     }
 
@@ -661,7 +624,6 @@ button:hover {
       if (!playlist.length) return;
       const iconPlay = document.getElementById('icon-play');
       const iconPause = document.getElementById('icon-pause');
-
       if (audio.paused) {
         audio.play();
         iconPlay?.classList.add('hide');
@@ -693,32 +655,22 @@ button:hover {
       document.getElementById('icon-pause')?.classList.remove('hide');
     });
 
-    audio?.addEventListener('ended', () => {
-      nextBtn?.click();
-    });
-
+    audio?.addEventListener('ended', () => nextBtn?.click());
     audio?.addEventListener('loadedmetadata', () => {
-      if (isFinite(audio.duration)) {
-        durationLabel.innerText = formatTime(audio.duration);
-      }
+      if (isFinite(audio.duration)) durationLabel.innerText = formatTime(audio.duration);
     });
-
     audio?.addEventListener('timeupdate', () => {
       if (isFinite(audio.duration) && audio.duration > 0) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        seekBar.value = progress;
+        seekBar.value = (audio.currentTime / audio.duration) * 100;
         currentTimeLabel.innerText = formatTime(audio.currentTime);
         durationLabel.innerText = formatTime(audio.duration);
       }
     });
-
     seekBar?.addEventListener('input', () => {
       if (isFinite(audio.duration) && audio.duration > 0) {
-        const seekTo = (seekBar.value / 100) * audio.duration;
-        audio.currentTime = seekTo;
+        audio.currentTime = (seekBar.value / 100) * audio.duration;
       }
     });
-
     loadSongsFromBucket();
 
     // 3. ESTRATEGIA Y FORMACIONES (CON 4-1-3-2)
@@ -747,7 +699,6 @@ button:hover {
       if (!playerPos) return true;
       const pos = playerPos.toLowerCase().trim();
       const label = slotLabel.toUpperCase().trim();
-
       if (label === 'ARQ') return pos.includes('arq') || pos.includes('por');
       if (label.includes('DFC')) return pos.includes('dfc') || pos.includes('def') || pos.includes('cen');
       if (label === 'LD' || label === 'LI') return pos.includes('lat') || pos.includes('def') || pos.includes(label.toLowerCase());
@@ -772,7 +723,7 @@ button:hover {
 
     function saveFormationSettings() {
       try { localStorage.setItem('malajunta_formation_v2', JSON.stringify(formationSettings)); }
-      catch (e) { console.warn('No se pudo guardar la formación en este navegador:', e); }
+      catch (e) { console.warn('No se pudo guardar la formación:', e); }
     }
 
     function formationSlotKey(label, occurrence) { return `${label}_${occurrence}`; }
@@ -780,25 +731,20 @@ button:hover {
     function exportFormationToImage() {
       const target = document.querySelector('.formation-panel');
       if (!target) return;
-
       const btn = event.target;
       const originalText = btn.innerHTML;
       btn.innerText = '📸 Generando foto...';
       btn.disabled = true;
 
-      html2canvas(target, {
-        backgroundColor: '#101713', scale: 2, useCORS: true
-      }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `MalaJunta_Formacion_${formationSettings.formation}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      }).catch(err => {
-        alert('❌ Ocurrió un error al generar la imagen: ' + err.message);
-      }).finally(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      });
+      html2canvas(target, { backgroundColor: '#101713', scale: 2, useCORS: true })
+        .then(canvas => {
+          const link = document.createElement('a');
+          link.download = `MalaJunta_Formacion_${formationSettings.formation}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        })
+        .catch(err => alert('❌ Error al generar la imagen: ' + err.message))
+        .finally(() => { btn.innerHTML = originalText; btn.disabled = false; });
     }
 
     function renderFormationBuilder() {
@@ -811,7 +757,6 @@ button:hover {
       const usedInLineup = Object.values(lineup).filter(Boolean).map(String);
       const usedInBench = bench.filter(Boolean).map(String);
       const allUsed = [...usedInLineup, ...usedInBench];
-
       const occurrences = {};
 
       const shirtSVG = `
@@ -823,15 +768,8 @@ button:hover {
             </pattern>
           </defs>
           <path d="M 28 22 L 40 14 L 60 14 L 72 22 L 88 30 L 80 48 L 72 42 L 72 88 A 4 4 0 0 1 68 92 L 32 92 A 4 4 0 0 1 28 88 L 28 42 L 20 48 L 12 30 Z" fill="url(#malajunta-stripes)" stroke="#112415" stroke-width="1.5"/>
-          <path d="M 28 22 L 12 30 L 20 48 L 28 42 Z" fill="#3a7547"/>
-          <path d="M 72 22 L 88 30 L 80 48 L 72 42 Z" fill="#3a7547"/>
-          <line x1="26" y1="21" x2="15" y2="28" stroke="#ffffff" stroke-width="1.5"/>
-          <line x1="28" y1="23" x2="16" y2="30" stroke="#ffffff" stroke-width="1.5"/>
-          <line x1="74" y1="21" x2="85" y2="28" stroke="#ffffff" stroke-width="1.5"/>
-          <line x1="72" y1="23" x2="84" y2="30" stroke="#ffffff" stroke-width="1.5"/>
           <path d="M 40 14 L 50 26 L 60 14" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      `;
+        </svg>`;
 
       const rows = layout.map((line, rowIndex) => {
         const slots = line.map(label => {
@@ -852,16 +790,12 @@ button:hover {
 
           return `
             <div class="pitch-slot">
-              <div class="pitch-shirt">
-                ${shirtSVG}
-                <span class="pitch-shirt-label">${esc(label)}</span>
-              </div>
+              <div class="pitch-shirt">${shirtSVG}<span class="pitch-shirt-label">${esc(label)}</span></div>
               <select aria-label="Jugador para ${esc(label)}" onchange="setFormationPlayer('${esc(key)}',this.value)">
                 <option value="">➕ ${esc(label)}</option>
                 ${options}
               </select>
-            </div>
-          `;
+            </div>`;
         }).join('');
         return `<div class="pitch-row" data-line="${rowIndex}">${slots}</div>`;
       }).join('');
@@ -880,8 +814,7 @@ button:hover {
               <option value="">➕ Suplente ${index + 1}</option>
               ${options}
             </select>
-          </div>
-        `;
+          </div>`;
       }).join('');
 
       const assigned = Object.values(lineup).filter(Boolean).length;
@@ -896,14 +829,14 @@ button:hover {
             </select>
           </div>
           <div class="pitch"><div class="pitch-midline"></div><div class="pitch-circle"></div>${rows}</div>
-          
           <div class="bench-box">
             <div class="bench-title">🛋️ BANCO DE SUPLENTES (${benchAssigned}/5)</div>
             <div class="bench-grid">${benchSlots}</div>
           </div>
-
-          <div class="formation-summary"><span>${assigned}/11 titulares · ${benchAssigned} suplentes</span><span>Esquema ${formationSettings.formation}</span></div>
-          <p class="formation-caption">Elegí un jugador en cada puesto según su posición declarada.</p>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:8px;">
+            <span>${assigned}/11 titulares · ${benchAssigned} suplentes</span>
+            <span>Esquema ${formationSettings.formation}</span>
+          </div>
           <div class="formation-actions" style="margin-top:10px;">
             <button class="btn-action btn-danger" onclick="clearFormation()">Limpiar</button>
             <button class="btn-action" onclick="saveFormationSettings();alert('✅ Formación guardada en este dispositivo.')">Guardar formación</button>
@@ -977,7 +910,7 @@ button:hover {
     }
 
     async function loadTournaments() {
-      const [t, teams, matches] = await Promise.all([
+      const [t, teams, matchesRes] = await Promise.all([
         db.from('tournaments').select('*').order('created_at', { ascending: false }),
         db.from('tournament_teams').select('*').order('name'),
         db.from('tournament_matches').select('*').order('created_at')
@@ -985,11 +918,11 @@ button:hover {
 
       if (t.error) throw t.error;
       if (teams.error) throw teams.error;
-      if (matches.error) throw matches.error;
+      if (matchesRes.error) throw matchesRes.error;
 
       tournaments = t.data || [];
       tournamentTeams = teams.data || [];
-      tournamentMatches = matches.data || [];
+      tournamentMatches = matchesRes.data || [];
 
       if (!activeTournamentId || !tournaments.some(x => x.id === activeTournamentId)) {
         activeTournamentId = tournaments[0]?.id || null;
@@ -1009,7 +942,6 @@ button:hover {
         </div>`;
     }
 
-    // ADMINISTRACIÓN EN DESPLEGABLE <details>
     function tournamentAdmin() {
       if (!isLoggedAdmin) return '';
       const teams = tournamentTeams.filter(x => x.tournament_id === activeTournamentId);
@@ -1114,21 +1046,20 @@ button:hover {
       await loadTournaments();
     }
 
-    // --- SECCIÓN EXCLUSIVA PARA MALAJUNTA EN EL TORNEO (SINCRONIZADO EN SUPABASE) ---
     function getTournamentDataFromDescription(t) {
-  try {
-    if (!t || !t.description) return { roster: [], formation: '4-3-3', lineup: {}, goals: [] };
-    const data = JSON.parse(t.description);
-    return {
-      roster: data.roster || [],
-      formation: data.formation || '4-3-3',
-      lineup: data.lineup || {},
-      goals: data.goals || []
-    };
-  } catch (e) {
-    return { roster: [], formation: '4-3-3', lineup: {}, goals: [] };
-  }
-}
+      try {
+        if (!t || !t.description) return { roster: [], formation: '4-3-3', lineup: {}, goals: [] };
+        const data = JSON.parse(t.description);
+        return {
+          roster: data.roster || [],
+          formation: data.formation || '4-3-3',
+          lineup: data.lineup || {},
+          goals: data.goals || []
+        };
+      } catch (e) {
+        return { roster: [], formation: '4-3-3', lineup: {}, goals: [] };
+      }
+    }
 
     async function saveTournamentDataToSupabase(tournamentId, dataObj) {
       const jsonStr = JSON.stringify(dataObj);
@@ -1141,7 +1072,6 @@ button:hover {
       }
     }
 
-    // CONVOCADOS Y FORMACIÓN EN DESPLEGABLE (ABIERTO POR DEFECTO)
     function renderTeamRosterSection(teams, currentTournament) {
       const malaJuntaTeam = teams.find(t => {
         const clean = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -1180,10 +1110,7 @@ button:hover {
 
           return `
             <div class="pitch-slot">
-              <div class="pitch-shirt">
-                ${shirtSVG}
-                <span class="pitch-shirt-label">${esc(label)}</span>
-              </div>
+              <div class="pitch-shirt">${shirtSVG}<span class="pitch-shirt-label">${esc(label)}</span></div>
               <select ${!isLoggedAdmin ? 'disabled' : ''} onchange="setTournamentFormationPlayer('${currentTournament.id}', '${key}', this.value)">
                 <option value="">➕ ${esc(label)}</option>
                 ${options}
@@ -1245,10 +1172,8 @@ button:hover {
       const select = document.getElementById('select-add-roster-player');
       if (!select || !select.value) return alert('Seleccioná un jugador.');
       const pid = String(select.value);
-
       const t = tournaments.find(x => x.id === tournamentId);
       const data = getTournamentDataFromDescription(t);
-
       if (!data.roster.includes(pid)) {
         data.roster.push(pid);
         await saveTournamentDataToSupabase(tournamentId, data);
@@ -1259,13 +1184,10 @@ button:hover {
       if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
       const t = tournaments.find(x => x.id === tournamentId);
       const data = getTournamentDataFromDescription(t);
-
       data.roster = data.roster.filter(id => String(id) !== String(playerId));
-      
       Object.keys(data.lineup).forEach(k => {
         if (String(data.lineup[k]) === String(playerId)) delete data.lineup[k];
       });
-
       await saveTournamentDataToSupabase(tournamentId, data);
     }
 
@@ -1273,13 +1195,8 @@ button:hover {
       if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
       const t = tournaments.find(x => x.id === tournamentId);
       const data = getTournamentDataFromDescription(t);
-
-      if (playerId) {
-        data.lineup[slotKey] = String(playerId);
-      } else {
-        delete data.lineup[slotKey];
-      }
-
+      if (playerId) data.lineup[slotKey] = String(playerId);
+      else delete data.lineup[slotKey];
       await saveTournamentDataToSupabase(tournamentId, data);
     }
 
@@ -1287,7 +1204,6 @@ button:hover {
       if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
       const t = tournaments.find(x => x.id === tournamentId);
       const data = getTournamentDataFromDescription(t);
-
       data.formation = scheme;
       await saveTournamentDataToSupabase(tournamentId, data);
     }
@@ -1297,10 +1213,9 @@ button:hover {
       if (!root) return;
 
       if (tournamentView === 'list' || !activeTournamentId) {
-        const const champions = tournaments.filter(t => tournamentChampion(t));
-const suspendedTournaments = tournaments.filter(t => (t.status || '').toLowerCase() === 'suspendido');
-const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.status || '').toLowerCase() !== 'suspendido');filter(t => tournamentChampion(t));
-        const activeTournaments = tournaments.filter(t => !tournamentChampion(t));
+        const champions = tournaments.filter(t => tournamentChampion(t));
+        const suspendedTournaments = tournaments.filter(t => (t.status || '').toLowerCase() === 'suspendido');
+        const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.status || '').toLowerCase() !== 'suspendido');
 
         root.innerHTML = `
           <div class="section">
@@ -1317,7 +1232,7 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
                 ${champions.map(t => {
                   const champion = tournamentChampion(t);
                   return `
-                    <div style="position:relative; overflow:hidden; padding:20px 16px; border-radius:16px; border:1px solid var(--gold); background:linear-gradient(135deg,#282314,#151810 65%,#111713); box-shadow:0 8px 25px rgba(0,0,0,.3);">
+                    <div class="card-glow-gold" style="position:relative; overflow:hidden; padding:20px 16px; border-radius:16px; background:linear-gradient(135deg,#282314,#151810 65%,#111713);">
                       <div style="text-align:center">
                         <div style="font-size:30px;margin-bottom:5px">🏆</div>
                         <div style="color:var(--gold); font-size:10px; font-weight:900; letter-spacing:2px;">CAMPEÓN DEL TORNEO</div>
@@ -1332,22 +1247,6 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
 
           <div class="section">
             <h2 style="color:var(--green)">⚽ Torneos en curso</h2>
-            ${suspendedTournaments.length ? `
-  <div class="section" style="margin-top:20px;">
-    <h2 style="color:var(--red); font-size:15px;">⏸️ Torneos Suspendidos</h2>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${suspendedTournaments.map(t => `
-        <button onclick="openTournament('${t.id}')" style="width:100%; text-align:left; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; background:var(--panel); color:var(--white); border:1px solid rgba(255,82,82,0.35); border-radius:14px; cursor:pointer; opacity:0.85;">
-          <div style="min-width:0">
-            <div style="font-size:15px;font-weight:900;margin-bottom:4px">⏸️ ${esc(t.name)}</div>
-            <div class="muted" style="font-size:11px">${t.season ? 'Temporada ' + esc(t.season) : ''}</div>
-            <div style="margin-top:7px"><span class="pill badge-loss">SUSPENDIDO</span></div>
-          </div>
-          <span style="font-size:23px;color:var(--red)">›</span>
-        </button>
-      `).join('')}
-    </div>
-  </div>` : ''}
             ${activeTournaments.length ? `
               <div style="display:flex;flex-direction:column;gap:10px">
                 ${activeTournaments.map(t => {
@@ -1365,6 +1264,24 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
                 }).join('')}
               </div>` : '<div class="empty">No hay torneos en curso.</div>'}
           </div>
+
+          ${suspendedTournaments.length ? `
+            <div class="section" style="margin-top:20px;">
+              <h2 style="color:var(--red); font-size:15px;">⏸️ Torneos Suspendidos</h2>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                ${suspendedTournaments.map(t => `
+                  <button onclick="openTournament('${t.id}')" style="width:100%; text-align:left; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; background:var(--panel); color:var(--white); border:1px solid rgba(255,82,82,0.35); border-radius:14px; cursor:pointer; opacity:0.85;">
+                    <div style="min-width:0">
+                      <div style="font-size:15px;font-weight:900;margin-bottom:4px">⏸️ ${esc(t.name)}</div>
+                      <div class="muted" style="font-size:11px">${t.season ? 'Temporada ' + esc(t.season) : ''}</div>
+                      <div style="margin-top:7px"><span class="pill badge-loss">SUSPENDIDO</span></div>
+                    </div>
+                    <span style="font-size:23px;color:var(--red)">›</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>` : ''}
+
           ${!tournaments.length ? '<div class="empty">Todavía no hay torneos creados.</div>' : ''}`;
         return;
       }
@@ -1373,30 +1290,30 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
       if (!t) { tournamentView = 'list'; renderTournaments(); return; }
 
       const teams = tournamentTeams.filter(x => x.tournament_id === t.id);
-      const matches = tournamentMatches.filter(x => x.tournament_id === t.id);
+      const tMatches = tournamentMatches.filter(x => x.tournament_id === t.id);
       const groups = [...new Set(teams.map(x => x.group_name || 'Sin zona'))];
+      const isSuspended = (t.status || '').toLowerCase() === 'suspendido';
 
       root.innerHTML = `
         <button onclick="backToTournaments()" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:9px 13px; border-radius:9px; cursor:pointer; font-weight:800; margin-bottom:14px">← Volver a torneos</button>
-        <div class="card" style="border-color:var(--green); margin-bottom:14px">
+        <div class="card ${isSuspended ? '' : 'card-glow-green'}" style="border-color:${isSuspended ? 'var(--red)' : 'var(--green)'}; margin-bottom:14px">
           <div class="eyebrow">CAMPEONATO</div>
-          <h2 style="font-size:22px; margin:6px 0; color:var(--green)">🏆 ${esc(t.name)}</h2>
-          <div class="muted" style="font-size:12px">${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}${teams.length} equipos · ${matches.length} partidos</div>
-          <div style="margin-top:10px"><span class="pill">${esc(t.status || 'En curso')}</span></div>
+          <h2 style="font-size:22px; margin:6px 0; color:${isSuspended ? 'var(--red)' : 'var(--green)'}">🏆 ${esc(t.name)}</h2>
+          <div class="muted" style="font-size:12px">${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}${teams.length} equipos · ${tMatches.length} partidos</div>
+          <div style="margin-top:10px"><span class="pill ${isSuspended ? 'badge-loss' : ''}">${esc(t.status || 'En curso')}</span></div>
         </div>
         ${tournamentManagementButtons(t)}
         ${renderTeamRosterSection(teams, t)}
         ${tournamentAdmin()}
         ${teams.length ? groups.map(group => {
           const groupTeams = teams.filter(x => (x.group_name || 'Sin zona') === group);
-          const groupMatches = matches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
+          const groupMatches = tMatches.filter(x => x.phase === 'Grupos' && (x.group_name || 'Sin zona') === group);
           const table = calculateGroupTable(groupTeams, groupMatches);
           return `
             <details class="section card">
               <summary style="font-size:16px; font-weight:900; color:var(--green); cursor:pointer;">
                 🟢 Zona ${esc(group)} (Posiciones y Partidos)
               </summary>
-              
               <div style="margin-top:14px;">
                 <div class="table-wrap">
                   <table style="min-width:520px">
@@ -1417,16 +1334,15 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
                 ${renderTournamentMatches(groupMatches)}
               </div>
             </details>`;
-        }).join('') : `<div class="card empty">Todavía no hay equipos cargados en este torneo.${isLoggedAdmin ? '<br>Podés agregarlos desde Administración del torneo.' : ''}</div>`}
+        }).join('') : `<div class="card empty">Todavía no hay equipos cargados en este torneo.${isLoggedAdmin ? '<br>Podés agregarlos desde Administración del campeonato.' : ''}</div>`}
 
         <details class="section card">
           <summary style="font-size:16px; font-weight:900; color:var(--gold); cursor:pointer;">
             🏆 Fase eliminatoria
           </summary>
-          
           <div style="margin-top:14px;">
             ${['Octavos de final', 'Cuartos de final', 'Semifinal', 'Tercer puesto', 'Final'].map(round => {
-              const roundMatches = matches.filter(x => x.phase === 'Eliminatorias' && x.round_name === round);
+              const roundMatches = tMatches.filter(x => x.phase === 'Eliminatorias' && x.round_name === round);
               if (!roundMatches.length) return '';
               return `
                 <div style="margin-top:15px">
@@ -1434,21 +1350,38 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
                   ${renderTournamentMatches(roundMatches)}
                 </div>`;
             }).join('')}
-            ${matches.some(x => x.phase === 'Eliminatorias') ? '' : '<div class="empty">Las eliminatorias todavía no fueron generadas.</div>'}
+            ${tMatches.some(x => x.phase === 'Eliminatorias') ? '' : '<div class="empty">Las eliminatorias todavía no fueron generadas.</div>'}
           </div>
         </details>`;
     }
 
     function tournamentManagementButtons(t) {
       if (!isLoggedAdmin) return '';
+      const isSuspended = (t.status || '').toLowerCase() === 'suspendido';
       return `
         <div class="section card" style="border-color:var(--gold)">
           <h2>⚙️ Gestionar campeonato</h2>
-          <div style="display:flex; gap:8px">
-            <button class="btn-action" style="background:var(--panel2); color:var(--green); border:1px solid var(--green)" onclick="editTournament('${t.id}')">✏️ Editar torneo</button>
-            <button class="btn-action btn-danger" onclick="deleteTournament('${t.id}')">🗑️ Eliminar</button>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn-action" style="flex:1; background:var(--panel2); color:var(--green); border:1px solid var(--green)" onclick="editTournament('${t.id}')">✏️ Editar</button>
+            <button class="btn-action" style="flex:1; background:rgba(255,209,102,0.15); color:var(--yellow); border:1px solid var(--yellow)" onclick="toggleSuspendTournament('${t.id}')">${isSuspended ? '▶️ Reanudar' : '⏸️ Suspender'}</button>
+            <button class="btn-action btn-danger" style="flex:1;" onclick="deleteTournament('${t.id}')">🗑️ Eliminar</button>
           </div>
         </div>`;
+    }
+
+    async function toggleSuspendTournament(id) {
+      if (!isLoggedAdmin) return;
+      const tournament = tournaments.find(t => t.id === id);
+      if (!tournament) return;
+      const isSuspended = (tournament.status || '').toLowerCase() === 'suspendido';
+      const nextStatus = isSuspended ? 'En curso' : 'Suspendido';
+
+      if (!confirm(isSuspended ? `¿Reanudar el torneo "${tournament.name}"?` : `⚠️ ¿Dar por SUSPENDIDO el torneo "${tournament.name}"?`)) return;
+
+      const { error } = await db.from('tournaments').update({ status: nextStatus }).eq('id', id);
+      if (error) return alert('Error: ' + error.message);
+      await loadTournaments();
+      render();
     }
 
     async function editTournament(id) {
@@ -1469,6 +1402,7 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
 
       if (error) return alert('Error al editar: ' + error.message);
       await loadTournaments();
+      render();
       alert('✏️ ¡Campeonato actualizado correctamente!');
     }
 
@@ -1489,6 +1423,7 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
         activeTournamentId = null;
         tournamentView = 'list';
         await loadTournaments();
+        render();
         alert('🗑️ Campeonato eliminado correctamente.');
       } catch (error) {
         alert('❌ No se pudo eliminar el campeonato:\n' + error.message);
@@ -1496,12 +1431,12 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
     }
 
     function openTournament(id) {
-  activeTournamentId = id;
-  tournamentView = 'detail';
-  switchTab('torneos'); // 👈 Agregamos esto para que viaje a la pestaña de Torneos
-  renderTournaments();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+      activeTournamentId = id;
+      tournamentView = 'detail';
+      switchTab('torneos');
+      renderTournaments();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
     function backToTournaments() {
       tournamentView = 'list';
@@ -1509,9 +1444,9 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function calculateGroupTable(teams, matches) {
+    function calculateGroupTable(teams, matchesList) {
       const rows = teams.map(t => ({ id:t.id, name:t.name, pj:0, pg:0, pe:0, pp:0, gf:0, gc:0, dg:0, pts:0 }));
-      matches.filter(m => m.status === 'Jugado').forEach(m => {
+      matchesList.filter(m => m.status === 'Jugado').forEach(m => {
         const home = rows.find(x => x.id === m.home_team_id);
         const away = rows.find(x => x.id === m.away_team_id);
         if (!home || !away) return;
@@ -1525,65 +1460,162 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
       return rows.sort((a,b) => b.pts-a.pts || b.dg-a.dg || b.gf-a.gf || a.name.localeCompare(b.name));
     }
 
- function renderTournamentMatches(matchesList) {
-  if (!matchesList.length) return '<div class="empty">Todavía no hay partidos.</div>';
-  const currentT = tournaments.find(x => x.id === activeTournamentId);
-  const tData = getTournamentDataFromDescription(currentT);
+    function renderTournamentMatches(matchesList) {
+      if (!matchesList.length) return '<div class="empty">Todavía no hay partidos.</div>';
+      const currentT = tournaments.find(x => x.id === activeTournamentId);
+      const tData = getTournamentDataFromDescription(currentT);
 
-  return `<div style="display:flex; flex-direction:column; gap:9px">
-    ${matchesList.map(m => {
-      const homeName = tournamentTeam(m.home_team_id);
-      const awayName = tournamentTeam(m.away_team_id);
-      const isMalaJuntaMatch = homeName.toLowerCase().includes('malajunta') || awayName.toLowerCase().includes('malajunta');
-      const isSuspended = m.status === 'Suspendido';
+      return `<div style="display:flex; flex-direction:column; gap:9px">
+        ${matchesList.map(m => {
+          const homeName = tournamentTeam(m.home_team_id);
+          const awayName = tournamentTeam(m.away_team_id);
+          const isMalaJuntaMatch = homeName.toLowerCase().includes('malajunta') || awayName.toLowerCase().includes('malajunta');
+          const isSuspended = m.status === 'Suspendido';
 
-      // Goles anotados en este partido de torneo
-      const mGoals = (tData.goals || []).filter(g => String(g.match_id) === String(m.id));
-      const goalsSummary = mGoals.length 
-        ? `<div style="margin-top:6px; font-size:11px; color:var(--green);">⚽ Goles: ${mGoals.map(g => `${esc(name(g.scorer_id))}${g.assist_id ? ` (Asist: ${esc(name(g.assist_id))})` : ''}`).join(', ')}</div>`
-        : '';
+          const mGoals = (tData.goals || []).filter(g => String(g.match_id) === String(m.id));
+          const goalsSummary = mGoals.length 
+            ? `<div style="margin-top:6px; font-size:11px; color:var(--green);">⚽ Goles: ${mGoals.map(g => `${esc(name(g.scorer_id))}${g.assist_id ? ` (Asist: ${esc(name(g.assist_id))})` : ''}`).join(', ')}</div>`
+            : '';
 
-      return `
-      <div style="background:var(--panel2); border:1px solid ${isSuspended ? 'var(--red)' : 'var(--line)'}; padding:11px; border-radius:10px">
-        <div style="display:flex; justify-content:space-between; gap:8px; align-items:center">
-          <div style="flex:1">
-            <b>${esc(homeName)}</b><span class="muted"> vs </span><b>${esc(awayName)}</b>
-            <div class="muted" style="font-size:10px">${esc(m.round_name || m.group_name || 'Fase de grupos')}</div>
-            ${goalsSummary}
-          </div>
-          <div style="font-size:16px; font-weight:900; white-space:nowrap">
-            ${isSuspended 
-              ? '<span class="pill badge-loss">SUSPENDIDO</span>' 
-              : (m.status === 'Jugado' ? `${m.home_goals} - ${m.away_goals}` : ' - ')}
-          </div>
-        </div>
-
-        ${isLoggedAdmin ? `
-          <div style="display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;">
-            <input id="tg-home-${m.id}" type="number" min="0" class="input-field" style="margin:0; flex:1; min-width:60px;" placeholder="Local" value="${m.home_goals ?? ''}">
-            <input id="tg-away-${m.id}" type="number" min="0" class="input-field" style="margin:0; flex:1; min-width:60px;" placeholder="Visitante" value="${m.away_goals ?? ''}">
-            <button class="btn-action" style="width:auto; margin:0; padding:8px 10px;" onclick="saveTournamentResult('${m.id}')">Guardar</button>
-            ${isMalaJuntaMatch ? `<button class="btn-action" style="width:auto; margin:0; padding:8px 10px; background:var(--gold); color:#10170c;" onclick="openTournamentGoalModal('${m.id}')">⚽ Goles (${mGoals.length})</button>` : ''}
-            <button class="btn-action btn-danger" style="width:auto; margin:0; padding:8px 10px;" onclick="toggleSuspendTournamentMatch('${m.id}')" title="Suspender o reanudar partido">${isSuspended ? '▶️ Reanudar' : '⏸️ Suspender'}</button>
-          </div>` : ''}
+          return `
+          <div style="background:var(--panel2); border:1px solid ${isSuspended ? 'var(--red)' : 'var(--line)'}; padding:11px; border-radius:10px">
+            <div style="display:flex; justify-content:space-between; gap:8px; align-items:center">
+              <div style="flex:1">
+                <b>${esc(homeName)}</b><span class="muted"> vs </span><b>${esc(awayName)}</b>
+                <div class="muted" style="font-size:10px">${esc(m.round_name || m.group_name || 'Fase de grupos')}</div>
+                ${goalsSummary}
+              </div>
+              <div style="font-size:16px; font-weight:900; white-space:nowrap">
+                ${isSuspended 
+                  ? '<span class="pill badge-loss">SUSPENDIDO</span>' 
+                  : (m.status === 'Jugado' ? `${m.home_goals} - ${m.away_goals}` : ' - ')}
+              </div>
+            </div>
+            ${isLoggedAdmin ? `
+              <div style="display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;">
+                <input id="tg-home-${m.id}" type="number" min="0" class="input-field" style="margin:0; flex:1; min-width:55px;" placeholder="Local" value="${m.home_goals ?? ''}">
+                <input id="tg-away-${m.id}" type="number" min="0" class="input-field" style="margin:0; flex:1; min-width:55px;" placeholder="Visitante" value="${m.away_goals ?? ''}">
+                <button class="btn-action" style="width:auto; margin:0; padding:8px 10px;" onclick="saveTournamentResult('${m.id}')">Guardar</button>
+                ${isMalaJuntaMatch ? `<button class="btn-action" style="width:auto; margin:0; padding:8px 10px; background:var(--gold); color:#10170c;" onclick="openTournamentGoalModal('${m.id}')">⚽ Goles (${mGoals.length})</button>` : ''}
+                <button class="btn-action btn-danger" style="width:auto; margin:0; padding:8px 10px;" onclick="toggleSuspendTournamentMatch('${m.id}')" title="Suspender o reanudar partido">${isSuspended ? '▶️ Reanudar' : '⏸️ Suspender'}</button>
+              </div>` : ''}
+          </div>`;
+        }).join('')}
       </div>`;
-    }).join('')}
-  </div>`;
-}
+    }
+
+    async function toggleSuspendTournamentMatch(matchId) {
+      if (!isLoggedAdmin) return;
+      const match = tournamentMatches.find(x => String(x.id) === String(matchId));
+      if (!match) return;
+
+      const isCurrentlySuspended = match.status === 'Suspendido';
+      const nextStatus = isCurrentlySuspended ? 'Programado' : 'Suspendido';
+
+      if (!confirm(isCurrentlySuspended 
+        ? '¿Reanudar este partido y volverlo a estado Programado?' 
+        : '⚠️ ¿Marcar este partido como SUSPENDIDO? No sumará puntos en la tabla.')) return;
+
+      const { error } = await db.from('tournament_matches')
+        .update({ status: nextStatus, home_goals: null, away_goals: null })
+        .eq('id', matchId);
+
+      if (error) return alert('❌ Error: ' + error.message);
+      await loadTournaments();
+      render();
+    }
+
+    function openTournamentGoalModal(matchId) {
+      if (!isLoggedAdmin) return;
+      const t = tournaments.find(x => x.id === activeTournamentId);
+      if (!t) return;
+      const data = getTournamentDataFromDescription(t);
+      const mGoals = (data.goals || []).filter(g => String(g.match_id) === String(matchId));
+
+      let modal = document.getElementById('tourney-goal-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'tourney-goal-modal';
+        modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2500; padding:14px;';
+        document.body.appendChild(modal);
+      }
+
+      const sortedPlayers = [...players].sort((a,b) => a.name.localeCompare(b.name, 'es'));
+      const opts = sortedPlayers.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+
+      modal.innerHTML = `
+        <div class="card" style="width:100%; max-width:380px; background:var(--panel); border-color:var(--gold);">
+          <h3 style="margin-top:0; color:var(--gold);">⚽ Goles de MalaJunta en Torneo</h3>
+          <select id="tg-modal-scorer" class="input-field">
+            <option value="">-- Seleccionar Goleador --</option>
+            ${opts}
+          </select>
+          <select id="tg-modal-assist" class="input-field">
+            <option value="">-- Asistencia (Opcional) --</option>
+            ${opts}
+          </select>
+          <button class="btn-action" style="background:var(--gold); color:#10170c;" onclick="addTournamentMatchGoal('${matchId}')">➕ Anotar Gol</button>
+
+          <div style="margin-top:14px; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+            ${mGoals.length ? mGoals.map(g => `
+              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:7px 10px; border-radius:8px; font-size:12px;">
+                <span>⚽ <b>${esc(name(g.scorer_id))}</b> ${g.assist_id ? `<small class="muted">(Asist: ${esc(name(g.assist_id))})</small>` : ''}</span>
+                <button onclick="removeTournamentMatchGoal('${matchId}', '${g.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>
+              </div>
+            `).join('') : '<div class="muted" style="font-size:11px; text-align:center;">Sin goles anotados aún.</div>'}
+          </div>
+
+          <button class="btn-action" style="background:var(--panel2); color:var(--white); border:1px solid var(--line); margin-top:12px;" onclick="document.getElementById('tourney-goal-modal').classList.add('hide')">Cerrar</button>
+        </div>
+      `;
+      modal.classList.remove('hide');
+    }
+
+    async function addTournamentMatchGoal(matchId) {
+      const scorerId = document.getElementById('tg-modal-scorer').value;
+      const assistId = document.getElementById('tg-modal-assist').value;
+      if (!scorerId) return alert('Seleccioná quién hizo el gol.');
+
+      const t = tournaments.find(x => x.id === activeTournamentId);
+      const data = getTournamentDataFromDescription(t);
+      if (!data.goals) data.goals = [];
+
+      data.goals.push({
+        id: 'tg_' + Date.now(),
+        match_id: String(matchId),
+        scorer_id: String(scorerId),
+        assist_id: assistId ? String(assistId) : null
+      });
+
+      await saveTournamentDataToSupabase(activeTournamentId, data);
+      render();
+      openTournamentGoalModal(matchId);
+    }
+
+    async function removeTournamentMatchGoal(matchId, goalId) {
+      const t = tournaments.find(x => x.id === activeTournamentId);
+      const data = getTournamentDataFromDescription(t);
+      data.goals = (data.goals || []).filter(g => String(g.id) !== String(goalId));
+
+      await saveTournamentDataToSupabase(activeTournamentId, data);
+      render();
+      openTournamentGoalModal(matchId);
+    }
 
     async function createTournament() {
       if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
-      const name = document.getElementById('new-tournament-name').value.trim();
+      const nameVal = document.getElementById('new-tournament-name').value.trim();
       const season = document.getElementById('new-tournament-season').value.trim();
-      if (!name) return alert('Poné un nombre al torneo.');
+      if (!nameVal) return alert('Poné un nombre al torneo.');
 
       const { data:{user} } = await db.auth.getUser();
-      const { data, error } = await db.from('tournaments').insert({ name, season, owner_id:user.id }).select().single();
+      const { data, error } = await db.from('tournaments').insert({ name: nameVal, season, owner_id:user.id }).select().single();
       if (error) return alert('Error: ' + error.message);
 
       activeTournamentId = data.id;
       tournamentView = 'detail';
       await loadTournaments();
+      render();
       alert('🏆 Torneo creado.');
     }
 
@@ -1596,9 +1628,9 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
       const teamsToAdd = [];
       lines.forEach(line => {
         const parts = line.split(/\s+-\s+|\s+\|\s+/);
-        const name = parts[0].trim();
+        const tName = parts[0].trim();
         const group = (parts[1] || 'A').trim().toUpperCase();
-        if (name) teamsToAdd.push({ name, group_name: group });
+        if (tName) teamsToAdd.push({ name: tName, group_name: group });
       });
 
       const existingNames = tournamentTeams.filter(x => x.tournament_id === activeTournamentId).map(x => x.name.trim().toLowerCase());
@@ -1658,6 +1690,7 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
       if (error) return alert('Error: ' + error.message);
 
       await loadTournaments();
+      render();
       alert('Fixture generado correctamente.');
     }
 
@@ -1678,108 +1711,10 @@ const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.s
       if (error) return alert('Error al guardar: ' + error.message);
 
       await loadTournaments();
+      render();
       if (match.phase === 'Eliminatorias') await advanceTournamentRound();
     }
 
-    async function toggleSuspendTournamentMatch(matchId) {
-  if (!isLoggedAdmin) return;
-  const match = tournamentMatches.find(x => String(x.id) === String(matchId));
-  if (!match) return;
-
-  const isCurrentlySuspended = match.status === 'Suspendido';
-  const nextStatus = isCurrentlySuspended ? 'Programado' : 'Suspendido';
-
-  if (!confirm(isCurrentlySuspended 
-    ? '¿Reanudar este partido y volverlo a estado Programado?' 
-    : '⚠️ ¿Marcar este partido como SUSPENDIDO? No sumará puntos en la tabla.')) return;
-
-  const { error } = await db.from('tournament_matches')
-    .update({ status: nextStatus, home_goals: null, away_goals: null })
-    .eq('id', matchId);
-
-  if (error) return alert('❌ Error: ' + error.message);
-  await loadTournaments();
-  render();
-}
-
-function openTournamentGoalModal(matchId) {
-  if (!isLoggedAdmin) return;
-  const t = tournaments.find(x => x.id === activeTournamentId);
-  if (!t) return;
-  const data = getTournamentDataFromDescription(t);
-  const mGoals = (data.goals || []).filter(g => String(g.match_id) === String(matchId));
-
-  // Creamos o reutilizamos un modal dinámico para anotar goles del partido de torneo
-  let modal = document.getElementById('tourney-goal-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'tourney-goal-modal';
-    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2500; padding:14px;';
-    document.body.appendChild(modal);
-  }
-
-  const sortedPlayers = [...players].sort((a,b) => a.name.localeCompare(b.name, 'es'));
-  const opts = sortedPlayers.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
-
-  modal.innerHTML = `
-    <div class="card" style="width:100%; max-width:380px; background:var(--panel); border-color:var(--gold);">
-      <h3 style="margin-top:0; color:var(--gold);">⚽ Goles de MalaJunta en Torneo</h3>
-      <select id="tg-modal-scorer" class="input-field">
-        <option value="">-- Seleccionar Goleador --</option>
-        ${opts}
-      </select>
-      <select id="tg-modal-assist" class="input-field">
-        <option value="">-- Asistencia (Opcional) --</option>
-        ${opts}
-      </select>
-      <button class="btn-action" style="background:var(--gold); color:#10170c;" onclick="addTournamentMatchGoal('${matchId}')">➕ Anotar Gol</button>
-
-      <div style="margin-top:14px; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
-        ${mGoals.length ? mGoals.map(g => `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:7px 10px; border-radius:8px; font-size:12px;">
-            <span>⚽ <b>${esc(name(g.scorer_id))}</b> ${g.assist_id ? `<small class="muted">(Asist: ${esc(name(g.assist_id))})</small>` : ''}</span>
-            <button onclick="removeTournamentMatchGoal('${matchId}', '${g.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>
-          </div>
-        `).join('') : '<div class="muted" style="font-size:11px; text-align:center;">Sin goles anotados aún.</div>'}
-      </div>
-
-      <button class="btn-action" style="background:var(--panel2); color:var(--white); border:1px solid var(--line); margin-top:12px;" onclick="document.getElementById('tourney-goal-modal').classList.add('hide')">Cerrar</button>
-    </div>
-  `;
-  modal.classList.remove('hide');
-}
-
-async function addTournamentMatchGoal(matchId) {
-  const scorerId = document.getElementById('tg-modal-scorer').value;
-  const assistId = document.getElementById('tg-modal-assist').value;
-  if (!scorerId) return alert('Seleccioná quién hizo el gol.');
-
-  const t = tournaments.find(x => x.id === activeTournamentId);
-  const data = getTournamentDataFromDescription(t);
-  if (!data.goals) data.goals = [];
-
-  data.goals.push({
-    id: 'tg_' + Date.now(),
-    match_id: String(matchId),
-    scorer_id: String(scorerId),
-    assist_id: assistId ? String(assistId) : null
-  });
-
-  await saveTournamentDataToSupabase(activeTournamentId, data);
-  render();
-  openTournamentGoalModal(matchId);
-}
-
-async function removeTournamentMatchGoal(matchId, goalId) {
-  const t = tournaments.find(x => x.id === activeTournamentId);
-  const data = getTournamentDataFromDescription(t);
-  data.goals = (data.goals || []).filter(g => String(g.id) !== String(goalId));
-
-  await saveTournamentDataToSupabase(activeTournamentId, data);
-  render();
-  openTournamentGoalModal(matchId);
-}
-    
     function getRoundName(numberOfTeams) {
       if (numberOfTeams === 2) return 'Final';
       if (numberOfTeams === 4) return 'Semifinal';
@@ -1799,12 +1734,12 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       if (!Number.isInteger(perGroup) || perGroup < 1) return alert('Indicá cuántos clasifican por zona.');
 
       const teams = tournamentTeams.filter(x => x.tournament_id === activeTournamentId);
-      const matches = tournamentMatches.filter(x => x.tournament_id === activeTournamentId);
-      const groupMatches = matches.filter(x => x.phase === 'Grupos');
+      const tMatches = tournamentMatches.filter(x => x.tournament_id === activeTournamentId);
+      const groupMatches = tMatches.filter(x => x.phase === 'Grupos');
 
       if (!groupMatches.length) return alert('Primero generá el fixture de grupos.');
-      if (groupMatches.some(x => x.status !== 'Jugado')) return alert('Tenés que completar todos los resultados de grupos.');
-      if (matches.some(x => x.phase === 'Eliminatorias')) return alert('Ya existen eliminatorias para este torneo.');
+      if (groupMatches.some(x => x.status === 'Programado')) return alert('Tenés que completar todos los resultados de grupos.');
+      if (tMatches.some(x => x.phase === 'Eliminatorias')) return alert('Ya existen eliminatorias para este torneo.');
 
       const groups = [...new Set(teams.map(x => x.group_name || 'A'))];
       const qualified = [];
@@ -1837,6 +1772,7 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       if (error) return alert('Error al crear eliminatorias: ' + error.message);
 
       await loadTournaments();
+      render();
       alert('🏆 ¡Cuadro creado!\n\nPrimera fase: ' + firstRound);
     }
 
@@ -1867,6 +1803,7 @@ async function removeTournamentMatchGoal(matchId, goalId) {
         const { error } = await db.from('tournaments').update({ status: 'Finalizado' }).eq('id', activeTournamentId);
         if (error) return alert('No se pudo finalizar el torneo: ' + error.message);
         await loadTournaments();
+        render();
         alert('🏆 ¡TENEMOS CAMPEÓN!\n\n' + champion);
         return;
       }
@@ -1901,67 +1838,75 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       if (error) return alert('Error al crear la siguiente fase: ' + error.message);
 
       await loadTournaments();
+      render();
       alert('✅ Se generó automáticamente la siguiente fase: ' + nextRound);
     }
 
-    // 5. UTILIDADES GENERALES
+    // 5. UTILIDADES GENERALES Y RESUMEN UNIFICADO
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const date = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'Por def.';
     const name = id => players.find(p => p.id === id)?.name || 'Jugador';
 
     function getAllMalaJuntaMatches() {
-  // 1. Partidos generales (amistosos / liga)
-  const general = matches.map(m => ({
-    ...m,
-    isTournament: false
-  }));
+      const general = matches.map(m => ({ ...m, isTournament: false }));
 
-  // 2. Identificamos todos los IDs de equipo que correspondan a MalaJunta en los torneos
-  const mjTeamIds = tournamentTeams
-    .filter(t => t.name.toLowerCase().replace(/[^a-z0-9]/g, '').includes('malajunta'))
-    .map(t => String(t.id));
+      const validTourneyIds = tournaments
+        .filter(t => (t.status || '').toLowerCase() !== 'suspendido')
+        .map(t => String(t.id));
 
-  // 3. Filtramos los partidos de torneo donde juega MalaJunta y los adaptamos al formato general
-  const tourney = tournamentMatches
-    .filter(tm => mjTeamIds.includes(String(tm.home_team_id)) || mjTeamIds.includes(String(tm.away_team_id)))
-    .map(tm => {
-      const isHome = mjTeamIds.includes(String(tm.home_team_id));
-      const rivalId = isHome ? tm.away_team_id : tm.home_team_id;
-      const tourneyObj = tournaments.find(t => String(t.id) === String(tm.tournament_id));
+      const mjTeamIds = tournamentTeams
+        .filter(t => validTourneyIds.includes(String(t.tournament_id)) && t.name.toLowerCase().replace(/[^a-z0-9]/g, '').includes('malajunta'))
+        .map(t => String(t.id));
 
-      return {
-        id: 't_' + tm.id,
-        raw_id: tm.id,
-        tournament_id: tm.tournament_id,
-        opponent: tournamentTeam(rivalId),
-        match_date: tm.match_date || (tm.created_at ? tm.created_at.split('T')[0] : null),
-        match_time: tm.match_time || null,
-        venue: tourneyObj ? `🏆 ${tourneyObj.name}` : 'Torneo Oficial',
-        goals_for: tm.status === 'Jugado' ? (isHome ? tm.home_goals : tm.away_goals) : null,
-        goals_against: tm.status === 'Jugado' ? (isHome ? tm.away_goals : tm.home_goals) : null,
-        status: tm.status,
-        isTournament: true
-      };
-    });
+      const tourney = tournamentMatches
+        .filter(tm => tm.status !== 'Suspendido' && (mjTeamIds.includes(String(tm.home_team_id)) || mjTeamIds.includes(String(tm.away_team_id))))
+        .map(tm => {
+          const isHome = mjTeamIds.includes(String(tm.home_team_id));
+          const rivalId = isHome ? tm.away_team_id : tm.home_team_id;
+          const tourneyObj = tournaments.find(t => String(t.id) === String(tm.tournament_id));
 
-  return [...general, ...tourney];
-}
-    
+          return {
+            id: 't_' + tm.id,
+            raw_id: tm.id,
+            tournament_id: tm.tournament_id,
+            opponent: tournamentTeam(rivalId),
+            match_date: tm.match_date || (tm.created_at ? tm.created_at.split('T')[0] : null),
+            match_time: tm.match_time || null,
+            venue: tourneyObj ? `🏆 ${tourneyObj.name}` : 'Torneo Oficial',
+            goals_for: tm.status === 'Jugado' ? (isHome ? tm.home_goals : tm.away_goals) : null,
+            goals_against: tm.status === 'Jugado' ? (isHome ? tm.away_goals : tm.home_goals) : null,
+            status: tm.status,
+            isTournament: true
+          };
+        });
+
+      return [...general, ...tourney];
+    }
+
     function getNextMatch() {
-  const allMatches = getAllMalaJuntaMatches();
-  const pending = allMatches
-    .filter(m => m.status === 'Programado')
-    .sort((a, b) => {
-      if (!a.match_date) return 1;
-      if (!b.match_date) return -1;
-      return new Date(a.match_date) - new Date(b.match_date);
-    });
-  return pending[0] || null;
-}
+      const allMatches = getAllMalaJuntaMatches();
+      const pending = allMatches
+        .filter(m => m.status === 'Programado')
+        .sort((a, b) => {
+          if (!a.match_date) return 1;
+          if (!b.match_date) return -1;
+          return new Date(a.match_date) - new Date(b.match_date);
+        });
+      return pending[0] || null;
+    }
+
+    function getAllGoals() {
+      const tourneyGoals = [];
+      tournaments.forEach(t => {
+        const data = getTournamentDataFromDescription(t);
+        if (Array.isArray(data.goals)) tourneyGoals.push(...data.goals);
+      });
+      return [...goals, ...tourneyGoals];
+    }
 
     function metric(label, value, isInvicto = false) {
       if(isInvicto){
-        return `<div class="card" style="border-color: var(--gold);"><div class="muted" style="font-size:11px;">${label}</div><div class="metric" style="color: var(--gold);">${value}</div><span class="pill badge-invicto card-invicto-badge">Racha</span></div>`;
+        return `<div class="card card-glow-gold"><div class="muted" style="font-size:11px;">${label}</div><div class="metric" style="color: var(--gold);">${value}</div><span class="pill badge-invicto card-invicto-badge">Racha</span></div>`;
       }
       return `<div class="card"><div class="muted" style="font-size:11px;">${label}</div><div class="metric">${value}</div></div>`;
     }
@@ -1971,7 +1916,8 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       if(!jugados.length) return 0;
       let streak = 0;
       for (const match of jugados) {
-        if ((Number(match.goals_for||0) - Number(match.goals_against||0)) >= 0) { streak++; } else { break; }
+        if ((Number(match.goals_for||0) - Number(match.goals_against||0)) >= 0) streak++;
+        else break;
       }
       return streak;
     }
@@ -1984,40 +1930,41 @@ async function removeTournamentMatchGoal(matchId, goalId) {
     }
 
     function matchRows(arr) {
-  return arr.length ? `<div class="table-wrap"><table>
-    <thead><tr><th>Fecha</th><th>Rival</th><th>Res.</th><th>Acción</th></tr></thead>
-    <tbody>${arr.map(m => {
-      const h2h = getHeadToHead(m.opponent);
-      const totalEnfrentamientos = h2h.total;
-      const countBadge = (!m.isTournament && totalEnfrentamientos > 0)
-        ? `<span class="pill" style="margin-left:4px; font-size:9px; padding:1px 5px; background:rgba(166,230,91,0.15); color:var(--green); border:1px solid var(--line);" title="Enfrentamientos jugados">x${totalEnfrentamientos}</span>`
-        : '';
+      return arr.length ? `<div class="table-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Rival</th><th>Res.</th><th>Acción</th></tr></thead>
+        <tbody>${arr.map(m => {
+          const h2h = getHeadToHead(m.opponent);
+          const totalEnfrentamientos = h2h.total;
+          const countBadge = (!m.isTournament && totalEnfrentamientos > 0)
+            ? `<span class="pill" style="margin-left:4px; font-size:9px; padding:1px 5px; background:rgba(166,230,91,0.15); color:var(--green); border:1px solid var(--line);" title="Enfrentamientos jugados">x${totalEnfrentamientos}</span>`
+            : '';
 
-      const tourneyTag = m.isTournament 
-        ? `<br><small style="color:var(--gold); font-size:10px;">${esc(m.venue)}</small>` 
-        : '';
+          const tourneyTag = m.isTournament 
+            ? `<br><small style="color:var(--gold); font-size:10px;">${esc(m.venue)}</small>` 
+            : '';
 
-      return `
-      <tr>
-        <td>${date(m.match_date)}</td>
-        <td><b>${esc(m.opponent || 'Rival')}</b>${countBadge}${tourneyTag}</td>
-        <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
-        <td>
-          <div style="display:flex; gap:4px; align-items:center;">
-            ${m.isTournament 
-              ? `<button onclick="openTournament('${m.tournament_id}')" style="background:var(--panel2); color:var(--gold); border:1px solid var(--gold); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🏆 Torneo</button>`
-              : `<button onclick="viewMatchDetail('${m.id}')" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Goles</button>`
-            }
-            ${(!m.isTournament && isLoggedAdmin) ? `
-              <button onclick="editMatch('${m.id}', '${esc(m.opponent).replace(/'/g, "\\'")}', '${m.match_date || ''}', '${esc(m.venue || '').replace(/'/g, "\\'")}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">✏️</button>
-              <button onclick="deleteMatch('${m.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">🗑️</button>
-            ` : ''}
-          </div>
-        </td>
-      </tr>`;
-    }).join('')}
-    </tbody></table></div>` : '<div class="empty">No hay partidos cargados.</div>';
-}
+          return `
+          <tr>
+            <td>${date(m.match_date)}</td>
+            <td><b>${esc(m.opponent || 'Rival')}</b>${countBadge}${tourneyTag}</td>
+            <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
+            <td>
+              <div style="display:flex; gap:4px; align-items:center;">
+                ${m.isTournament 
+                  ? `<button onclick="openTournament('${m.tournament_id}')" style="background:var(--panel2); color:var(--gold); border:1px solid var(--gold); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🏆 Torneo</button>`
+                  : `<button onclick="viewMatchDetail('${m.id}')" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Goles</button>`
+                }
+                ${(!m.isTournament && isLoggedAdmin) ? `
+                  <button onclick="editMatch('${m.id}', '${esc(m.opponent).replace(/'/g, "\\'")}', '${m.match_date || ''}', '${esc(m.venue || '').replace(/'/g, "\\'")}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">✏️</button>
+                  <button onclick="deleteMatch('${m.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">🗑️</button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody></table></div>` : '<div class="empty">No hay partidos cargados.</div>';
+    }
+
     function keeperStats(p) {
       const a = keepers.filter(k => k.player_id === p.id);
       return {
@@ -2027,20 +1974,10 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       };
     }
 
-   function getAllGoals() {
-  const tourneyGoals = [];
-  tournaments.forEach(t => {
-    const data = getTournamentDataFromDescription(t);
-    if (Array.isArray(data.goals)) {
-      tourneyGoals.push(...data.goals);
-    }
-  });
-  return [...goals, ...tourneyGoals];
-}
-    
     function profile(p) {
-      const gs = goals.filter(g => g.scorer_id === p.id).length;
-      const as = goals.filter(g => g.assist_id === p.id).length;
+      const allGoals = getAllGoals();
+      const gs = allGoals.filter(g => g.scorer_id === p.id).length;
+      const as = allGoals.filter(g => g.assist_id === p.id).length;
       const k = keeperStats(p);
       return `<details>
         <summary>Ver estadísticas y cervezas</summary>
@@ -2082,7 +2019,6 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       const current = Number(playerBeerCounts[key] || 0);
       const parsed = Number.parseInt(String(rawValue), 10);
       const next = Number.isFinite(parsed) ? Math.max(0, parsed) : current;
-
       if (input) input.value = String(next);
       if (next === current) return;
 
@@ -2129,11 +2065,9 @@ async function removeTournamentMatchGoal(matchId, goalId) {
 
     function filterPlayers() {
       const q = (document.getElementById('search-player')?.value || '').toLowerCase();
-      
       const filtered = players.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(q) || (p.position && p.position.toLowerCase().includes(q));
         if (!matchesSearch) return false;
-
         if (currentPosFilter === 'ALL') return true;
         const pos = (p.position || '').toLowerCase();
         if (currentPosFilter === 'ARQ') return pos.includes('arq') || pos.includes('por');
@@ -2149,7 +2083,6 @@ async function removeTournamentMatchGoal(matchId, goalId) {
           container.innerHTML = '<div class="empty">No se encontraron jugadores.</div>';
           return;
         }
-
         container.innerHTML = filtered.map(p => {
           const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
           return `
@@ -2174,7 +2107,6 @@ async function removeTournamentMatchGoal(matchId, goalId) {
     function renderSquadSummary() {
       const container = document.getElementById('squad-summary-container');
       if (!container) return;
-
       let arq = 0, def = 0, med = 0, del = 0;
       players.forEach(p => {
         const pos = (p.position || '').toLowerCase();
@@ -2194,8 +2126,7 @@ async function removeTournamentMatchGoal(matchId, goalId) {
           <div class="squad-stat-box"><b>🧤 ${arq} · 🛡️ ${def}</b><small>Defensa</small></div>
           <div class="squad-stat-box"><b>⚙️ ${med} · 🎯 ${del}</b><small>Ataque</small></div>
           <div class="squad-stat-box"><b>🍺 ${avgBeers}</b><small>Prom. Birras / Jugador</small></div>
-        </div>
-      `;
+        </div>`;
     }
 
     function populateMatchSelect() {
@@ -2210,152 +2141,147 @@ async function removeTournamentMatchGoal(matchId, goalId) {
     function populateDetailGoalSelects() {
       const sortedPlayers = [...players].sort((a,b) => a.name.localeCompare(b.name, 'es'));
       const optionsHtml = sortedPlayers.map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.position || 'Jugador')})</option>`).join('');
-      
       const sc = document.getElementById('detail-goal-scorer');
       const as = document.getElementById('detail-goal-assist');
       if (sc) sc.innerHTML = `<option value="">-- Seleccionar Goleador --</option>` + optionsHtml;
       if (as) as.innerHTML = `<option value="">-- Sin Asistencia (Opcional) --</option>` + optionsHtml;
     }
 
- function render() {
-  const allMatches = getAllMalaJuntaMatches();
-  const played = allMatches.filter(m => m.status === 'Jugado');
-  const gf = played.reduce((s, m) => s + Number(m.goals_for || 0), 0);
-  const ga = played.reduce((s, m) => s + Number(m.goals_against || 0), 0);
-  const wins = played.filter(m => Number(m.goals_for || 0) > Number(m.goals_against || 0)).length;
-  const draws = played.filter(m => Number(m.goals_for || 0) === Number(m.goals_against || 0)).length;
-  const losses = played.filter(m => Number(m.goals_for || 0) < Number(m.goals_against || 0)).length;
-  const invicto = getInvictoStreak(allMatches);
-  const totalPlayed = played.length || 1;
+    function render() {
+      const allMatches = getAllMalaJuntaMatches();
+      const played = allMatches.filter(m => m.status === 'Jugado');
+      const gf = played.reduce((s, m) => s + Number(m.goals_for || 0), 0);
+      const ga = played.reduce((s, m) => s + Number(m.goals_against || 0), 0);
+      const wins = played.filter(m => Number(m.goals_for || 0) > Number(m.goals_against || 0)).length;
+      const draws = played.filter(m => Number(m.goals_for || 0) === Number(m.goals_against || 0)).length;
+      const losses = played.filter(m => Number(m.goals_for || 0) < Number(m.goals_against || 0)).length;
+      const invicto = getInvictoStreak(allMatches);
+      const totalPlayed = played.length || 1;
 
-  // Obtenemos los torneos en curso y el próximo partido
-  const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.status || '').toLowerCase() !== 'suspendido');
-  const nextMatch = getNextMatch();
+      const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.status || '').toLowerCase() !== 'suspendido');
+      const nextMatch = getNextMatch();
 
-  document.getElementById('resumen').innerHTML = `
-    <!-- 1. MÉTRICAS GENERALES (ARRIBA DE TODO) -->
-    <div class="grid" style="margin-bottom: 14px;">
-      ${metric('Plantel', players.length)}
-      ${metric('Jugados', played.length)}
-      ${metric('Victorias', wins)}
-      ${metric('Invicto', invicto + ' PJ', true)}
-    </div>
-
-    <!-- 2. PRÓXIMO COMPROMISO -->
-    <div class="section card" style="border-color: var(--green); background: linear-gradient(135deg, var(--panel2), var(--panel)); margin-bottom: 14px;">
-      <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
-      ${nextMatch ? `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-          <div>
-            <h2 style="margin:0; font-size:18px;">MalaJunta FC <span class="muted">vs</span> ${esc(nextMatch.opponent)}</h2>
-            <div class="muted" style="font-size:12px; margin-top:4px;">
-              📅 ${date(nextMatch.match_date)} ${nextMatch.match_time ? '· ⏰ ' + esc(nextMatch.match_time) : ''}
-              ${nextMatch.venue ? '<br>📍 Sede: ' + esc(nextMatch.venue) : ''}
-            </div>
-          </div>
-          <span class="pill badge-win" style="font-size:11px;">PROGRAMADO</span>
+      document.getElementById('resumen').innerHTML = `
+        <!-- 1. MÉTRICAS GENERALES -->
+        <div class="grid" style="margin-bottom: 14px;">
+          ${metric('Plantel', players.length)}
+          ${metric('Jugados', played.length)}
+          ${metric('Victorias', wins)}
+          ${metric('Invicto', invicto + ' PJ', true)}
         </div>
-      ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay partidos programados en la agenda.</div>'}
-    </div>
 
-    <!-- 3. TORNEOS EN CURSO -->
-    <div class="section card" style="border-color: var(--gold); margin-bottom: 14px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h2 style="margin:0; font-size:15px; color:var(--gold);">🏆 Torneos En Curso (${activeTournaments.length})</h2>
-        <button onclick="switchTab('torneos')" style="background:none; border:none; color:var(--green); font-size:11px; font-weight:bold; cursor:pointer;">Ver todos →</button>
-      </div>
-      ${activeTournaments.length ? `
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          ${activeTournaments.map(t => {
-            const teamCount = tournamentTeams.filter(x => x.tournament_id === t.id).length;
-            return `
-              <div onclick="openTournament('${t.id}')" style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:10px; border:1px solid var(--line); cursor:pointer;">
-                <div>
-                  <b style="font-size:13px; color:var(--white);">⚽ ${esc(t.name)}</b>
-                  <div class="muted" style="font-size:10.5px;">${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}${teamCount} equipos</div>
+        <!-- 2. PRÓXIMO COMPROMISO -->
+        <div class="section card card-glow-green" style="background: linear-gradient(135deg, var(--panel2), var(--panel)); margin-bottom: 14px;">
+          <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
+          ${nextMatch ? `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+              <div>
+                <h2 style="margin:0; font-size:18px;">MalaJunta FC <span class="muted">vs</span> ${esc(nextMatch.opponent)}</h2>
+                <div class="muted" style="font-size:12px; margin-top:4px;">
+                  📅 ${date(nextMatch.match_date)} ${nextMatch.match_time ? '· ⏰ ' + esc(nextMatch.match_time) : ''}
+                  ${nextMatch.venue ? '<br>📍 ' + esc(nextMatch.venue) : ''}
                 </div>
-                <span style="font-size:14px; color:var(--green); font-weight:bold;">Entrar ›</span>
-              </div>`;
-          }).join('')}
+              </div>
+              <span class="pill badge-win" style="font-size:11px;">PROGRAMADO</span>
+            </div>
+          ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay partidos programados en la agenda.</div>'}
         </div>
-      ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay campeonatos activos en este momento.</div>'}
-    </div>
 
-    <!-- 4. ÚLTIMOS PARTIDOS JUGADOS -->
-    <div class="section card">
-      <h2>Últimos Partidos</h2>
-      ${matchRows(allMatches.sort((a,b) => new Date(b.match_date) - new Date(a.match_date)).slice(0, 4))}
-    </div>`;
+        <!-- 3. TORNEOS EN CURSO -->
+        <div class="section card card-glow-gold" style="margin-bottom: 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h2 style="margin:0; font-size:15px; color:var(--gold);">🏆 Torneos En Curso (${activeTournaments.length})</h2>
+            <button onclick="switchTab('torneos')" style="background:none; border:none; color:var(--green); font-size:11px; font-weight:bold; cursor:pointer;">Ver todos →</button>
+          </div>
+          ${activeTournaments.length ? `
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              ${activeTournaments.map(t => {
+                const teamCount = tournamentTeams.filter(x => x.tournament_id === t.id).length;
+                return `
+                  <div onclick="openTournament('${t.id}')" style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:10px; border:1px solid var(--line); cursor:pointer;">
+                    <div>
+                      <b style="font-size:13px; color:var(--white);">⚽ ${esc(t.name)}</b>
+                      <div class="muted" style="font-size:10.5px;">${t.season ? 'Temporada ' + esc(t.season) + ' · ' : ''}${teamCount} equipos</div>
+                    </div>
+                    <span style="font-size:14px; color:var(--green); font-weight:bold;">Entrar ›</span>
+                  </div>`;
+              }).join('')}
+            </div>
+          ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay campeonatos activos en este momento.</div>'}
+        </div>
 
-  document.getElementById('plantel').innerHTML = `
-    <div class="formation-tools">
-      <button id="formation-toggle" class="btn-action formation-toggle" onclick="toggleFormationBuilder()">⚽ Armar formación</button>
-      <span class="pill">ESQUEMA TÁCTICO</span>
-    </div>
-    <div id="formation-builder" class="hide"></div>
-    
-    <div id="squad-summary-container"></div>
+        <!-- 4. ÚLTIMOS PARTIDOS -->
+        <div class="section card">
+          <h2>Últimos Partidos</h2>
+          ${matchRows(allMatches.sort((a,b) => new Date(b.match_date || 0) - new Date(a.match_date || 0)).slice(0, 5))}
+        </div>`;
 
-    <div class="pos-filters">
-      <button class="pos-filter-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">Todos</button>
-      <button class="pos-filter-btn" data-pos="ARQ" onclick="setPosFilter('ARQ')">🧤 Arqueros</button>
-      <button class="pos-filter-btn" data-pos="DEF" onclick="setPosFilter('DEF')">🛡️ Defensores</button>
-      <button class="pos-filter-btn" data-pos="MED" onclick="setPosFilter('MED')">⚙️ Volantes</button>
-      <button class="pos-filter-btn" data-pos="DEL" onclick="setPosFilter('DEL')">🎯 Delanteros</button>
-    </div>
+      document.getElementById('plantel').innerHTML = `
+        <div class="formation-tools">
+          <button id="formation-toggle" class="btn-action formation-toggle" onclick="toggleFormationBuilder()">⚽ Armar formación</button>
+          <span class="pill">ESQUEMA TÁCTICO</span>
+        </div>
+        <div id="formation-builder" class="hide"></div>
+        <div id="squad-summary-container"></div>
+        <div class="pos-filters">
+          <button class="pos-filter-btn active" data-pos="ALL" onclick="setPosFilter('ALL')">Todos</button>
+          <button class="pos-filter-btn" data-pos="ARQ" onclick="setPosFilter('ARQ')">🧤 Arqueros</button>
+          <button class="pos-filter-btn" data-pos="DEF" onclick="setPosFilter('DEF')">🛡️ Defensores</button>
+          <button class="pos-filter-btn" data-pos="MED" onclick="setPosFilter('MED')">⚙️ Volantes</button>
+          <button class="pos-filter-btn" data-pos="DEL" onclick="setPosFilter('DEL')">🎯 Delanteros</button>
+        </div>
+        <input type="text" id="search-player" class="search-bar" placeholder="🔍 Buscar por nombre..." oninput="filterPlayers()">
+        <div class="player-grid" id="player-list-container"></div>`;
+      
+      renderSquadSummary();
+      filterPlayers();
 
-    <input type="text" id="search-player" class="search-bar" placeholder="🔍 Buscar por nombre..." oninput="filterPlayers()">
-    <div class="player-grid" id="player-list-container"></div>`;
-  
-  renderSquadSummary();
-  filterPlayers();
+      document.getElementById('partidos').innerHTML = `<div class="card"><h2>Fixture General (Amistosos y Torneos)</h2>${matchRows(allMatches.sort((a,b) => new Date(a.match_date || 0) - new Date(b.match_date || 0)))}</div>`;
 
-  document.getElementById('partidos').innerHTML = `<div class="card"><h2>Fixture Temporada</h2>${matchRows(matches.sort((a,b) => new Date(a.match_date) - new Date(b.match_date)))}</div>`;
+      document.getElementById('estadisticas').innerHTML = `
+        <div class="grid">
+          ${metric('Goles A Favor', gf)}
+          ${metric('Goles En Contra', ga)}
+          ${metric('Dif. Gol', gf - ga)}
+          ${metric('Puntos', (wins * 3) + draws)}
+        </div>
+        <div class="section card">
+          <h2>📊 Rendimiento Global (${played.length} partidos)</h2>
+          <div style="font-size:11px; color:var(--muted); display:flex; justify-content:space-between;">
+            <span>🟢 ${wins}V</span>
+            <span>🟡 ${draws}E</span>
+            <span>🔴 ${losses}D</span>
+          </div>
+          <div class="perf-bar-wrap">
+            <div class="perf-win" style="width: ${(wins/totalPlayed)*100}%"></div>
+            <div class="perf-draw" style="width: ${(draws/totalPlayed)*100}%"></div>
+            <div class="perf-loss" style="width: ${(losses/totalPlayed)*100}%"></div>
+          </div>
+        </div>
+        <div class="section card"><h2>🏆 Goleadores</h2>${ranking('goal')}</div>
+        <div class="section card"><h2>🎯 Asistidores</h2>${ranking('assist')}</div>`;
 
-  document.getElementById('estadisticas').innerHTML = `
-    <div class="grid">
-      ${metric('Goles A Favor', gf)}
-      ${metric('Goles En Contra', ga)}
-      ${metric('Dif. Gol', gf - ga)}
-      ${metric('Puntos', (wins * 3) + draws)}
-    </div>
-    <div class="section card">
-      <h2>📊 Rendimiento (${played.length} partidos)</h2>
-      <div style="font-size:11px; color:var(--muted); display:flex; justify-content:space-between;">
-        <span>🟢 ${wins}V</span>
-        <span>🟡 ${draws}E</span>
-        <span>🔴 ${losses}D</span>
-      </div>
-      <div class="perf-bar-wrap">
-        <div class="perf-win" style="width: ${(wins/totalPlayed)*100}%"></div>
-        <div class="perf-draw" style="width: ${(draws/totalPlayed)*100}%"></div>
-        <div class="perf-loss" style="width: ${(losses/totalPlayed)*100}%"></div>
-      </div>
-    </div>
-    <div class="section card"><h2>🏆 Goleadores</h2>${ranking('goal')}</div>
-    <div class="section card"><h2>🎯 Asistidores</h2>${ranking('assist')}</div>`;
+      populateMatchSelect();
+      renderAdminLists();
 
-  populateMatchSelect();
-  renderAdminLists();
+      if (currentMatchIdForView) {
+        populateDetailGoalSelects();
+        renderMatchDetail(currentMatchIdForView);
+      }
+    }
 
-  if (currentMatchIdForView) {
-    populateDetailGoalSelects();
-    renderMatchDetail(currentMatchIdForView);
-  }
-}
-
-   function ranking(kind) {
-  const counts = {};
-  getAllGoals().forEach(g => {
-    const id = kind === 'goal' ? g.scorer_id : g.assist_id;
-    if (id) counts[id] = (counts[id] || 0) + 1;
-  });
-  const rows = Object.entries(counts).map(([id, n]) => ({ name: name(id), n })).sort((a, b) => b.n - a.n);
-  return rows.length ? `<div class="table-wrap"><table style="min-width:0;">
-    <thead><tr><th>#</th><th>Jugador</th><th>Cant.</th></tr></thead>
-    <tbody>${rows.map((r, i) => `<tr><td><b>#${i + 1}</b></td><td>${esc(r.name)}</td><td><span class="pill">${r.n}</span></td></tr>`).join('')}</tbody>
-  </table></div>` : '<div class="empty">Sin registros.</div>';
-}
+    function ranking(kind) {
+      const counts = {};
+      getAllGoals().forEach(g => {
+        const id = kind === 'goal' ? g.scorer_id : g.assist_id;
+        if (id) counts[id] = (counts[id] || 0) + 1;
+      });
+      const rows = Object.entries(counts).map(([id, n]) => ({ name: name(id), n })).sort((a, b) => b.n - a.n);
+      return rows.length ? `<div class="table-wrap"><table style="min-width:0;">
+        <thead><tr><th>#</th><th>Jugador</th><th>Cant.</th></tr></thead>
+        <tbody>${rows.map((r, i) => `<tr><td><b>#${i + 1}</b></td><td>${esc(r.name)}</td><td><span class="pill">${r.n}</span></td></tr>`).join('')}</tbody>
+      </table></div>` : '<div class="empty">Sin registros.</div>';
+    }
 
     function switchTab(tabId) {
       ['resumen', 'plantel', 'partidos', 'estadisticas', 'torneos', 'admin', 'detalle'].forEach(id => {
@@ -2403,6 +2329,7 @@ async function removeTournamentMatchGoal(matchId, goalId) {
         if(adminGoalBox) adminGoalBox.classList.add('hide');
       }
       render();
+      renderTournaments();
     }
 
     const adminModal = document.getElementById('admin-modal');
@@ -2413,7 +2340,6 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       const email = document.getElementById('admin-email').value;
       const password = document.getElementById('admin-pass').value;
       const errDiv = document.getElementById('login-error');
-      
       const { data, error } = await db.auth.signInWithPassword({ email, password });
       if (error) {
         errDiv.textContent = "❌ Datos incorrectos, mirá que no es la PlayStation.";
@@ -2444,12 +2370,10 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       const newName = prompt("Editar Nombre del Jugador:", currentName);
       if (newName === null) return; 
       const newNum = prompt("Editar Número de Camiseta (Dorsal):", currentNum || '');
-
       const { error } = await db.from('players').update({
         name: newName,
         number: newNum ? Number(newNum) : null
       }).eq('id', id);
-
       if (error) alert("❌ Error al actualizar: " + error.message);
       else { alert("✏️ ¡Ficha actualizada con éxito!"); init(); }
     }
@@ -2464,7 +2388,6 @@ async function removeTournamentMatchGoal(matchId, goalId) {
     async function editMatch(id, currentOpponent, currentDate, currentVenue) {
       const currentMatch = matches.find(m => String(m.id) === String(id));
       if (!currentMatch) return alert("No se encontró el partido.");
-
       const newOpponent = prompt("Editar Rival:", currentOpponent || '');
       if (newOpponent === null) return;
       const newDate = prompt("Editar Fecha (AAAA-MM-DD):", currentDate || '');
@@ -2516,7 +2439,6 @@ async function removeTournamentMatchGoal(matchId, goalId) {
     function renderMatchDetail(matchId) {
       const match = matches.find(m => m.id === matchId);
       if (!match) return;
-
       const h2h = getHeadToHead(match.opponent);
 
       document.getElementById('view-match-title').innerText = `Vs ${match.opponent}`;
@@ -2524,14 +2446,12 @@ async function removeTournamentMatchGoal(matchId, goalId) {
         📅 Fecha: ${date(match.match_date)} &nbsp;·&nbsp; 
         📍 Cancha: ${esc(match.venue || 'No especificada')}<br>
         📊 Resultado: <b>${match.status === 'Jugado' ? `${match.goals_for} - ${match.goals_against}` : 'Pendiente'}</b>
-        
         <div style="margin-top: 10px; padding: 8px 12px; background: var(--panel2); border-radius: 10px; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
           <small style="color: var(--muted); font-weight: 700;">HISTORIAL (${h2h.total} PJ):</small>
           <span class="pill badge-win">🟢 ${h2h.wins}V</span>
           <span class="pill badge-draw">🟡 ${h2h.draws}E</span>
           <span class="pill badge-loss">🔴 ${h2h.losses}D</span>
-        </div>
-      `;
+        </div>`;
 
       const matchGoals = goals.filter(g => g.match_id === matchId);
       const goalsListDiv = document.getElementById('view-goals-list');
@@ -2562,7 +2482,6 @@ async function removeTournamentMatchGoal(matchId, goalId) {
           const scorerName = name(scorerId);
           const assistsText = data.assists.length ? `<br><small class="muted">Asistencias: ${data.assists.join(', ')}</small>` : '';
           const deleteBtn = isLoggedAdmin ? `<button onclick="deleteLastGoalForPlayer('${scorerId}', '${matchId}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">🗑️ Borrar 1 Gol</button>` : '';
-
           return `
             <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:10px; border:1px solid var(--line);">
               <div style="font-size: 13px;">
@@ -2570,8 +2489,7 @@ async function removeTournamentMatchGoal(matchId, goalId) {
                 ${assistsText}
               </div>
               ${deleteBtn}
-            </div>
-          `;
+            </div>`;
         }).join('');
       } else {
         goalsListDiv.innerHTML = '<div class="empty" style="padding:20px;">No hay goles cargados para este partido todavía.</div>';
@@ -2582,11 +2500,8 @@ async function removeTournamentMatchGoal(matchId, goalId) {
       if (!confirm("⚠️ ¿Querés borrar un gol de este jugador?")) return;
       const userGoals = goals.filter(g => g.match_id === matchId && g.scorer_id === scorerId);
       if (!userGoals.length) return alert("❌ Error al ubicar el gol para borrar.");
-
       userGoals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      const goalIdToDelete = userGoals[0].id;
-
-      const { error } = await db.from('goals').delete().eq('id', goalIdToDelete);
+      const { error } = await db.from('goals').delete().eq('id', userGoals[0].id);
       if (error) alert("❌ Error al borrar el gol: " + error.message);
       else { alert("🗑️ GOL descontado de la cuenta."); await init(); }
     }
