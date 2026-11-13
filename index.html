@@ -1767,12 +1767,55 @@ button:hover {
     const date = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'Por def.';
     const name = id => players.find(p => p.id === id)?.name || 'Jugador';
 
+    function getAllMalaJuntaMatches() {
+  // 1. Partidos generales (amistosos / liga)
+  const general = matches.map(m => ({
+    ...m,
+    isTournament: false
+  }));
+
+  // 2. Identificamos todos los IDs de equipo que correspondan a MalaJunta en los torneos
+  const mjTeamIds = tournamentTeams
+    .filter(t => t.name.toLowerCase().replace(/[^a-z0-9]/g, '').includes('malajunta'))
+    .map(t => String(t.id));
+
+  // 3. Filtramos los partidos de torneo donde juega MalaJunta y los adaptamos al formato general
+  const tourney = tournamentMatches
+    .filter(tm => mjTeamIds.includes(String(tm.home_team_id)) || mjTeamIds.includes(String(tm.away_team_id)))
+    .map(tm => {
+      const isHome = mjTeamIds.includes(String(tm.home_team_id));
+      const rivalId = isHome ? tm.away_team_id : tm.home_team_id;
+      const tourneyObj = tournaments.find(t => String(t.id) === String(tm.tournament_id));
+
+      return {
+        id: 't_' + tm.id,
+        raw_id: tm.id,
+        tournament_id: tm.tournament_id,
+        opponent: tournamentTeam(rivalId),
+        match_date: tm.match_date || (tm.created_at ? tm.created_at.split('T')[0] : null),
+        match_time: tm.match_time || null,
+        venue: tourneyObj ? `🏆 ${tourneyObj.name}` : 'Torneo Oficial',
+        goals_for: tm.status === 'Jugado' ? (isHome ? tm.home_goals : tm.away_goals) : null,
+        goals_against: tm.status === 'Jugado' ? (isHome ? tm.away_goals : tm.home_goals) : null,
+        status: tm.status,
+        isTournament: true
+      };
+    });
+
+  return [...general, ...tourney];
+}
+    
     function getNextMatch() {
-      const pending = matches
-        .filter(m => m.status === 'Programado' && m.match_date)
-        .sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
-      return pending[0] || null;
-    }
+  const allMatches = getAllMalaJuntaMatches();
+  const pending = allMatches
+    .filter(m => m.status === 'Programado')
+    .sort((a, b) => {
+      if (!a.match_date) return 1;
+      if (!b.match_date) return -1;
+      return new Date(a.match_date) - new Date(b.match_date);
+    });
+  return pending[0] || null;
+}
 
     function metric(label, value, isInvicto = false) {
       if(isInvicto){
@@ -1799,34 +1842,40 @@ button:hover {
     }
 
     function matchRows(arr) {
-      return arr.length ? `<div class="table-wrap"><table>
-        <thead><tr><th>Fecha</th><th>Rival</th><th>Res.</th><th>Acción</th></tr></thead>
-        <tbody>${arr.map(m => {
-          const h2h = getHeadToHead(m.opponent);
-          const totalEnfrentamientos = h2h.total;
-          const countBadge = totalEnfrentamientos > 0 
-            ? `<span class="pill" style="margin-left:4px; font-size:9px; padding:1px 5px; background:rgba(166,230,91,0.15); color:var(--green); border:1px solid var(--line);" title="Enfrentamientos jugados">x${totalEnfrentamientos}</span>`
-            : '';
+  return arr.length ? `<div class="table-wrap"><table>
+    <thead><tr><th>Fecha</th><th>Rival</th><th>Res.</th><th>Acción</th></tr></thead>
+    <tbody>${arr.map(m => {
+      const h2h = getHeadToHead(m.opponent);
+      const totalEnfrentamientos = h2h.total;
+      const countBadge = (!m.isTournament && totalEnfrentamientos > 0)
+        ? `<span class="pill" style="margin-left:4px; font-size:9px; padding:1px 5px; background:rgba(166,230,91,0.15); color:var(--green); border:1px solid var(--line);" title="Enfrentamientos jugados">x${totalEnfrentamientos}</span>`
+        : '';
 
-          return `
-          <tr>
-            <td>${date(m.match_date)}</td>
-            <td><b>${esc(m.opponent || 'Rival')}</b>${countBadge}</td>
-            <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
-            <td>
-              <div style="display:flex; gap:4px; align-items:center;">
-                <button onclick="viewMatchDetail('${m.id}')" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Goles</button>
-                ${isLoggedAdmin ? `
-                  <button onclick="editMatch('${m.id}', '${esc(m.opponent).replace(/'/g, "\\'")}', '${m.match_date || ''}', '${esc(m.venue || '').replace(/'/g, "\\'")}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">✏️</button>
-                  <button onclick="deleteMatch('${m.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">🗑️</button>
-                ` : ''}
-              </div>
-            </td>
-          </tr>`;
-        }).join('')}
-        </tbody></table></div>` : '<div class="empty">No hay partidos cargados.</div>';
-    }
+      const tourneyTag = m.isTournament 
+        ? `<br><small style="color:var(--gold); font-size:10px;">${esc(m.venue)}</small>` 
+        : '';
 
+      return `
+      <tr>
+        <td>${date(m.match_date)}</td>
+        <td><b>${esc(m.opponent || 'Rival')}</b>${countBadge}${tourneyTag}</td>
+        <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
+        <td>
+          <div style="display:flex; gap:4px; align-items:center;">
+            ${m.isTournament 
+              ? `<button onclick="openTournament('${m.tournament_id}')" style="background:var(--panel2); color:var(--gold); border:1px solid var(--gold); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🏆 Torneo</button>`
+              : `<button onclick="viewMatchDetail('${m.id}')" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Goles</button>`
+            }
+            ${(!m.isTournament && isLoggedAdmin) ? `
+              <button onclick="editMatch('${m.id}', '${esc(m.opponent).replace(/'/g, "\\'")}', '${m.match_date || ''}', '${esc(m.venue || '').replace(/'/g, "\\'")}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">✏️</button>
+              <button onclick="deleteMatch('${m.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px;">🗑️</button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>` : '<div class="empty">No hay partidos cargados.</div>';
+}
     function keeperStats(p) {
       const a = keepers.filter(k => k.player_id === p.id);
       return {
@@ -2016,13 +2065,14 @@ button:hover {
     }
 
  function render() {
-  const played = matches.filter(m => m.status === 'Jugado');
+  const allMatches = getAllMalaJuntaMatches();
+  const played = allMatches.filter(m => m.status === 'Jugado');
   const gf = played.reduce((s, m) => s + Number(m.goals_for || 0), 0);
   const ga = played.reduce((s, m) => s + Number(m.goals_against || 0), 0);
   const wins = played.filter(m => Number(m.goals_for || 0) > Number(m.goals_against || 0)).length;
   const draws = played.filter(m => Number(m.goals_for || 0) === Number(m.goals_against || 0)).length;
   const losses = played.filter(m => Number(m.goals_for || 0) < Number(m.goals_against || 0)).length;
-  const invicto = getInvictoStreak(matches);
+  const invicto = getInvictoStreak(allMatches);
   const totalPlayed = played.length || 1;
 
   // Obtenemos los torneos en curso y el próximo partido
@@ -2081,7 +2131,7 @@ button:hover {
     <!-- 4. ÚLTIMOS PARTIDOS JUGADOS -->
     <div class="section card">
       <h2>Últimos Partidos</h2>
-      ${matchRows(matches.sort((a,b) => new Date(b.match_date) - new Date(a.match_date)).slice(0, 4))}
+      ${matchRows(allMatches.sort((a,b) => new Date(b.match_date) - new Date(a.match_date)).slice(0, 4))}
     </div>`;
 
   document.getElementById('plantel').innerHTML = `
