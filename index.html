@@ -1116,18 +1116,19 @@ button:hover {
 
     // --- SECCIÓN EXCLUSIVA PARA MALAJUNTA EN EL TORNEO (SINCRONIZADO EN SUPABASE) ---
     function getTournamentDataFromDescription(t) {
-      try {
-        if (!t || !t.description) return { roster: [], formation: '4-3-3', lineup: {} };
-        const data = JSON.parse(t.description);
-        return {
-          roster: data.roster || [],
-          formation: data.formation || '4-3-3',
-          lineup: data.lineup || {}
-        };
-      } catch (e) {
-        return { roster: [], formation: '4-3-3', lineup: {} };
-      }
-    }
+  try {
+    if (!t || !t.description) return { roster: [], formation: '4-3-3', lineup: {}, goals: [] };
+    const data = JSON.parse(t.description);
+    return {
+      roster: data.roster || [],
+      formation: data.formation || '4-3-3',
+      lineup: data.lineup || {},
+      goals: data.goals || []
+    };
+  } catch (e) {
+    return { roster: [], formation: '4-3-3', lineup: {}, goals: [] };
+  }
+}
 
     async function saveTournamentDataToSupabase(tournamentId, dataObj) {
       const jsonStr = JSON.stringify(dataObj);
@@ -1506,27 +1507,51 @@ button:hover {
       return rows.sort((a,b) => b.pts-a.pts || b.dg-a.dg || b.gf-a.gf || a.name.localeCompare(b.name));
     }
 
-    function renderTournamentMatches(matches) {
-      if (!matches.length) return '<div class="empty">Todavía no hay partidos.</div>';
-      return `<div style="display:flex; flex-direction:column; gap:9px">
-        ${matches.map(m => `
-          <div style="background:var(--panel2); border:1px solid var(--line); padding:11px; border-radius:10px">
-            <div style="display:flex; justify-content:space-between; gap:8px; align-items:center">
-              <div style="flex:1">
-                <b>${esc(tournamentTeam(m.home_team_id))}</b><span class="muted"> vs </span><b>${esc(tournamentTeam(m.away_team_id))}</b>
-                <div class="muted" style="font-size:10px">${esc(m.round_name || m.group_name || 'Fase de grupos')}</div>
-              </div>
-              <div style="font-size:18px; font-weight:900; white-space:nowrap">${m.status === 'Jugado' ? `${m.home_goals} - ${m.away_goals}` : ' - '}</div>
-            </div>
-            ${isLoggedAdmin ? `
-              <div style="display:flex; gap:6px; margin-top:9px">
-                <input id="tg-home-${m.id}" type="number" min="0" class="input-field" style="margin:0" placeholder="Local" value="${m.home_goals ?? ''}">
-                <input id="tg-away-${m.id}" type="number" min="0" class="input-field" style="margin:0" placeholder="Visitante" value="${m.away_goals ?? ''}">
-                <button class="btn-action" style="width:auto; margin:0" onclick="saveTournamentResult('${m.id}')">Guardar</button>
-              </div>` : ''}
-          </div>`).join('')}
+ function renderTournamentMatches(matchesList) {
+  if (!matchesList.length) return '<div class="empty">Todavía no hay partidos.</div>';
+  const currentT = tournaments.find(x => x.id === activeTournamentId);
+  const tData = getTournamentDataFromDescription(currentT);
+
+  return `<div style="display:flex; flex-direction:column; gap:9px">
+    ${matchesList.map(m => {
+      const homeName = tournamentTeam(m.home_team_id);
+      const awayName = tournamentTeam(m.away_team_id);
+      const isMalaJuntaMatch = homeName.toLowerCase().includes('malajunta') || awayName.toLowerCase().includes('malajunta');
+      const isSuspended = m.status === 'Suspendido';
+
+      // Goles anotados en este partido de torneo
+      const mGoals = (tData.goals || []).filter(g => String(g.match_id) === String(m.id));
+      const goalsSummary = mGoals.length 
+        ? `<div style="margin-top:6px; font-size:11px; color:var(--green);">⚽ Goles: ${mGoals.map(g => `${esc(name(g.scorer_id))}${g.assist_id ? ` (Asist: ${esc(name(g.assist_id))})` : ''}`).join(', ')}</div>`
+        : '';
+
+      return `
+      <div style="background:var(--panel2); border:1px solid ${isSuspended ? 'var(--red)' : 'var(--line)'}; padding:11px; border-radius:10px">
+        <div style="display:flex; justify-content:space-between; gap:8px; align-items:center">
+          <div style="flex:1">
+            <b>${esc(homeName)}</b><span class="muted"> vs </span><b>${esc(awayName)}</b>
+            <div class="muted" style="font-size:10px">${esc(m.round_name || m.group_name || 'Fase de grupos')}</div>
+            ${goalsSummary}
+          </div>
+          <div style="font-size:16px; font-weight:900; white-space:nowrap">
+            ${isSuspended 
+              ? '<span class="pill badge-loss">SUSPENDIDO</span>' 
+              : (m.status === 'Jugado' ? `${m.home_goals} - ${m.away_goals}` : ' - ')}
+          </div>
+        </div>
+
+        ${isLoggedAdmin ? `
+          <div style="display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;">
+            <input id="tg-home-${m.id}" type="number" min="0" class="input-field" style="margin:0; flex:1; min-width:60px;" placeholder="Local" value="${m.home_goals ?? ''}">
+            <input id="tg-away-${m.id}" type="number" min="0" class="input-field" style="margin:0; flex:1; min-width:60px;" placeholder="Visitante" value="${m.away_goals ?? ''}">
+            <button class="btn-action" style="width:auto; margin:0; padding:8px 10px;" onclick="saveTournamentResult('${m.id}')">Guardar</button>
+            ${isMalaJuntaMatch ? `<button class="btn-action" style="width:auto; margin:0; padding:8px 10px; background:var(--gold); color:#10170c;" onclick="openTournamentGoalModal('${m.id}')">⚽ Goles (${mGoals.length})</button>` : ''}
+            <button class="btn-action btn-danger" style="width:auto; margin:0; padding:8px 10px;" onclick="toggleSuspendTournamentMatch('${m.id}')" title="Suspender o reanudar partido">${isSuspended ? '▶️ Reanudar' : '⏸️ Suspender'}</button>
+          </div>` : ''}
       </div>`;
-    }
+    }).join('')}
+  </div>`;
+}
 
     async function createTournament() {
       if (!isLoggedAdmin) return alert('Iniciá sesión como DT.');
@@ -1638,6 +1663,105 @@ button:hover {
       if (match.phase === 'Eliminatorias') await advanceTournamentRound();
     }
 
+    async function toggleSuspendTournamentMatch(matchId) {
+  if (!isLoggedAdmin) return;
+  const match = tournamentMatches.find(x => String(x.id) === String(matchId));
+  if (!match) return;
+
+  const isCurrentlySuspended = match.status === 'Suspendido';
+  const nextStatus = isCurrentlySuspended ? 'Programado' : 'Suspendido';
+
+  if (!confirm(isCurrentlySuspended 
+    ? '¿Reanudar este partido y volverlo a estado Programado?' 
+    : '⚠️ ¿Marcar este partido como SUSPENDIDO? No sumará puntos en la tabla.')) return;
+
+  const { error } = await db.from('tournament_matches')
+    .update({ status: nextStatus, home_goals: null, away_goals: null })
+    .eq('id', matchId);
+
+  if (error) return alert('❌ Error: ' + error.message);
+  await loadTournaments();
+  render();
+}
+
+function openTournamentGoalModal(matchId) {
+  if (!isLoggedAdmin) return;
+  const t = tournaments.find(x => x.id === activeTournamentId);
+  if (!t) return;
+  const data = getTournamentDataFromDescription(t);
+  const mGoals = (data.goals || []).filter(g => String(g.match_id) === String(matchId));
+
+  // Creamos o reutilizamos un modal dinámico para anotar goles del partido de torneo
+  let modal = document.getElementById('tourney-goal-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'tourney-goal-modal';
+    modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2500; padding:14px;';
+    document.body.appendChild(modal);
+  }
+
+  const sortedPlayers = [...players].sort((a,b) => a.name.localeCompare(b.name, 'es'));
+  const opts = sortedPlayers.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+
+  modal.innerHTML = `
+    <div class="card" style="width:100%; max-width:380px; background:var(--panel); border-color:var(--gold);">
+      <h3 style="margin-top:0; color:var(--gold);">⚽ Goles de MalaJunta en Torneo</h3>
+      <select id="tg-modal-scorer" class="input-field">
+        <option value="">-- Seleccionar Goleador --</option>
+        ${opts}
+      </select>
+      <select id="tg-modal-assist" class="input-field">
+        <option value="">-- Asistencia (Opcional) --</option>
+        ${opts}
+      </select>
+      <button class="btn-action" style="background:var(--gold); color:#10170c;" onclick="addTournamentMatchGoal('${matchId}')">➕ Anotar Gol</button>
+
+      <div style="margin-top:14px; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+        ${mGoals.length ? mGoals.map(g => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:7px 10px; border-radius:8px; font-size:12px;">
+            <span>⚽ <b>${esc(name(g.scorer_id))}</b> ${g.assist_id ? `<small class="muted">(Asist: ${esc(name(g.assist_id))})</small>` : ''}</span>
+            <button onclick="removeTournamentMatchGoal('${matchId}', '${g.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-weight:bold;">✕</button>
+          </div>
+        `).join('') : '<div class="muted" style="font-size:11px; text-align:center;">Sin goles anotados aún.</div>'}
+      </div>
+
+      <button class="btn-action" style="background:var(--panel2); color:var(--white); border:1px solid var(--line); margin-top:12px;" onclick="document.getElementById('tourney-goal-modal').classList.add('hide')">Cerrar</button>
+    </div>
+  `;
+  modal.classList.remove('hide');
+}
+
+async function addTournamentMatchGoal(matchId) {
+  const scorerId = document.getElementById('tg-modal-scorer').value;
+  const assistId = document.getElementById('tg-modal-assist').value;
+  if (!scorerId) return alert('Seleccioná quién hizo el gol.');
+
+  const t = tournaments.find(x => x.id === activeTournamentId);
+  const data = getTournamentDataFromDescription(t);
+  if (!data.goals) data.goals = [];
+
+  data.goals.push({
+    id: 'tg_' + Date.now(),
+    match_id: String(matchId),
+    scorer_id: String(scorerId),
+    assist_id: assistId ? String(assistId) : null
+  });
+
+  await saveTournamentDataToSupabase(activeTournamentId, data);
+  render();
+  openTournamentGoalModal(matchId);
+}
+
+async function removeTournamentMatchGoal(matchId, goalId) {
+  const t = tournaments.find(x => x.id === activeTournamentId);
+  const data = getTournamentDataFromDescription(t);
+  data.goals = (data.goals || []).filter(g => String(g.id) !== String(goalId));
+
+  await saveTournamentDataToSupabase(activeTournamentId, data);
+  render();
+  openTournamentGoalModal(matchId);
+}
+    
     function getRoundName(numberOfTeams) {
       if (numberOfTeams === 2) return 'Final';
       if (numberOfTeams === 4) return 'Semifinal';
@@ -1885,6 +2009,17 @@ button:hover {
       };
     }
 
+   function getAllGoals() {
+  const tourneyGoals = [];
+  tournaments.forEach(t => {
+    const data = getTournamentDataFromDescription(t);
+    if (Array.isArray(data.goals)) {
+      tourneyGoals.push(...data.goals);
+    }
+  });
+  return [...goals, ...tourneyGoals];
+}
+    
     function profile(p) {
       const gs = goals.filter(g => g.scorer_id === p.id).length;
       const as = goals.filter(g => g.assist_id === p.id).length;
@@ -2191,18 +2326,18 @@ button:hover {
   }
 }
 
-    function ranking(kind) {
-      const counts = {};
-      goals.forEach(g => {
-        const id = kind === 'goal' ? g.scorer_id : g.assist_id;
-        if (id) counts[id] = (counts[id] || 0) + 1;
-      });
-      const rows = Object.entries(counts).map(([id, n]) => ({ name: name(id), n })).sort((a, b) => b.n - a.n);
-      return rows.length ? `<div class="table-wrap"><table style="min-width:0;">
-        <thead><tr><th>#</th><th>Jugador</th><th>Cant.</th></tr></thead>
-        <tbody>${rows.map((r, i) => `<tr><td><b>#${i + 1}</b></td><td>${esc(r.name)}</td><td><span class="pill">${r.n}</span></td></tr>`).join('')}</tbody>
-      </table></div>` : '<div class="empty">Sin registros.</div>';
-    }
+   function ranking(kind) {
+  const counts = {};
+  getAllGoals().forEach(g => {
+    const id = kind === 'goal' ? g.scorer_id : g.assist_id;
+    if (id) counts[id] = (counts[id] || 0) + 1;
+  });
+  const rows = Object.entries(counts).map(([id, n]) => ({ name: name(id), n })).sort((a, b) => b.n - a.n);
+  return rows.length ? `<div class="table-wrap"><table style="min-width:0;">
+    <thead><tr><th>#</th><th>Jugador</th><th>Cant.</th></tr></thead>
+    <tbody>${rows.map((r, i) => `<tr><td><b>#${i + 1}</b></td><td>${esc(r.name)}</td><td><span class="pill">${r.n}</span></td></tr>`).join('')}</tbody>
+  </table></div>` : '<div class="empty">Sin registros.</div>';
+}
 
     function switchTab(tabId) {
       ['resumen', 'plantel', 'partidos', 'estadisticas', 'torneos', 'admin', 'detalle'].forEach(id => {
