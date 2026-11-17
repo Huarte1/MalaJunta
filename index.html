@@ -564,6 +564,32 @@
       color: var(--green);
       line-height: 1;
     }
+    .btn-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: rgba(37, 211, 102, 0.14);
+      color: #25D366;
+      border: 1px solid rgba(37, 211, 102, 0.45);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+    .btn-whatsapp:hover {
+      background: rgba(37, 211, 102, 0.25);
+    }
+
+    @media (max-width: 600px) {
+      .hero, .audio-player-card, .grid, .section { margin-bottom: 10px !important; }
+      .card { padding: 12px !important; }
+      .metric { font-size: 30px !important; }
+      .matchday-board { gap: 8px !important; padding: 2px 0 !important; }
+    }
+    
   </style>
 </head>
 <body>
@@ -2521,9 +2547,13 @@ function getTeamCrestHTML(teamName, large = false) {
                     Historial: ${nextH2H.wins}G - ${nextH2H.draws}E - ${nextH2H.losses}P
                   </span>
                 </div>
-              ` : ''}
-            </div>
-          ` : '<div class="empty" style="padding:10px 0 0; text-align:center;">No hay partidos programados en la agenda.</div>'}
+           ` : ''}
+
+         <button class="btn-whatsapp" onclick="shareNextMatchWhatsApp()">
+           📲 Compartir en WhatsApp
+         </button>
+       </div>
+     ` : '<div class="empty" style="padding:10px 0 0; text-align:center;">No hay partidos programados en la agenda.</div>'}
         </div>
 
         <!-- 3. TORNEOS EN CURSO -->
@@ -2617,7 +2647,8 @@ function getTeamCrestHTML(teamName, large = false) {
           </div>
         </div>
         <div class="section card"><h2>🏆 Goleadores</h2>${ranking('goal')}</div>
-        <div class="section card"><h2>🎯 Asistidores</h2>${ranking('assist')}</div>`;
+   <div class="section card"><h2>🎯 Asistidores</h2>${ranking('assist')}</div>
+   <div class="section card" style="border-color: rgba(255, 209, 102, 0.35);"><h2>🍺 Capitanes del Tercer Tiempo</h2>${beerRanking()}</div>`;
 
       populateMatchSelect();
       renderAdminLists();
@@ -2626,6 +2657,41 @@ function getTeamCrestHTML(teamName, large = false) {
         populateDetailGoalSelects();
         renderMatchDetail(currentMatchIdForView);
       }
+    }
+    function shareNextMatchWhatsApp() {
+      const m = getNextMatch();
+      if (!m) return;
+      const lines = [
+        `🔥 *PRÓXIMO PARTIDO · MALAJUNTA FC* 💚`,
+        ``,
+        `⚽ *MalaJunta FC* vs *${m.opponent}*`,
+        `📅 *Fecha:* ${date(m.match_date)}`,
+        m.match_time ? `⏰ *Hora:* ${String(m.match_time).slice(0, 5)} hs` : null,
+        m.venue ? `📍 *Cancha:* ${m.venue}` : null,
+        ``,
+        `📲 _Confirmá asistencia y mirá las stats en la web del club_`
+      ].filter(Boolean).join('\n');
+
+      const url = `https://wa.me/?text=${encodeURIComponent(lines)}`;
+      window.open(url, '_blank');
+    }
+
+    function beerRanking() {
+      const rows = players
+        .map(p => ({ name: p.name, count: Number(playerBeerCounts[String(p.id)] || 0) }))
+        .filter(r => r.count > 0)
+        .sort((a, b) => b.count - a.count);
+
+      return rows.length ? `<div class="table-wrap"><table style="min-width:0;">
+        <thead><tr><th>#</th><th>Jugador</th><th>Birras</th></tr></thead>
+        <tbody>${rows.map((r, i) => `
+          <tr>
+            <td><b>${i === 0 ? '👑 #1' : '#' + (i + 1)}</b></td>
+            <td>${esc(r.name)}</td>
+            <td><span class="pill" style="background:rgba(255, 209, 102, 0.15); color:var(--yellow); border:1px solid rgba(255, 209, 102, 0.35);">🍺 ${r.count}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>` : '<div class="empty">Todavía no hay cervezas registradas en el tercer tiempo.</div>';
     }
     function ranking(kind) {
       const counts = {};
