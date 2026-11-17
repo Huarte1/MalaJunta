@@ -1939,12 +1939,22 @@ function getTeamCrestHTML(teamName, large = false) {
         .replace(/[^a-z0-9]/g, '');
 
       const initials = teamName.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
-      const imgClass = large ? 'team-crest-lg' : 'team-crest';
-      const fbClass = large ? 'team-crest-fallback lg' : 'team-crest-fallback';
+      const size = large ? '30px' : '24px';
+      const imgStyle = `width:${size}; height:${size}; max-width:${size}; max-height:${size}; object-fit:contain; flex-shrink:0; vertical-align:middle;`;
+      const fbStyle = `display:none; align-items:center; justify-content:center; width:${size}; height:${size}; border-radius:50%; background:var(--panel2); border:1px solid var(--line); color:var(--green); font-size:${large ? '11px' : '10px'}; font-weight:900; flex-shrink:0; text-transform:uppercase;`;
 
       if (clean.includes('malajunta')) {
-        return `<img src="logo_malajunta_transparente.png" alt="${esc(teamName)}" class="${imgClass}">`;
+        return `<img src="logo_malajunta_transparente.png" alt="${esc(teamName)}" style="${imgStyle}">`;
       }
+
+      const { data } = db.storage.from('escudos').getPublicUrl(`${clean}.png`);
+
+      return `
+        <img src="${data.publicUrl}" alt="${esc(teamName)}" style="${imgStyle}" 
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+        <span style="${fbStyle}">${esc(initials)}</span>
+      `;
+    }
 
       const { data } = db.storage.from('escudos').getPublicUrl(`${clean}.png`);
 
