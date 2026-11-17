@@ -589,7 +589,25 @@
       .metric { font-size: 30px !important; }
       .matchday-board { gap: 8px !important; padding: 2px 0 !important; }
     }
-    
+    .standings-table { width: 100%; border-collapse: collapse; }
+    .standings-table th, .standings-table td {
+      padding: 9px 6px;
+      text-align: center;
+      font-size: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .standings-table th:nth-child(2),
+    .standings-table td:nth-child(2) { text-align: left; width: 100%; }
+    .standings-row-mj { background: rgba(166, 230, 91, 0.12) !important; font-weight: 700; }
+    .standings-row-mj td:nth-child(2) { color: var(--green); }
+    .pos-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 6px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 13px;
+      background: var(--panel2); color: var(--muted);
+    }
+    .pos-badge.top-1 { background: rgba(212, 175, 55, 0.25); color: var(--gold); border: 1px solid var(--gold); }
+    .pos-badge.top-qualify { background: rgba(166, 230, 91, 0.18); color: var(--green); border: 1px solid rgba(166, 230, 91, 0.4); }
   </style>
 </head>
 <body>
@@ -737,6 +755,20 @@
           <button id="btn-save-match" class="btn-action">Guardar Partido</button>
         </div>
 
+        <div class="section card" style="margin-bottom: 14px;">
+  <h3 style="margin-top:0;">📋 Cargar Fecha de Liga (Formato Instagram)</h3>
+  <p class="muted" style="font-size:11px; margin-bottom:8px;">
+    Pegá un partido por renglón (Ej: <b>MalaJunta FC 3 - 1 De Puntin</b>)
+  </p>
+  <div style="display:flex; gap:8px; margin-bottom:8px;">
+    <select id="dt-league-select" style="flex:2;"></select>
+    <input id="dt-league-matchday" type="number" min="1" value="1" placeholder="Fecha N°" style="flex:1;" />
+  </div>
+  <textarea id="dt-league-bulk" rows="5" style="width:100%;" placeholder="MalaJunta FC 3 - 1 De Puntin&#10;Los Pibes 0 - 0 Aston Birra"></textarea>
+  <button class="btn-action" onclick="saveBulkLeagueResults()" style="margin-top:8px; width:100%;">
+    💾 Guardar Resultados y Actualizar Tabla
+  </button>
+</div>
         <div class="section card">
           <h2>📝 Cargar Resultado de Partido</h2>
           <select id="select-match-result" class="input-field"></select>
@@ -2549,7 +2581,15 @@ function getTeamCrestHTML(teamName, large = false) {
             </div>
           ` : '<div class="empty" style="padding:10px 0 0; text-align:center;">No hay partidos programados en la agenda.</div>'}
         </div>
-
+${leagues.map(l => `
+  <div class="section card" style="margin-bottom: 14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h2 style="margin:0; font-size:15px; color:var(--green);">📊 Tabla de Posiciones · ${esc(l.name)}</h2>
+      <span class="pill">LIGA</span>
+    </div>
+    ${renderLeagueTable(l.id)}
+  </div>
+`).join('')}
         <!-- 3. TORNEOS EN CURSO -->
         <div class="section card card-glow-gold" style="margin-bottom: 14px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -2651,6 +2691,139 @@ function getTeamCrestHTML(teamName, large = false) {
         populateDetailGoalSelects();
         renderMatchDetail(currentMatchIdForView);
       }
+    const leagueSel = document.getElementById('dt-league-select');
+if (leagueSel) {
+  leagueSel.innerHTML = leagues.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('');
+}
+    }
+    let leagues = [];
+    let leagueMatches = [];
+
+    async function loadLeaguesData() {
+      const client = typeof sb !== 'undefined' ? sb : supabase;
+      const [{ data: lData }, { data: lmData }] = await Promise.all([
+        client.from('leagues').select('*').order('created_at', { ascending: false }),
+        client.from('league_matches').select('*').order('matchday', { ascending: true })
+      ]);
+      leagues = lData || [];
+      leagueMatches = lmData || [];
+    }
+
+    function renderLeagueTable(leagueId) {
+      const matches = leagueMatches.filter(m => String(m.league_id) === String(leagueId));
+      const table = {};
+
+      const getTeam = (rawName) => {
+        const clean = rawName.trim();
+        const key = clean.toLowerCase();
+        if (!table[key]) {
+          table[key] = { name: clean, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dif: 0, pts: 0 };
+        }
+        return table[key];
+      };
+
+      matches.forEach(m => {
+        const home = getTeam(m.home_team);
+        const away = getTeam(m.away_team);
+        const hg = Number(m.home_goals);
+        const ag = Number(m.away_goals);
+
+        home.pj++; away.pj++;
+        home.gf += hg; home.gc += ag;
+        away.gf += ag; away.gc += hg;
+
+        if (hg > ag) { home.pg++; home.pts += 3; away.pp++; }
+        else if (ag > hg) { away.pg++; away.pts += 3; home.pp++; }
+        else { home.pe++; away.pe++; home.pts += 1; away.pts += 1; }
+      });
+
+      const sorted = Object.values(table)
+        .map(r => ({ ...r, dif: r.gf - r.gc }))
+        .sort((a, b) => b.pts - a.pts || b.dif - a.dif || b.gf - a.gf);
+
+      if (!sorted.length) return '<div class="empty">Todavía no hay resultados cargados en esta liga.</div>';
+
+      return `
+        <div class="table-wrap">
+          <table class="standings-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Equipo</th>
+                <th style="color:var(--green);">PTS</th>
+                <th>PJ</th>
+                <th>PG</th>
+                <th>PE</th>
+                <th>PP</th>
+                <th>GF</th>
+                <th>GC</th>
+                <th>DIF</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sorted.map((row, i) => {
+                const pos = i + 1;
+                const isMJ = row.name.toLowerCase().includes('malajunta');
+                const badge = pos === 1 ? 'top-1' : (pos <= 4 ? 'top-qualify' : '');
+                return `
+                  <tr class="${isMJ ? 'standings-row-mj' : ''}">
+                    <td><span class="pos-badge ${badge}">${pos}</span></td>
+                    <td>
+                      <div style="display:flex; align-items:center; gap:7px; white-space:nowrap;">
+                        ${typeof getTeamCrestHTML === 'function' ? getTeamCrestHTML(row.name, false) : ''}
+                        <span>${esc(row.name)}</span>
+                      </div>
+                    </td>
+                    <td style="font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:var(--white);">${row.pts}</td>
+                    <td>${row.pj}</td>
+                    <td>${row.pg}</td>
+                    <td>${row.pe}</td>
+                    <td>${row.pp}</td>
+                    <td>${row.gf}</td>
+                    <td>${row.gc}</td>
+                    <td style="color:${row.dif > 0 ? 'var(--green)' : (row.dif < 0 ? 'var(--red)' : 'var(--muted)')};">
+                      ${row.dif > 0 ? '+' + row.dif : row.dif}
+                    </td>
+                  </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    async function saveBulkLeagueResults() {
+      const client = typeof sb !== 'undefined' ? sb : supabase;
+      const leagueId = document.getElementById('dt-league-select').value;
+      const matchday = Number(document.getElementById('dt-league-matchday').value || 1);
+      const rawText = document.getElementById('dt-league-bulk').value.trim();
+
+      if (!leagueId || !rawText) return alert('Elegí una liga y pegá al menos un resultado.');
+
+      const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+      const rowsToInsert = [];
+
+      for (const line of lines) {
+        const match = line.match(/^(.+?)\s+(\d+)\s*[-–:xX]\s*(\d+)\s+(.+)$/);
+        if (!match) {
+          return alert(`No pude leer esta línea:\n"${line}"\n\nUsá el formato: Equipo A 2 - 1 Equipo B`);
+        }
+        rowsToInsert.push({
+          league_id: leagueId,
+          matchday,
+          home_team: match[1].trim(),
+          home_goals: Number(match[2]),
+          away_goals: Number(match[3]),
+          away_team: match[4].trim()
+        });
+      }
+
+      const { error } = await client.from('league_matches').insert(rowsToInsert);
+      if (error) return alert('Error al guardar: ' + error.message);
+
+      document.getElementById('dt-league-bulk').value = '';
+     await loadLeaguesData();
+      render();
+      alert(`✅ Se cargaron ${rowsToInsert.length} partidos de la Fecha ${matchday}.`);
     }
    function shareNextMatchWhatsApp() {
       const m = getNextMatch();
