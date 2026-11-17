@@ -754,7 +754,29 @@
           <input type="text" id="add-match-venue" class="input-field" placeholder="Cancha / Sede">
           <button id="btn-save-match" class="btn-action">Guardar Partido</button>
         </div>
-
+<div class="section card" style="margin-bottom: 14px;">
+  <h3 style="margin-top:0; display:flex; align-items:center; gap:7px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Configurar Fechas Apertura / Clausura
+  </h3>
+  <p class="muted" style="font-size:11px; margin-bottom:10px;">
+    Definí hasta qué fecha cuenta el Apertura y desde cuál arranca el Clausura para la liga seleccionada arriba.
+  </p>
+  <div style="display:flex; gap:8px; margin-bottom:8px;">
+    <div style="flex:1;">
+      <label class="muted" style="display:block; font-size:11px; margin-bottom:4px;">Fin Apertura (Fecha N°)</label>
+      <input id="dt-apertura-end" type="number" min="1" value="13" style="width:100%;" />
+    </div>
+    <div style="flex:1;">
+      <label class="muted" style="display:block; font-size:11px; margin-bottom:4px;">Inicio Clausura (Fecha N°)</label>
+      <input id="dt-clausura-start" type="number" min="2" value="14" style="width:100%;" />
+    </div>
+  </div>
+  <button class="btn-action" onclick="saveLeagueStageDates()" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:7px;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    Guardar Rango de Fechas
+  </button>
+</div>
        <div class="section card" style="margin-bottom: 14px;">
   <h3 style="margin-top:0; display:flex; align-items:center; gap:7px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
@@ -764,7 +786,7 @@
     Pegá un partido por renglón (Ej: <b>MalaJunta FC 3 - 1 De Puntin</b>)
   </p>
   <div style="display:flex; gap:8px; margin-bottom:8px;">
-    <select id="dt-league-select" style="flex:2;"></select>
+   <select id="dt-league-select" onchange="syncLeagueStageInputs()" style="flex:2;"></select>
     <input id="dt-league-matchday" type="number" min="1" value="1" placeholder="Fecha N°" style="flex:1;" />
   </div>
   <textarea id="dt-league-bulk" rows="5" style="width:100%;" placeholder="MalaJunta FC 3 - 1 De Puntin&#10;Los Pibes 0 - 0 Aston Birra"></textarea>
@@ -2702,10 +2724,15 @@ ${leagues.map(l => `
         populateDetailGoalSelects();
         renderMatchDetail(currentMatchIdForView);
       }
-    const leagueSel = document.getElementById('dt-league-select');
-if (leagueSel) {
-  leagueSel.innerHTML = leagues.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('');
-}
+const leagueSel = document.getElementById('dt-league-select');
+    if (leagueSel) {
+      const prevVal = leagueSel.value;
+      leagueSel.innerHTML = leagues.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('');
+      if (prevVal && leagues.some(l => String(l.id) === String(prevVal))) {
+        leagueSel.value = prevVal;
+      }
+      syncLeagueStageInputs();
+    }
     }
     let leagues = [];
     let leagueMatches = [];
@@ -2719,10 +2746,29 @@ if (leagueSel) {
       leagueMatches = lmData || [];
     }
 
-    function renderLeagueTable(leagueId) {
-      const matches = leagueMatches.filter(m => String(m.league_id) === String(leagueId));
-      const table = {};
+    let leagueStageFilter = {}; // Guarda qué pestaña está viendo el usuario en cada liga
 
+    function setLeagueStage(leagueId, stage) {
+      leagueStageFilter[leagueId] = stage;
+      render();
+    }
+
+    function renderLeagueTable(leagueId) {
+      const league = leagues.find(l => String(l.id) === String(leagueId)) || {};
+      const apEnd = Number(league.apertura_end || 13);
+      const clStart = Number(league.clausura_start || (apEnd + 1));
+      const stage = leagueStageFilter[leagueId] || 'apertura'; // Por defecto muestra Apertura
+
+      // Filtra los partidos según la pestaña elegida
+      const matches = leagueMatches.filter(m => {
+        if (String(m.league_id) !== String(leagueId)) return false;
+        const md = Number(m.matchday || 1);
+        if (stage === 'apertura') return md <= apEnd;
+        if (stage === 'clausura') return md >= clStart;
+        return true; // 'anual' muestra todos
+      });
+
+      const table = {};
       const getTeam = (rawName) => {
         const clean = rawName.trim();
         const key = clean.toLowerCase();
@@ -2732,18 +2778,33 @@ if (leagueSel) {
         return table[key];
       };
 
-     const h2hCount = {};
+      // La tabla base inicial solo se suma en Apertura y en la Anual
+      if (stage === 'apertura' || stage === 'anual') {
+        leagueBase
+          .filter(b => String(b.league_id) === String(leagueId))
+          .forEach(b => {
+            const t = getTeam(b.team_name);
+            t.pj += Number(b.pj || 0);
+            t.pg += Number(b.pg || 0);
+            t.pe += Number(b.pe || 0);
+            t.pp += Number(b.pp || 0);
+            t.gf += Number(b.gf || 0);
+            t.gc += Number(b.gc || 0);
+            t.pts += Number(b.pts || 0);
+          });
+      }
 
+      const h2hCount = {};
       matches.forEach(m => {
         const home = getTeam(m.home_team);
         const away = getTeam(m.away_team);
 
-        // Clave única para la pareja (sin importar quién fue local o visitante)
         const pairKey = [home.name.toLowerCase(), away.name.toLowerCase()].sort().join('__vs__');
         h2hCount[pairKey] = (h2hCount[pairKey] || 0) + 1;
 
-        // Si ya jugaron 2 veces entre sí, el 3° cruce no suma en la tabla
-        if (h2hCount[pairKey] > 2) return;
+        // En Apertura o Clausura máximo 2 cruces; en la Anual permite hasta 4 (2 por torneo)
+        const maxCrosses = stage === 'anual' ? 4 : 2;
+        if (h2hCount[pairKey] > maxCrosses) return;
 
         const hg = Number(m.home_goals);
         const ag = Number(m.away_goals);
@@ -2761,9 +2822,30 @@ if (leagueSel) {
         .map(r => ({ ...r, dif: r.gf - r.gc }))
         .sort((a, b) => b.pts - a.pts || b.dif - a.dif || b.gf - a.gf);
 
-      if (!sorted.length) return '<div class="empty">Todavía no hay resultados cargados en esta liga.</div>';
+      // Botonera de filtro Apertura / Clausura / Anual (sin emojis)
+      const tabsHTML = `
+        <div style="display:flex; gap:6px; margin-bottom:10px;">
+          ${[
+            { id: 'apertura', label: `Apertura (F1 - F${apEnd})` },
+            { id: 'clausura', label: `Clausura (F${clStart}+)` },
+            { id: 'anual', label: 'Tabla Anual' }
+          ].map(t => {
+            const active = stage === t.id;
+            return `
+              <button type="button" onclick="setLeagueStage('${leagueId}', '${t.id}')"
+                style="flex:1; padding:6px 8px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; border:1px solid ${active ? 'var(--green)' : 'var(--line)'}; background:${active ? 'rgba(166,230,91,0.16)' : 'var(--panel2)'}; color:${active ? 'var(--green)' : 'var(--muted)'};">
+                ${t.label}
+              </button>`;
+          }).join('')}
+        </div>
+      `;
+
+      if (!sorted.length) {
+        return `${tabsHTML}<div class="empty">No hay partidos cargados en esta etapa todavía.</div>`;
+      }
 
       return `
+        ${tabsHTML}
         <div class="table-wrap">
           <table class="standings-table">
             <thead>
@@ -2810,7 +2892,40 @@ if (leagueSel) {
           </table>
         </div>`;
     }
+function syncLeagueStageInputs() {
+      const sel = document.getElementById('dt-league-select');
+      const apInput = document.getElementById('dt-apertura-end');
+      const clInput = document.getElementById('dt-clausura-start');
+      if (!sel || !apInput || !clInput) return;
 
+      const league = leagues.find(l => String(l.id) === String(sel.value));
+      if (league) {
+        apInput.value = league.apertura_end || 13;
+        clInput.value = league.clausura_start || 14;
+      }
+    }
+
+    async function saveLeagueStageDates() {
+      const leagueId = document.getElementById('dt-league-select').value;
+      const apEnd = Number(document.getElementById('dt-apertura-end').value);
+      const clStart = Number(document.getElementById('dt-clausura-start').value);
+
+      if (!leagueId) return alert('Elegí una liga primero.');
+      if (!apEnd || !clStart || clStart <= apEnd) {
+        return alert('La fecha de inicio del Clausura debe ser mayor a la fecha de cierre del Apertura.');
+      }
+
+      const { error } = await db
+        .from('leagues')
+        .update({ apertura_end: apEnd, clausura_start: clStart })
+        .eq('id', leagueId);
+
+      if (error) return alert('Error al actualizar fechas: ' + error.message);
+
+      await loadLeaguesData();
+      render();
+      alert(`Rangos actualizados: Apertura hasta Fecha ${apEnd} y Clausura desde Fecha ${clStart}.`);
+    }
   async function saveBulkLeagueResults() {
       const leagueId = document.getElementById('dt-league-select').value;
       const matchday = Number(document.getElementById('dt-league-matchday').value || 1);
