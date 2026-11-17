@@ -2732,9 +2732,19 @@ if (leagueSel) {
         return table[key];
       };
 
+     const h2hCount = {};
+
       matches.forEach(m => {
         const home = getTeam(m.home_team);
         const away = getTeam(m.away_team);
+
+        // Clave única para la pareja (sin importar quién fue local o visitante)
+        const pairKey = [home.name.toLowerCase(), away.name.toLowerCase()].sort().join('__vs__');
+        h2hCount[pairKey] = (h2hCount[pairKey] || 0) + 1;
+
+        // Si ya jugaron 2 veces entre sí, el 3° cruce no suma en la tabla
+        if (h2hCount[pairKey] > 2) return;
+
         const hg = Number(m.home_goals);
         const ag = Number(m.away_goals);
 
