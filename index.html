@@ -2487,7 +2487,7 @@ function getTeamCrestHTML(teamName, large = false) {
           ${metric('Invicto', invicto + ' PJ', true)}
         </div>
 
-        <!-- 2. PRÓXIMO COMPROMISO ESTILO MATCHDAY -->
+       <!-- 2. PRÓXIMO COMPROMISO ESTILO MATCHDAY -->
         <div class="section card card-glow-green" style="background: linear-gradient(135deg, var(--panel2), var(--panel)); margin-bottom: 14px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
@@ -2539,16 +2539,15 @@ function getTeamCrestHTML(teamName, large = false) {
                     Historial: ${nextH2H.wins}G - ${nextH2H.draws}E - ${nextH2H.losses}P
                   </span>
                 </div>
-           ` : ''}
+              ` : ''}
 
-         ${isAdmin ? `
- ${(typeof currentUser !== 'undefined' && currentUser) || document.getElementById('badge-status')?.textContent.includes('DT') ? `
-  <button class="btn-whatsapp" onclick="shareNextMatchWhatsApp()">
-    📲 Compartir en WhatsApp
-  </button>
-` : ''}
-       </div>
-     ` : '<div class="empty" style="padding:10px 0 0; text-align:center;">No hay partidos programados en la agenda.</div>'}
+              ${(typeof currentUser !== 'undefined' && currentUser) || document.getElementById('badge-status')?.textContent.includes('DT') ? `
+                <button class="btn-whatsapp" onclick="shareNextMatchWhatsApp()">
+                  📲 Compartir en WhatsApp
+                </button>
+              ` : ''}
+            </div>
+          ` : '<div class="empty" style="padding:10px 0 0; text-align:center;">No hay partidos programados en la agenda.</div>'}
         </div>
 
         <!-- 3. TORNEOS EN CURSO -->
