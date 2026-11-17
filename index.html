@@ -2271,7 +2271,7 @@ function getTeamCrestHTML(teamName, large = false) {
           ${metric('Invicto', invicto + ' PJ', true)}
         </div>
 
-       <!-- 2. PRÓXIMO COMPROMISO -->
+      <!-- 2. PRÓXIMO COMPROMISO -->
         <div class="section card card-glow-green" style="background: linear-gradient(135deg, var(--panel2), var(--panel)); margin-bottom: 14px;">
           <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
           ${nextMatch ? `
@@ -2306,20 +2306,6 @@ function getTeamCrestHTML(teamName, large = false) {
                   </div>
 
                   ${nextMatch.venue ? `
-                    <span class="match-meta-item match-meta-venue">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                      ${esc(nextMatch.venue)}
-                    </span>
-                  ` : ''}
-                </div>
-              </div>
-              <span class="pill badge-win" style="font-size:10px; flex-shrink:0;">PROGRAMADO</span>
-            </div>
-          ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay partidos programados en la agenda.</div>'}
-        </div>
-
-                  ${nextMatch.venue ? `
-                    <!-- Lugar / Sede con SVG -->
                     <span class="match-meta-item match-meta-venue">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                       ${esc(nextMatch.venue)}
