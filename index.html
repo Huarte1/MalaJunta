@@ -2736,7 +2736,7 @@ const leagueSel = document.getElementById('dt-league-select');
     }
     let leagues = [];
     let leagueMatches = [];
-
+let leagueBase = [];
    async function loadLeaguesData() {
       const [{ data: lData }, { data: lmData }] = await Promise.all([
         db.from('leagues').select('*').order('created_at', { ascending: false }),
