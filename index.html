@@ -1956,15 +1956,6 @@ function getTeamCrestHTML(teamName, large = false) {
       `;
     }
 
-      const { data } = db.storage.from('escudos').getPublicUrl(`${clean}.png`);
-
-      return `
-        <img src="${data.publicUrl}" alt="${esc(teamName)}" class="${imgClass}" 
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
-        <span class="${fbClass}" style="display:none;">${esc(initials)}</span>
-      `;
-    }
-
     function getAllMalaJuntaMatches() {
       const general = matches.map(m => ({ ...m, isTournament: false }));
 
