@@ -423,6 +423,147 @@
     }
     .team-crest-fallback.lg { width: 44px; height: 44px; font-size: 15px; }
     .team-with-crest { display: inline-flex; align-items: center; gap: 8px; }
+
+    /* --- MEJORAS VISUALES PRO --- */
+    .metric {
+      font-family: 'Barlow Condensed', sans-serif !important;
+      font-size: 36px !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.5px;
+      line-height: 1.05;
+    }
+
+    /* Cabecera superior compacta en PC */
+    @media (min-width: 768px) {
+      .top-bar-desktop {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 12px;
+        align-items: stretch;
+        margin-bottom: 14px;
+      }
+      .top-bar-desktop .hero,
+      .top-bar-desktop .audio-player-card {
+        margin-bottom: 0 !important;
+        justify-content: center;
+      }
+    }
+
+    /* Placa Matchday (Próximo Compromiso) */
+    .matchday-board {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      padding: 8px 0 4px;
+    }
+    .matchday-teams {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      width: 100%;
+    }
+    .matchday-team-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      max-width: 150px;
+    }
+    .matchday-team-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      line-height: 1.1;
+    }
+    .matchday-vs-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(166, 230, 91, 0.2);
+    }
+    .matchday-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Racha de últimos 5 partidos (Form Guide) */
+    .form-guide {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .form-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .form-dot.G { background: rgba(166, 230, 91, 0.2); color: var(--green); border: 1px solid var(--green); }
+    .form-dot.E { background: rgba(255, 209, 102, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
+    .form-dot.P { background: rgba(255, 82, 82, 0.2); color: var(--red); border: 1px solid var(--red); }
+
+    /* Podio de Números */
+    .podium-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .podium-card {
+      background: linear-gradient(145deg, #242012, var(--panel));
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      border-radius: 16px;
+      padding: 14px 12px;
+      text-align: center;
+      position: relative;
+    }
+    .podium-role {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .podium-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--white);
+      margin: 4px 0 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .podium-stat {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--green);
+      line-height: 1;
+    }
   </style>
 </head>
 <body>
@@ -435,6 +576,7 @@
       </div>
     </header>
 
+    <div class="top-bar-desktop">
     <section class="hero">
       <div>
         <div class="eyebrow">TEMPORADA ACTIVA</div>
@@ -471,7 +613,8 @@
         <span id="current-time" class="time-label">0:00</span>
         <input type="range" id="seek-bar" value="0" min="0" max="100" class="custom-seekbar">
         <span id="duration-time" class="time-label">0:00</span>
-      </div>
+   </div>
+    </div>
     </div>
 
     <div id="status" class="loading">⏳ Cargando datos del club...</div>
@@ -1939,7 +2082,7 @@ function getTeamCrestHTML(teamName, large = false) {
         .replace(/[^a-z0-9]/g, '');
 
       const initials = teamName.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
-      const size = large ? '30px' : '24px';
+     const size = large ? '38px' : '24px';
       const imgStyle = `width:${size}; height:${size}; max-width:${size}; max-height:${size}; object-fit:contain; flex-shrink:0; vertical-align:middle;`;
       const fbStyle = `display:none; align-items:center; justify-content:center; width:${size}; height:${size}; border-radius:50%; background:var(--panel2); border:1px solid var(--line); color:var(--green); font-size:${large ? '11px' : '10px'}; font-weight:900; flex-shrink:0; text-transform:uppercase;`;
 
@@ -2256,6 +2399,48 @@ function getTeamCrestHTML(teamName, large = false) {
       if (as) as.innerHTML = `<option value="">-- Sin Asistencia (Opcional) --</option>` + optionsHtml;
     }
 
+   function getCountdownText(dateStr) {
+      if (!dateStr) return '';
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(dateStr + 'T00:00:00');
+      const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+      if (diffDays === 0) return '🔥 ¡SE JUEGA HOY!';
+      if (diffDays === 1) return '⏳ MAÑANA';
+      if (diffDays > 1) return `⏳ FALTAN ${diffDays} DÍAS`;
+      return '';
+    }
+
+    function getFormGuideHTML(playedMatches) {
+      const last5 = [...playedMatches]
+        .sort((a, b) => new Date(b.match_date || 0) - new Date(a.match_date || 0))
+        .slice(0, 5)
+        .reverse();
+      if (!last5.length) return '';
+      return `
+        <div class="form-guide" title="Últimos 5 partidos">
+          <small class="muted" style="font-size:10px; font-weight:700; margin-right:2px;">RACHA:</small>
+          ${last5.map(m => {
+            const gf = Number(m.goals_for || 0);
+            const ga = Number(m.goals_against || 0);
+            const res = gf > ga ? 'G' : (gf === ga ? 'E' : 'P');
+            return `<span class="form-dot ${res}">${res}</span>`;
+          }).join('')}
+        </div>`;
+    }
+
+    function getTopLeader(kind) {
+      const counts = {};
+      getAllGoals().forEach(g => {
+        const id = kind === 'goal' ? g.scorer_id : g.assist_id;
+        if (id) counts[id] = (counts[id] || 0) + 1;
+      });
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      if (!sorted.length) return null;
+      const [id, count] = sorted[0];
+      return { name: name(id), count };
+    }
+
     function render() {
       const allMatches = getAllMalaJuntaMatches();
       const played = allMatches.filter(m => m.status === 'Jugado');
@@ -2269,6 +2454,11 @@ function getTeamCrestHTML(teamName, large = false) {
 
       const activeTournaments = tournaments.filter(t => !tournamentChampion(t) && (t.status || '').toLowerCase() !== 'suspendido');
       const nextMatch = getNextMatch();
+      const nextH2H = nextMatch ? getHeadToHead(nextMatch.opponent) : null;
+      const countdown = nextMatch ? getCountdownText(nextMatch.match_date) : '';
+
+      const topScorer = getTopLeader('goal');
+      const topAssister = getTopLeader('assist');
 
       document.getElementById('resumen').innerHTML = `
         <!-- 1. MÉTRICAS GENERALES -->
@@ -2279,51 +2469,61 @@ function getTeamCrestHTML(teamName, large = false) {
           ${metric('Invicto', invicto + ' PJ', true)}
         </div>
 
-      <!-- 2. PRÓXIMO COMPROMISO -->
+        <!-- 2. PRÓXIMO COMPROMISO ESTILO MATCHDAY -->
         <div class="section card card-glow-green" style="background: linear-gradient(135deg, var(--panel2), var(--panel)); margin-bottom: 14px;">
-          <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
+            ${countdown ? `<span class="pill badge-win" style="font-size:10px;">${countdown}</span>` : '<span class="pill badge-win" style="font-size:10px;">PROGRAMADO</span>'}
+          </div>
+
           ${nextMatch ? `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-top:10px;">
-              <div>
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    ${getTeamCrestHTML('MalaJunta FC', true)}
-                    <span style="font-size:16px; font-weight:900;">MalaJunta</span>
-                  </div>
-                  <span class="muted" style="font-weight:800; font-size:13px;">VS</span>
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    ${getTeamCrestHTML(nextMatch.opponent, true)}
-                    <span style="font-size:16px; font-weight:900;">${esc(nextMatch.opponent)}</span>
-                  </div>
+            <div class="matchday-board">
+              <div class="matchday-teams">
+                <div class="matchday-team-col">
+                  ${getTeamCrestHTML('MalaJunta FC', true)}
+                  <span class="matchday-team-name">MalaJunta</span>
                 </div>
-                
-                <div class="match-meta-list">
-                  <div class="match-meta-row">
-                    <span class="match-meta-item">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                      ${date(nextMatch.match_date)}
-                    </span>
 
-                    ${nextMatch.match_time ? `
-                      <span class="muted">·</span>
-                      <span class="match-meta-item">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        ${esc(String(nextMatch.match_time).slice(0, 5))} hs
-                      </span>
-                    ` : ''}
-                  </div>
+                <div class="matchday-vs-badge">VS</div>
 
-                  ${nextMatch.venue ? `
-                    <span class="match-meta-item match-meta-venue">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                      ${esc(nextMatch.venue)}
-                    </span>
-                  ` : ''}
+                <div class="matchday-team-col">
+                  ${getTeamCrestHTML(nextMatch.opponent, true)}
+                  <span class="matchday-team-name">${esc(nextMatch.opponent)}</span>
                 </div>
               </div>
-              <span class="pill badge-win" style="font-size:10px; flex-shrink:0;">PROGRAMADO</span>
+
+              <div class="match-meta-row" style="justify-content:center; margin-top:2px;">
+                <span class="match-meta-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  ${date(nextMatch.match_date)}
+                </span>
+
+                ${nextMatch.match_time ? `
+                  <span class="muted">·</span>
+                  <span class="match-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    ${esc(String(nextMatch.match_time).slice(0, 5))} hs
+                  </span>
+                ` : ''}
+
+                ${nextMatch.venue ? `
+                  <span class="muted">·</span>
+                  <span class="match-meta-item match-meta-venue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    ${esc(nextMatch.venue)}
+                  </span>
+                ` : ''}
+              </div>
+
+              ${nextH2H && nextH2H.total > 0 ? `
+                <div class="matchday-pills">
+                  <span class="pill" style="background:rgba(255,255,255,0.05); color:var(--muted); border:1px solid var(--line);">
+                    Historial: ${nextH2H.wins}G - ${nextH2H.draws}E - ${nextH2H.losses}P
+                  </span>
+                </div>
+              ` : ''}
             </div>
-          ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay partidos programados en la agenda.</div>'}
+          ` : '<div class="empty" style="padding:10px 0 0; text-align:center;">No hay partidos programados en la agenda.</div>'}
         </div>
 
         <!-- 3. TORNEOS EN CURSO -->
@@ -2349,9 +2549,12 @@ function getTeamCrestHTML(teamName, large = false) {
           ` : '<div class="empty" style="padding:10px 0 0; text-align:left;">No hay campeonatos activos en este momento.</div>'}
         </div>
 
-        <!-- 4. ÚLTIMOS PARTIDOS -->
+        <!-- 4. ÚLTIMOS PARTIDOS + RACHA -->
         <div class="section card">
-          <h2>Últimos Partidos</h2>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <h2 style="margin:0;">Últimos Partidos</h2>
+            ${getFormGuideHTML(played)}
+          </div>
           ${matchRows(allMatches.sort((a,b) => new Date(b.match_date || 0) - new Date(a.match_date || 0)).slice(0, 5))}
         </div>`;
 
@@ -2384,6 +2587,22 @@ function getTeamCrestHTML(teamName, large = false) {
           ${metric('Dif. Gol', gf - ga)}
           ${metric('Puntos', (wins * 3) + draws)}
         </div>
+
+        ${(topScorer || topAssister) ? `
+          <div class="section podium-grid">
+            <div class="podium-card card-glow-gold">
+              <div class="podium-role">👑 PICHICHI DEL CLUB</div>
+              <div class="podium-name">${topScorer ? esc(topScorer.name) : '-'}</div>
+              <div class="podium-stat">${topScorer ? topScorer.count : 0} <small style="font-size:13px; color:var(--muted);">GOLES</small></div>
+            </div>
+            <div class="podium-card card-glow-gold">
+              <div class="podium-role">🎯 MÁXIMO ASISTIDOR</div>
+              <div class="podium-name">${topAssister ? esc(topAssister.name) : '-'}</div>
+              <div class="podium-stat">${topAssister ? topAssister.count : 0} <small style="font-size:13px; color:var(--muted);">ASIST.</small></div>
+            </div>
+          </div>
+        ` : ''}
+
         <div class="section card">
           <h2>📊 Rendimiento Global (${played.length} partidos)</h2>
           <div style="font-size:11px; color:var(--muted); display:flex; justify-content:space-between;">
@@ -2408,7 +2627,6 @@ function getTeamCrestHTML(teamName, large = false) {
         renderMatchDetail(currentMatchIdForView);
       }
     }
-
     function ranking(kind) {
       const counts = {};
       getAllGoals().forEach(g => {
