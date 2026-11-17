@@ -761,7 +761,12 @@
     Pegá un partido por renglón (Ej: <b>MalaJunta FC 3 - 1 De Puntin</b>)
   </p>
   <div style="display:flex; gap:8px; margin-bottom:8px;">
-    <select id="dt-league-select" style="flex:2;"></select>
+    <select id="dt-league-select" style="flex:2;">
+  ${leagues.length
+    ? leagues.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('')
+    : '<option value="">-- No hay ligas creadas --</option>'
+  }
+</select>
     <input id="dt-league-matchday" type="number" min="1" value="1" placeholder="Fecha N°" style="flex:1;" />
   </div>
   <textarea id="dt-league-bulk" rows="5" style="width:100%;" placeholder="MalaJunta FC 3 - 1 De Puntin&#10;Los Pibes 0 - 0 Aston Birra"></textarea>
