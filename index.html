@@ -2662,16 +2662,7 @@ function getTeamCrestHTML(teamName, large = false) {
             </div>
           ` : '<div class="empty" style="padding:10px 0 0; text-align:center;">No hay partidos programados en la agenda.</div>'}
         </div>
-${leagues.map(l => `
-  <div class="section card" style="margin-bottom: 14px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <h2 style="margin:0; font-size:15px; color:var(--green); display:flex; align-items:center; gap:7px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Tabla de Posiciones · ${esc(l.name)}
-      </h2>
-      <span class="pill">LIGA</span>
-    </div>
-    ${renderLeagueTable(l.id)}
+
     ${leagues.map(l => `
   <div class="section card" style="margin-bottom: 14px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
