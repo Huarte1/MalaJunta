@@ -2541,9 +2541,11 @@ function getTeamCrestHTML(teamName, large = false) {
                 </div>
            ` : ''}
 
-         <button class="btn-whatsapp" onclick="shareNextMatchWhatsApp()">
-           📲 Compartir en WhatsApp
-         </button>
+         ${isAdmin ? `
+  <button class="btn-whatsapp" onclick="shareNextMatchWhatsApp()">
+    📲 Compartir en WhatsApp
+  </button>
+` : ''}
        </div>
      ` : '<div class="empty" style="padding:10px 0 0; text-align:center;">No hay partidos programados en la agenda.</div>'}
         </div>
@@ -2650,21 +2652,31 @@ function getTeamCrestHTML(teamName, large = false) {
         renderMatchDetail(currentMatchIdForView);
       }
     }
-    function shareNextMatchWhatsApp() {
+   function shareNextMatchWhatsApp() {
       const m = getNextMatch();
       if (!m) return;
-      const lines = [
-        `🔥 *PRÓXIMO PARTIDO · MALAJUNTA FC* 💚`,
-        ``,
-        `⚽ *MalaJunta FC* vs *${m.opponent}*`,
-        `📅 *Fecha:* ${date(m.match_date)}`,
-        m.match_time ? `⏰ *Hora:* ${String(m.match_time).slice(0, 5)} hs` : null,
-        m.venue ? `📍 *Cancha:* ${m.venue}` : null,
-        ``,
-        `📲 _Confirmá asistencia y mirá las stats en la web del club_`
-      ].filter(Boolean).join('\n');
 
-      const url = `https://wa.me/?text=${encodeURIComponent(lines)}`;
+      // Calcula el nombre del día (Sábado, Domingo, etc.) con mayúscula inicial
+      let diaSemana = 'Partido';
+      if (m.match_date) {
+        const d = new Date(m.match_date + 'T00:00:00');
+        const nombreDia = d.toLocaleDateString('es-AR', { weekday: 'long' });
+        diaSemana = nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1);
+      }
+
+      const hora = m.match_time ? ` ${String(m.match_time).slice(0, 5)}hs` : '';
+      const cancha = m.venue ? `_${m.venue}_` : '_Cancha a confirmar_';
+
+      // Genera los números del 1 al 16
+      const lista = Array.from({ length: 16 }, (_, i) => `${i + 1}. `).join('\n');
+
+      const mensaje = [
+        `*${diaSemana} vs ${m.opponent}${hora}*`,
+        cancha,
+        lista
+      ].join('\n');
+
+      const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
       window.open(url, '_blank');
     }
 
