@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
   <meta name="theme-color" content="#080b09">
   <title>MalaJunta FC · Plantel Oficial y Estadísticas</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #080b09;
@@ -24,6 +24,47 @@
       --gold: #d4af37;
     }
 
+    .match-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.match-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.match-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace; /* Tipografía técnica para fecha y hora */
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 0.3px;
+}
+
+.match-meta-venue {
+  font-family: 'Barlow Condensed', sans-serif; /* Tipografía deportiva para la cancha */
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+}
+
+.match-meta-item svg {
+  width: 15px;
+  height: 15px;
+  color: var(--green);
+  flex-shrink: 0;
+}
+    
     .card-glow-green {
       box-shadow: 0 0 20px rgba(166, 230, 91, 0.15) !important;
       border: 1px solid rgba(166, 230, 91, 0.4) !important;
@@ -41,96 +82,6 @@
     button:hover {
       transform: translateY(-1px);
       filter: brightness(1.08);
-    }
-
-    /* TIPOGRAFÍA Y METADATOS DE PARTIDO */
-    .match-meta-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 10px;
-    }
-
-    .match-meta-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .match-meta-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12.5px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: 0.3px;
-    }
-
-    .match-meta-venue {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--muted);
-    }
-
-    .match-meta-item svg {
-      width: 15px;
-      height: 15px;
-      color: var(--green);
-      flex-shrink: 0;
-    }
-
-    /* ESTILOS DE ESCUDOS */
-    .team-crest {
-      width: 24px;
-      height: 24px;
-      object-fit: contain;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--line);
-      flex-shrink: 0;
-      vertical-align: middle;
-    }
-
-    .team-crest-lg {
-      width: 44px;
-      height: 44px;
-      object-fit: contain;
-      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
-      flex-shrink: 0;
-    }
-
-    .team-crest-fallback {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--panel2);
-      border: 1px solid var(--line);
-      color: var(--green);
-      font-size: 10px;
-      font-weight: 900;
-      flex-shrink: 0;
-      text-transform: uppercase;
-    }
-
-    .team-crest-fallback.lg {
-      width: 44px;
-      height: 44px;
-      font-size: 15px;
-    }
-
-    .team-with-crest {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
     }
 
     /* ESTILOS DE LA BARRA DE REPRODUCCIÓN PERSONALIZADA */
@@ -1068,7 +1019,7 @@
                     <b style="color:var(--green)">ZONA ${esc(group)}</b>
                     ${teams.filter(x => (x.group_name || 'A') === group).map(team => `
                       <div style="display:flex;justify-content:space-between;align-items:center;background:var(--panel);padding:9px;border-radius:8px;margin-top:6px">
-                        <div class="team-with-crest">${getTeamCrestHTML(team.name)} <b>${esc(team.name)}</b></div>
+                        <b>${esc(team.name)}</b>
                         <div style="display:flex;gap:5px">
                           <button class="btn-action" style="width:auto;margin:0;padding:6px 9px" onclick="editTournamentTeam('${team.id}')">✏️</button>
                           <button class="btn-action btn-danger" style="width:auto;margin:0;padding:6px 9px" onclick="deleteTournamentTeam('${team.id}')">🗑️</button>
@@ -1329,10 +1280,7 @@
                       <div style="text-align:center">
                         <div style="font-size:30px;margin-bottom:5px">🏆</div>
                         <div style="color:var(--gold); font-size:10px; font-weight:900; letter-spacing:2px;">CAMPEÓN DEL TORNEO</div>
-                        <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin:9px 0;">
-                          ${getTeamCrestHTML(champion.name, true)}
-                          <span style="font-size:23px; font-weight:950; color:#fff;">${esc(champion.name)}</span>
-                        </div>
+                        <div style="font-size:23px; font-weight:950; margin:9px 0; color:#fff;">${esc(champion.name)}</div>
                         <div style="color:#c9b978; font-size:11px; font-weight:700;">${esc(t.name)} ${t.season ? ' · TEMPORADA ' + esc(t.season) : ''}</div>
                         <button onclick="openTournament('${t.id}')" style="width:100%; margin-top:17px; padding:12px; border:0; border-radius:9px; background:var(--gold); color:#15130b; font-weight:900; cursor:pointer;">VER TORNEO Y RECORRIDO →</button>
                       </div>
@@ -1418,7 +1366,7 @@
                       ${table.map((r,i) => `
                         <tr>
                           <td>${i+1}</td>
-                          <td><div class="team-with-crest">${getTeamCrestHTML(r.name)} <b>${esc(r.name)}</b></div></td>
+                          <td><b>${esc(r.name)}</b></td>
                           <td>${r.pj}</td><td>${r.pg}</td><td>${r.pe}</td><td>${r.pp}</td><td>${r.gf}</td><td>${r.gc}</td><td>${r.dg}</td>
                           <td><b style="color:var(--green)">${r.pts}</b></td>
                         </tr>
@@ -1577,12 +1525,8 @@
           <div style="background:var(--panel2); border:1px solid ${isSuspended ? 'var(--red)' : 'var(--line)'}; padding:11px; border-radius:10px">
             <div style="display:flex; justify-content:space-between; gap:8px; align-items:center">
               <div style="flex:1">
-                <div class="team-with-crest" style="flex-wrap:wrap;">
-                  ${getTeamCrestHTML(homeName)} <b>${esc(homeName)}</b>
-                  <span class="muted">vs</span>
-                  ${getTeamCrestHTML(awayName)} <b>${esc(awayName)}</b>
-                </div>
-                <div class="muted" style="font-size:10px; margin-top:4px;">${esc(m.round_name || m.group_name || 'Fase de grupos')}</div>
+                <b>${esc(homeName)}</b><span class="muted"> vs </span><b>${esc(awayName)}</b>
+                <div class="muted" style="font-size:10px">${esc(m.round_name || m.group_name || 'Fase de grupos')}</div>
                 ${goalsSummary}
               </div>
               <div style="font-size:16px; font-weight:900; white-space:nowrap">
@@ -1942,33 +1886,10 @@
       alert('✅ Se generó automáticamente la siguiente fase: ' + nextRound);
     }
 
-    // 5. UTILIDADES GENERALES, ESCUDOS Y RESUMEN UNIFICADO
+    // 5. UTILIDADES GENERALES Y RESUMEN UNIFICADO
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const date = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 'Por def.';
     const name = id => players.find(p => p.id === id)?.name || 'Jugador';
-
-    function getTeamCrestHTML(teamName, large = false) {
-      if (!teamName) return '';
-      const clean = teamName.toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]/g, '');
-
-      const initials = teamName.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
-      const imgClass = large ? 'team-crest-lg' : 'team-crest';
-      const fbClass = large ? 'team-crest-fallback lg' : 'team-crest-fallback';
-
-      if (clean.includes('malajunta')) {
-        return `<img src="logo_malajunta_transparente.png" alt="${esc(teamName)}" class="${imgClass}">`;
-      }
-
-      const { data } = db.storage.from('escudos').getPublicUrl(`${clean}.png`);
-
-      return `
-        <img src="${data.publicUrl}" alt="${esc(teamName)}" class="${imgClass}" 
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
-        <span class="${fbClass}" style="display:none;">${esc(initials)}</span>
-      `;
-    }
 
     function getAllMalaJuntaMatches() {
       const general = matches.map(m => ({ ...m, isTournament: false }));
@@ -2069,12 +1990,7 @@
           return `
           <tr>
             <td>${date(m.match_date)}</td>
-            <td>
-              <div class="team-with-crest">
-                ${getTeamCrestHTML(m.opponent)}
-                <div><b>${esc(m.opponent || 'Rival')}</b>${countBadge}${tourneyTag}</div>
-              </div>
-            </td>
+            <td><b>${esc(m.opponent || 'Rival')}</b>${countBadge}${tourneyTag}</td>
             <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
             <td>
               <div style="display:flex; gap:4px; align-items:center;">
@@ -2302,22 +2218,13 @@
         <div class="section card card-glow-green" style="background: linear-gradient(135deg, var(--panel2), var(--panel)); margin-bottom: 14px;">
           <div class="eyebrow" style="color: var(--green);">🔥 PRÓXIMO COMPROMISO</div>
           ${nextMatch ? `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-top:8px;">
               <div>
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    ${getTeamCrestHTML('MalaJunta FC', true)}
-                    <span style="font-size:16px; font-weight:900;">MalaJunta</span>
-                  </div>
-                  <span class="muted" style="font-weight:800; font-size:13px;">VS</span>
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    ${getTeamCrestHTML(nextMatch.opponent, true)}
-                    <span style="font-size:16px; font-weight:900;">${esc(nextMatch.opponent)}</span>
-                  </div>
-                </div>
+                <h2 style="margin:0; font-size:19px; font-weight:900;">MalaJunta FC <span class="muted">vs</span> ${esc(nextMatch.opponent)}</h2>
                 
                 <div class="match-meta-list">
                   <div class="match-meta-row">
+                    <!-- Fecha con SVG -->
                     <span class="match-meta-item">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                       ${date(nextMatch.match_date)}
@@ -2325,6 +2232,7 @@
 
                     ${nextMatch.match_time ? `
                       <span class="muted">·</span>
+                      <!-- Hora con SVG (sin los :00 finales) -->
                       <span class="match-meta-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         ${esc(String(nextMatch.match_time).slice(0, 5))} hs
@@ -2333,6 +2241,7 @@
                   </div>
 
                   ${nextMatch.venue ? `
+                    <!-- Lugar / Sede con SVG -->
                     <span class="match-meta-item match-meta-venue">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                       ${esc(nextMatch.venue)}
@@ -2599,12 +2508,7 @@
       if (!match) return;
       const h2h = getHeadToHead(match.opponent);
 
-      document.getElementById('view-match-title').innerHTML = `
-        <div class="team-with-crest">
-          ${getTeamCrestHTML('MalaJunta FC')} <span>MalaJunta</span>
-          <span class="muted" style="font-size:13px;">vs</span>
-          ${getTeamCrestHTML(match.opponent)} <span>${esc(match.opponent)}</span>
-        </div>`;
+      document.getElementById('view-match-title').innerText = `Vs ${match.opponent}`;
       document.getElementById('view-match-info').innerHTML = `
         📅 Fecha: ${date(match.match_date)} &nbsp;·&nbsp; 
         📍 Cancha: ${esc(match.venue || 'No especificada')}<br>
@@ -2646,4 +2550,177 @@
           const assistsText = data.assists.length ? `<br><small class="muted">Asistencias: ${data.assists.join(', ')}</small>` : '';
           const deleteBtn = isLoggedAdmin ? `<button onclick="deleteLastGoalForPlayer('${scorerId}', '${matchId}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">🗑️ Borrar 1 Gol</button>` : '';
           return `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:1
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:10px; border:1px solid var(--line);">
+              <div style="font-size: 13px;">
+                ⚽ <b>${esc(scorerName)}</b> <span class="pill" style="margin-left:6px;">x${data.count}</span>
+                ${assistsText}
+              </div>
+              ${deleteBtn}
+            </div>`;
+        }).join('');
+      } else {
+        goalsListDiv.innerHTML = '<div class="empty" style="padding:20px;">No hay goles cargados para este partido todavía.</div>';
+      }
+    }
+
+    async function deleteLastGoalForPlayer(scorerId, matchId) {
+      if (!confirm("⚠️ ¿Querés borrar un gol de este jugador?")) return;
+      const userGoals = goals.filter(g => g.match_id === matchId && g.scorer_id === scorerId);
+      if (!userGoals.length) return alert("❌ Error al ubicar el gol para borrar.");
+      userGoals.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const { error } = await db.from('goals').delete().eq('id', userGoals[0].id);
+      if (error) alert("❌ Error al borrar el gol: " + error.message);
+      else { alert("🗑️ GOL descontado de la cuenta."); await init(); }
+    }
+
+    document.getElementById('btn-detail-save-goal')?.addEventListener('click', async () => {
+      if (!currentMatchIdForView) return alert("⚠️ Error: No se detectó el partido actual.");
+      const scorerId = document.getElementById('detail-goal-scorer').value;
+      const assistId = document.getElementById('detail-goal-assist').value;
+      if (!scorerId) return alert("⚠️ Seleccioná quién hizo el gol.");
+
+      const { data: { user } } = await db.auth.getUser();
+      const { error } = await db.from('goals').insert([{
+        match_id: currentMatchIdForView,
+        scorer_id: scorerId,
+        assist_id: assistId ? assistId : null,
+        owner_id: user ? user.id : null
+      }]);
+
+      if (error) alert("❌ Error al anotar el gol: " + error.message);
+      else {
+        alert("GOOOOOOL! ⚽ ¡Anotado con éxito!");
+        document.getElementById('detail-goal-scorer').value = '';
+        document.getElementById('detail-goal-assist').value = '';
+        await init();
+      }
+    });
+
+    document.getElementById('btn-save-player')?.addEventListener('click', async () => {
+      const nameVal = document.getElementById('add-player-name').value;
+      const posVal = document.getElementById('add-player-pos').value;
+      const numVal = document.getElementById('add-player-num').value;
+      if (!nameVal) return alert("⚠️ Poné al menos el nombre del jugador.");
+
+      const { data: { user } } = await db.auth.getUser();
+      const { error } = await db.from('players').insert([{
+        name: nameVal,
+        position: posVal || 'Jugador',
+        number: numVal ? Number(numVal) : null,
+        owner_id: user ? user.id : null
+      }]);
+
+      if (error) alert("❌ Error al guardar jugador: " + error.message);
+      else {
+        alert("⚽ ¡Jugador cargado al plantel!");
+        document.getElementById('add-player-name').value = '';
+        document.getElementById('add-player-pos').value = '';
+        document.getElementById('add-player-num').value = '';
+        init();
+      }
+    });
+
+    document.getElementById('btn-save-match')?.addEventListener('click', async () => {
+      const opp = document.getElementById('add-match-opponent').value;
+      const mDate = document.getElementById('add-match-date').value;
+      const mTime = document.getElementById('add-match-time').value;
+      const mVenue = document.getElementById('add-match-venue').value;
+      if (!opp || !mDate) return alert("⚠️ Completá rival y fecha.");
+
+      const { data: { user } } = await db.auth.getUser();
+      const { error } = await db.from('matches').insert([{
+        opponent: opp,
+        match_date: mDate,
+        match_time: mTime || null,
+        venue: mVenue || null,
+        status: 'Programado',
+        owner_id: user ? user.id : null
+      }]);
+
+      if (error) alert("❌ Error al programar partido: " + error.message);
+      else {
+        alert("🗓️ ¡Partido guardado en la agenda!");
+        document.getElementById('add-match-opponent').value = '';
+        document.getElementById('add-match-date').value = '';
+        document.getElementById('add-match-time').value = '';
+        document.getElementById('add-match-venue').value = '';
+        init();
+      }
+    });
+
+    document.getElementById('btn-save-result')?.addEventListener('click', async () => {
+      if (!isLoggedAdmin) return alert("⚠️ Tenés que iniciar sesión como DT.");
+      const matchId = document.getElementById('select-match-result').value;
+      const gf = document.getElementById('res-gf').value.trim();
+      const ga = document.getElementById('res-ga').value.trim();
+      if (!matchId) return alert("⚠️ Seleccioná un partido pendiente.");
+      if (gf === '' || ga === '') return alert("⚠️ Completá los goles de ambos equipos.");
+
+      const goalsFor = Number(gf), goalsAgainst = Number(ga);
+      if (!Number.isInteger(goalsFor) || goalsFor < 0 || !Number.isInteger(goalsAgainst) || goalsAgainst < 0) {
+        return alert("⚠️ Los goles deben ser números enteros positivos.");
+      }
+
+      const btn = document.getElementById('btn-save-result');
+      btn.disabled = true;
+      btn.textContent = "Guardando resultado...";
+
+      try {
+        const { data, error } = await db.from('matches').update({
+          goals_for: goalsFor,
+          goals_against: goalsAgainst,
+          status: 'Jugado'
+        }).eq('id', matchId).neq('status', 'Jugado').select('id, status, goals_for, goals_against').maybeSingle();
+
+        if (error) throw error;
+        if (!data) throw new Error("No se actualizó el partido.");
+
+        alert("🏆 ¡PARTIDO FINALIZADO!\n\nMalaJunta: " + data.goals_for + "\nRival: " + data.goals_against);
+        document.getElementById('res-gf').value = '';
+        document.getElementById('res-ga').value = '';
+
+        await init();
+        switchTab('partidos');
+      } catch (error) {
+        alert("❌ No se pudo finalizar el partido:\n" + error.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Finalizar y Guardar Resultado";
+      }
+    });
+
+    async function init() {
+      try {
+        const { data, error } = await db.rpc('get_malajunta_public_data');
+        if (error) throw error;
+        players = data.players || [];
+        matches = data.matches || [];
+        keepers = data.goalkeepers || [];
+
+        const { data: freshGoals, error: goalsErr } = await db.from('goals').select('*');
+        if (goalsErr) throw goalsErr;
+        goals = freshGoals || [];
+
+        await loadPlayerBeerCounts();
+
+        const { data: { user } } = await db.auth.getUser();
+        isLoggedAdmin = !!user;
+
+        await loadTournaments();
+        render();
+
+        document.getElementById('status').classList.add('hide');
+        document.getElementById('site').classList.remove('hide');
+
+        updateAdminUI(user);
+
+        if (currentMatchIdForView) renderMatchDetail(currentMatchIdForView);
+      } catch (e) {
+        document.getElementById('status').innerHTML = `<div class="error">❌ Error al cargar datos.<br><small>${esc(e.message || e)}</small></div>`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
