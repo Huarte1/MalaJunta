@@ -2542,6 +2542,7 @@ function getTeamCrestHTML(teamName, large = false) {
            ` : ''}
 
          ${isAdmin ? `
+ ${(typeof currentUser !== 'undefined' && currentUser) || document.getElementById('badge-status')?.textContent.includes('DT') ? `
   <button class="btn-whatsapp" onclick="shareNextMatchWhatsApp()">
     📲 Compartir en WhatsApp
   </button>
