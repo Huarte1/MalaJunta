@@ -865,7 +865,51 @@
       }
     }
     setRandomQuote();
+function renderLeagueFixtures(leagueId) {
+      const list = leagueMatches
+        .filter(m => String(m.league_id) === String(leagueId))
+        .sort((a, b) => Number(b.matchday) - Number(a.matchday));
 
+      if (!list.length) return '';
+
+      const byDay = {};
+      list.forEach(m => {
+        const md = Number(m.matchday || 1);
+        if (!byDay[md]) byDay[md] = [];
+        byDay[md].push(m);
+      });
+
+      const sortedDays = Object.keys(byDay).map(Number).sort((a, b) => b - a);
+
+      return `
+        <details style="margin-top:12px; border-top:1px solid var(--line); padding-top:10px;">
+          <summary style="cursor:pointer; font-size:12px; font-weight:700; color:var(--green); list-style:none; display:flex; align-items:center; justify-content:space-between;">
+            <span>Ver resultados por fecha (${sortedDays.length} jornadas)</span>
+            <span class="muted" style="font-size:11px;">Desplegar</span>
+          </summary>
+          <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
+            ${sortedDays.map(day => `
+              <div style="background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 10px;">
+                <div style="font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:13px; color:var(--gold); margin-bottom:6px; letter-spacing:0.5px;">
+                  FECHA ${day}
+                </div>
+                ${byDay[day].map(m => {
+                  const isMJ = m.home_team.toLowerCase().includes('malajunta') || m.away_team.toLowerCase().includes('malajunta');
+                  return `
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:4px 0; font-size:12px; border-bottom:1px solid rgba(255,255,255,0.04); ${isMJ ? 'color:var(--green); font-weight:700;' : ''}">
+                      <span style="flex:1; text-align:right; padding-right:8px;">${esc(m.home_team)}</span>
+                      <span style="background:var(--bg); padding:2px 8px; border-radius:5px; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:14px; color:var(--white);">
+                        ${m.home_goals} - ${m.away_goals}
+                      </span>
+                      <span style="flex:1; text-align:left; padding-left:8px;">${esc(m.away_team)}</span>
+                    </div>`;
+                }).join('')}
+              </div>
+            `).join('')}
+          </div>
+        </details>
+      `;
+    }
     // 1. FUNCIÓN DE HISTORIAL HEAD-TO-HEAD
     function getHeadToHead(opponentName) {
       if (!opponentName) return { wins: 0, draws: 0, losses: 0, total: 0 };
@@ -2628,6 +2672,19 @@ ${leagues.map(l => `
       <span class="pill">LIGA</span>
     </div>
     ${renderLeagueTable(l.id)}
+    ${leagues.map(l => `
+  <div class="section card" style="margin-bottom: 14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h2 style="margin:0; font-size:15px; color:var(--green); display:flex; align-items:center; gap:7px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Tabla de Posiciones · ${esc(l.name)}
+      </h2>
+      <span class="pill">LIGA</span>
+    </div>
+    ${renderLeagueTable(l.id)}
+    ${renderLeagueFixtures(l.id)}
+  </div>
+`).join('')}
   </div>
 `).join('')}
         <!-- 3. TORNEOS EN CURSO -->
@@ -2937,7 +2994,7 @@ function syncLeagueStageInputs() {
       render();
       alert(`Rangos actualizados: Apertura hasta Fecha ${apEnd} y Clausura desde Fecha ${clStart}.`);
     }
-    function renderAdminLeagueMatchesList() {
+   function renderAdminLeagueMatchesList() {
       const container = document.getElementById('dt-league-matches-list');
       const sel = document.getElementById('dt-league-select');
       if (!container || !sel) return;
@@ -2952,45 +3009,66 @@ function syncLeagueStageInputs() {
         return;
       }
 
-      container.innerHTML = list.map(m => `
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding:7px 0; border-bottom:1px solid var(--line); font-size:12px;">
-          <div style="flex:1; min-width:0;">
-            <span class="pill" style="font-size:10px; margin-right:5px;">F${m.matchday}</span>
-            <span style="font-weight:600;">${esc(m.home_team)}</span>
-            <span class="muted"> vs </span>
-            <span style="font-weight:600;">${esc(m.away_team)}</span>
+      // Agrupar partidos por número de fecha
+      const byDay = {};
+      list.forEach(m => {
+        const md = Number(m.matchday || 1);
+        if (!byDay[md]) byDay[md] = [];
+        byDay[md].push(m);
+      });
+
+      const sortedDays = Object.keys(byDay).map(Number).sort((a, b) => b - a);
+
+      container.innerHTML = sortedDays.map(day => `
+        <div style="margin-bottom:12px; border:1px solid var(--line); border-radius:8px; overflow:hidden;">
+          <div style="background:var(--panel2); padding:6px 10px; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:13px; letter-spacing:0.6px; color:var(--green); display:flex; justify-content:space-between; align-items:center;">
+            <span>FECHA ${day}</span>
+            <span class="muted" style="font-family:inherit; font-size:11px; font-weight:600;">${byDay[day].length} partidos</span>
           </div>
-          <div style="display:flex; align-items:center; gap:4px;">
-            <input id="edit-hg-${m.id}" type="number" min="0" value="${m.home_goals}" style="width:42px; text-align:center; padding:4px;" />
-            <span>-</span>
-            <input id="edit-ag-${m.id}" type="number" min="0" value="${m.away_goals}" style="width:42px; text-align:center; padding:4px;" />
-            <button type="button" onclick="updateLeagueMatch('${m.id}')" title="Guardar cambio"
-              style="padding:5px 7px; border-radius:6px; border:1px solid var(--green); background:rgba(166,230,91,0.15); color:var(--green); cursor:pointer; display:inline-flex; align-items:center;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
-            <button type="button" onclick="deleteLeagueMatch('${m.id}')" title="Eliminar partido"
-              style="padding:5px 7px; border-radius:6px; border:1px solid var(--red); background:rgba(255,90,95,0.12); color:var(--red); cursor:pointer; display:inline-flex; align-items:center;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-            </button>
+          <div style="padding:4px 8px;">
+            ${byDay[day].map(m => `
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding:7px 0; border-bottom:1px solid var(--line); font-size:12px;">
+                <div style="flex:1; min-width:0;">
+                  <span style="font-weight:600;">${esc(m.home_team)}</span>
+                  <span class="muted"> vs </span>
+                  <span style="font-weight:600;">${esc(m.away_team)}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px;">
+                  <input id="edit-md-${m.id}" type="number" min="1" value="${m.matchday}" title="N° de Fecha" style="width:40px; text-align:center; padding:4px; font-size:11px; color:var(--muted);" />
+                  <input id="edit-hg-${m.id}" type="number" min="0" value="${m.home_goals}" style="width:40px; text-align:center; padding:4px;" />
+                  <span>-</span>
+                  <input id="edit-ag-${m.id}" type="number" min="0" value="${m.away_goals}" style="width:40px; text-align:center; padding:4px;" />
+                  <button type="button" onclick="updateLeagueMatch('${m.id}')" title="Guardar cambio"
+                    style="padding:5px 7px; border-radius:6px; border:1px solid var(--green); background:rgba(166,230,91,0.15); color:var(--green); cursor:pointer; display:inline-flex; align-items:center;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </button>
+                  <button type="button" onclick="deleteLeagueMatch('${m.id}')" title="Eliminar partido"
+                    style="padding:5px 7px; border-radius:6px; border:1px solid var(--red); background:rgba(255,90,95,0.12); color:var(--red); cursor:pointer; display:inline-flex; align-items:center;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
           </div>
         </div>
       `).join('');
     }
 
     async function updateLeagueMatch(matchId) {
+      const md = Number(document.getElementById(`edit-md-${matchId}`).value || 1);
       const hg = Number(document.getElementById(`edit-hg-${matchId}`).value);
       const ag = Number(document.getElementById(`edit-ag-${matchId}`).value);
 
       const { error } = await db
         .from('league_matches')
-        .update({ home_goals: hg, away_goals: ag })
+        .update({ matchday: md, home_goals: hg, away_goals: ag })
         .eq('id', matchId);
 
       if (error) return alert('Error al actualizar: ' + error.message);
 
       await loadLeaguesData();
       render();
-      alert('Resultado actualizado.');
+      alert('Partido actualizado.');
     }
 
     async function deleteLeagueMatch(matchId) {
