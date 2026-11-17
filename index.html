@@ -2704,11 +2704,10 @@ if (leagueSel) {
     let leagues = [];
     let leagueMatches = [];
 
-    async function loadLeaguesData() {
-      const client = typeof sb !== 'undefined' ? sb : supabase;
+   async function loadLeaguesData() {
       const [{ data: lData }, { data: lmData }] = await Promise.all([
-        client.from('leagues').select('*').order('created_at', { ascending: false }),
-        client.from('league_matches').select('*').order('matchday', { ascending: true })
+        db.from('leagues').select('*').order('created_at', { ascending: false }),
+        db.from('league_matches').select('*').order('matchday', { ascending: true })
       ]);
       leagues = lData || [];
       leagueMatches = lmData || [];
@@ -2796,8 +2795,7 @@ if (leagueSel) {
         </div>`;
     }
 
-    async function saveBulkLeagueResults() {
-      const client = typeof sb !== 'undefined' ? sb : supabase;
+  async function saveBulkLeagueResults() {
       const leagueId = document.getElementById('dt-league-select').value;
       const matchday = Number(document.getElementById('dt-league-matchday').value || 1);
       const rawText = document.getElementById('dt-league-bulk').value.trim();
@@ -2822,11 +2820,11 @@ if (leagueSel) {
         });
       }
 
-      const { error } = await client.from('league_matches').insert(rowsToInsert);
+      const { error } = await db.from('league_matches').insert(rowsToInsert);
       if (error) return alert('Error al guardar: ' + error.message);
 
       document.getElementById('dt-league-bulk').value = '';
-     await loadLeaguesData();
+      await loadLeaguesData();
       render();
       alert(`✅ Se cargaron ${rowsToInsert.length} partidos de la Fecha ${matchday}.`);
     }
@@ -3245,6 +3243,7 @@ if (leagueSel) {
         isLoggedAdmin = !!user;
 
         await loadTournaments();
+        await loadLeaguesData();
         render();
 
         document.getElementById('status').classList.add('hide');
