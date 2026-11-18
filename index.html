@@ -833,7 +833,12 @@
 
     <div style="text-align: center; margin-top: 30px;" id="login-footer-container">
       <button id="btn-admin-login" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; font-weight:bold;">🔐 Acceso DT / Admin</button>
+    <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); padding:8px 10px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; margin-bottom:12px;">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  <span id="visit-stats">Cargando visitas...</span>
+</div>
     </div>
+    
 
     <div id="admin-modal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2000;">
       <div class="card" style="width: 90%; max-width: 340px; background:var(--panel); text-align: left;">
@@ -3556,7 +3561,33 @@ function syncLeagueStageInputs() {
         btn.textContent = "Finalizar y Guardar Resultado";
       }
     });
+async function trackAndLoadVisits() {
+  try {
+    let visitorId = localStorage.getItem('mj_visitor_id');
+    if (!visitorId) {
+      visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      localStorage.setItem('mj_visitor_id', visitorId);
+    }
 
+    if (!sessionStorage.getItem('mj_visit_logged')) {
+      await db.from('page_visits').insert({ visitor_id: visitorId });
+      sessionStorage.setItem('mj_visit_logged', '1');
+    }
+
+    const { data, error } = await db.from('page_visits').select('visitor_id');
+    if (error || !data) return;
+
+    const totalVisits = data.length;
+    const uniquePeople = new Set(data.map(r => r.visitor_id)).size;
+
+    const el = document.getElementById('visit-stats');
+    if (el) {
+      el.textContent = `${totalVisits} visitas · ${uniquePeople} personas`;
+    }
+  } catch (e) {
+    console.error('Error contando visitas:', e);
+  }
+}
     async function init() {
       try {
         const { data, error } = await db.rpc('get_malajunta_public_data');
@@ -3564,7 +3595,7 @@ function syncLeagueStageInputs() {
         players = data.players || [];
         matches = data.matches || [];
         keepers = data.goalkeepers || [];
-
+trackAndLoadVisits();
         const { data: freshGoals, error: goalsErr } = await db.from('goals').select('*');
         if (goalsErr) throw goalsErr;
         goals = freshGoals || [];
