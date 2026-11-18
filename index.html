@@ -741,17 +741,6 @@
       </section>
 
       <section id="admin" class="tab-content hide">
-        <section id="admin" class="tab-content hide">
-        <div id="visit-stats-box" style="display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted); padding:10px 12px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; margin-bottom:14px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-            <span style="font-weight:700; color:var(--white);">Tráfico de la web</span>
-          </div>
-          <span id="visit-stats" style="font-weight:800; color:var(--green);">Cargando...</span>
-        </div>
         <div class="card" style="margin-bottom: 15px; border-color: var(--green);">
           <h2 style="margin-top:0;">📋 Pizarra de Control del DT</h2>
           <p class="muted" style="font-size: 12px;">Manejo total de la pizarra, el plantel y los resultados.</p>
@@ -844,12 +833,7 @@
 
     <div style="text-align: center; margin-top: 30px;" id="login-footer-container">
       <button id="btn-admin-login" style="background:var(--panel2); color:var(--muted); border:1px solid var(--line); padding:8px 16px; border-radius:20px; font-size:12px; cursor:pointer; font-weight:bold;">🔐 Acceso DT / Admin</button>
-    <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); padding:8px 10px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; margin-bottom:12px;">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-  <span id="visit-stats">Cargando visitas...</span>
-</div>
     </div>
-    
 
     <div id="admin-modal" class="hide" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:grid; place-items:center; z-index:2000;">
       <div class="card" style="width: 90%; max-width: 340px; background:var(--panel); text-align: left;">
@@ -3572,84 +3556,7 @@ function syncLeagueStageInputs() {
         btn.textContent = "Finalizar y Guardar Resultado";
       }
     });
-async function trackAndLoadVisits() {
-  try {
-    let visitorId = localStorage.getItem('mj_visitor_id');
-    if (!visitorId) {
-      visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-      localStorage.setItem('mj_visitor_id', visitorId);
-    }
 
-    if (!sessionStorage.getItem('mj_visit_logged')) {
-      await db.from('page_visits').insert({ visitor_id: visitorId });
-      sessionStorage.setItem('mj_visit_logged', '1');
-    }
-
-    const { data, error } = await db.from('page_visits').select('visitor_id');
-    if (error || !data) return;
-
-    const totalVisits = data.length;
-    const uniquePeople = new Set(data.map(r => r.visitor_id)).size;
-
-    const el = document.getElementById('visit-stats');
-    if (el) {
-      el.textContent = `${totalVisits} visitas · ${uniquePeople} personas`;
-    }
-  } catch (e) {
-    console.error('Error contando visitas:', e);
-  }
-}
-   // --- CONTADOR DE VISITAS EXCLUSIVO PARA DT ---
-function checkIsDT() {
-  // Revisa si alguna de las variables típicas de sesión DT está activa
-  if (typeof isDT !== 'undefined' && isDT) return true;
-  if (typeof dtMode !== 'undefined' && dtMode) return true;
-  if (typeof isAdmin !== 'undefined' && isAdmin) return true;
-  if (localStorage.getItem('mj_dt_auth') || localStorage.getItem('dt_auth') || localStorage.getItem('isDT') === 'true') return true;
-  return false;
-}
-
-async function trackAndLoadVisits() {
-  try {
-    // Detecta automáticamente cómo llamaste a tu cliente de Supabase en el archivo
-    const client = typeof db !== 'undefined' ? db : (typeof supabaseClient !== 'undefined' ? supabaseClient : supabase);
-    if (!client) return;
-
-    const esDT = checkIsDT();
-
-    // 1. Si NO es DT (es un visitante normal):
-    if (!esDT) {
-      // Le crea una huella única anónima en su navegador si es su primera vez
-      let visitorId = localStorage.getItem('mj_visitor_id');
-      if (!visitorId) {
-        visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-        localStorage.setItem('mj_visitor_id', visitorId);
-      }
-
-      // Guarda la visita en Supabase (1 vez por sesión para no contar si refresca la página)
-      if (!sessionStorage.getItem('mj_visit_logged')) {
-        await client.from('page_visits').insert({ visitor_id: visitorId });
-        sessionStorage.setItem('mj_visit_logged', '1');
-      }
-      return; // Corta acá: el visitante nunca descarga ni ve los números
-    }
-
-    // 2. Si SÍ es DT:
-    // No suma visita propia, pero descarga el historial y calcula los totales
-    const { data, error } = await client.from('page_visits').select('visitor_id');
-    if (error || !data) return;
-
-    const totalVisitas = data.length;
-    const personasUnicas = new Set(data.map(fila => fila.visitor_id)).size;
-
-    const textoContador = document.getElementById('visit-stats');
-    if (textoContador) {
-      textoContador.textContent = `${totalVisitas} visitas · ${personasUnicas} personas`;
-    }
-  } catch (err) {
-    console.error('Error en el contador de visitas:', err);
-  }
-}
     async function init() {
       try {
         const { data, error } = await db.rpc('get_malajunta_public_data');
@@ -3657,11 +3564,11 @@ async function trackAndLoadVisits() {
         players = data.players || [];
         matches = data.matches || [];
         keepers = data.goalkeepers || [];
-trackAndLoadVisits();
+
         const { data: freshGoals, error: goalsErr } = await db.from('goals').select('*');
         if (goalsErr) throw goalsErr;
         goals = freshGoals || [];
-trackAndLoadVisits();
+
         await loadPlayerBeerCounts();
 
         const { data: { user } } = await db.auth.getUser();
