@@ -3590,6 +3590,80 @@ function syncLeagueStageInputs() {
     }
 
     init();
+ // --- CONTADOR DE VISITAS EXCLUSIVO PARA PANEL DT ---
+function esModoDT() {
+  if (typeof isDT !== 'undefined' && isDT) return true;
+  if (typeof dtMode !== 'undefined' && dtMode) return true;
+  if (typeof isAdmin !== 'undefined' && isAdmin) return true;
+  if (localStorage.getItem('mj_dt_auth') || localStorage.getItem('dt_auth') || localStorage.getItem('isDT') === 'true') return true;
+  const adminTab = document.getElementById('nav-admin-tab');
+  if (adminTab && !adminTab.classList.contains('hide')) return true;
+  return false;
+}
+
+async function trackAndLoadVisits() {
+  try {
+    const client = typeof db !== 'undefined' ? db : (typeof supabaseClient !== 'undefined' ? supabaseClient : supabase);
+    if (!client) return;
+
+    // 1. Si es visitante normal: registra su visita en silencio y sale
+    if (!esModoDT()) {
+      let visitorId = localStorage.getItem('mj_visitor_id');
+      if (!visitorId) {
+        visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        localStorage.setItem('mj_visitor_id', visitorId);
+      }
+      if (!sessionStorage.getItem('mj_visit_logged')) {
+        await client.from('page_visits').insert({ visitor_id: visitorId });
+        sessionStorage.setItem('mj_visit_logged', '1');
+      }
+      return;
+    }
+
+    // 2. Si es DT: trae los totales de Supabase
+    const { data, error } = await client.from('page_visits').select('visitor_id');
+    if (error || !data) return;
+
+    const totalVisitas = data.length;
+    const personasUnicas = new Set(data.map(r => r.visitor_id)).size;
+    const resumenTexto = `${totalVisitas} visitas · ${personasUnicas} personas`;
+
+    // 3. Dibuja o actualiza la caja automáticamente arriba de <section id="admin">
+    const adminSection = document.getElementById('admin');
+    if (!adminSection) return;
+
+    let box = document.getElementById('visit-stats-box');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'visit-stats-box';
+      box.style.cssText = 'display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted); padding:10px 12px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; margin-bottom:14px;';
+      box.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span style="font-weight:700; color:var(--white);">Tráfico de la web</span>
+        </div>
+        <span id="visit-stats" style="font-weight:800; color:var(--green);"></span>
+      `;
+      adminSection.prepend(box);
+    }
+
+    const span = document.getElementById('visit-stats');
+    if (span) span.textContent = resumenTexto;
+  } catch (e) {
+    console.error('Error en contador de visitas:', e);
+  }
+}
+
+// Ejecuta al abrir la web y cada vez que hacés clic en la pestaña Panel DT
+window.addEventListener('load', () => setTimeout(trackAndLoadVisits, 800));
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-tab="admin"]') || e.target.closest('#nav-admin-tab')) {
+    setTimeout(trackAndLoadVisits, 150);
+  }
+});
   </script>
 </body>
 </html>
