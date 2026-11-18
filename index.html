@@ -3591,7 +3591,7 @@ function syncLeagueStageInputs() {
     }
 
     init();
- // --- CONTADOR DE VISITAS EXCLUSIVO PARA PANEL DT ---
+ // --- CONTADOR DE VISITAS EXCLUSIVO PARA PANEL DT (SIN AUTO-CONTEO) ---
 function esModoDT() {
   if (typeof isDT !== 'undefined' && isDT) return true;
   if (typeof dtMode !== 'undefined' && dtMode) return true;
@@ -3607,8 +3607,16 @@ async function trackAndLoadVisits() {
     const client = typeof db !== 'undefined' ? db : (typeof supabaseClient !== 'undefined' ? supabaseClient : supabase);
     if (!client) return;
 
-    // 1. Si es visitante normal: registra su visita en silencio y sale
-    if (!esModoDT()) {
+    const soyDTAhora = esModoDT();
+    // Recuerda este navegador para siempre como dispositivo del DT
+    if (soyDTAhora) {
+      localStorage.setItem('mj_ignore_my_visits', '1');
+    }
+
+    const esDispositivoDT = soyDTAhora || localStorage.getItem('mj_ignore_my_visits') === '1';
+
+    // 1. Solo cuenta si NO es tu dispositivo de DT
+    if (!esDispositivoDT) {
       let visitorId = localStorage.getItem('mj_visitor_id');
       if (!visitorId) {
         visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -3621,7 +3629,9 @@ async function trackAndLoadVisits() {
       return;
     }
 
-    // 2. Si es DT: trae los totales de Supabase
+    // 2. Si estás con la sesión de DT abierta, muestra los números en el Panel DT
+    if (!soyDTAhora) return;
+
     const { data, error } = await client.from('page_visits').select('visitor_id');
     if (error || !data) return;
 
@@ -3629,7 +3639,6 @@ async function trackAndLoadVisits() {
     const personasUnicas = new Set(data.map(r => r.visitor_id)).size;
     const resumenTexto = `${totalVisitas} visitas · ${personasUnicas} personas`;
 
-    // 3. Dibuja o actualiza la caja automáticamente arriba de <section id="admin">
     const adminSection = document.getElementById('admin');
     if (!adminSection) return;
 
@@ -3658,8 +3667,7 @@ async function trackAndLoadVisits() {
   }
 }
 
-// Ejecuta al abrir la web y cada vez que hacés clic en la pestaña Panel DT
-window.addEventListener('load', () => setTimeout(trackAndLoadVisits, 800));
+window.addEventListener('load', () => setTimeout(trackAndLoadVisits, 500));
 document.addEventListener('click', (e) => {
   if (e.target.closest('[data-tab="admin"]') || e.target.closest('#nav-admin-tab')) {
     setTimeout(trackAndLoadVisits, 150);
