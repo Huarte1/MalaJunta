@@ -2869,7 +2869,7 @@ let leagueBase = [];
       const allLeagueMatches = leagueMatches.filter(m => String(m.league_id) === String(leagueId));
       const aperturaMatches = allLeagueMatches.filter(m => Number(m.matchday || 1) <= apEnd);
 
-      // 1. Calculamos siempre el Apertura primero para saber quiénes son los 2 ascendidos a Categoría A
+     // 1. Calculamos siempre el Apertura primero para saber quiénes son los 2 ascendidos a Categoría A
       const aperturaSorted = computeStandings(aperturaMatches, true, 2);
       const promotedKeys = new Set(
         aperturaSorted.slice(0, 2).map(t => t.name.trim().toLowerCase())
@@ -2880,14 +2880,11 @@ let leagueBase = [];
       if (stage === 'apertura') {
         sorted = aperturaSorted;
       } else if (stage === 'clausura') {
-        // Excluye cualquier partido o equipo que haya ascendido en el Apertura
-        const clausuraMatches = allLeagueMatches.filter(m => {
-          if (Number(m.matchday || 1) < clStart) return false;
-          const hKey = m.home_team.trim().toLowerCase();
-          const aKey = m.away_team.trim().toLowerCase();
-          return !promotedKeys.has(hKey) && !promotedKeys.has(aKey);
-        });
-        sorted = computeStandings(clausuraMatches, false, 2);
+        // Toma todos los partidos del Clausura (incluidos los cruces contra los de la A)
+        const clausuraMatches = allLeagueMatches.filter(m => Number(m.matchday || 1) >= clStart);
+        // Calcula todos los puntos y luego saca de la tabla solo a los 2 que están en la A
+        sorted = computeStandings(clausuraMatches, false, 2)
+          .filter(team => !promotedKeys.has(team.name.trim().toLowerCase()));
       } else {
         // Tabla Anual
         sorted = computeStandings(allLeagueMatches, true, 4);
