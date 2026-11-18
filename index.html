@@ -701,16 +701,6 @@
 
         <button data-tab="admin" id="nav-admin-tab" class="hide">
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span>Panel DT
-        <div id="visit-stats-box" style="display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted); padding:10px 12px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; margin-bottom:14px;">
-  <div style="display:flex; align-items:center; gap:8px;">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-    <span style="font-weight:700; color:var(--white);">Tráfico de la web</span>
-  </div>
-  <span id="visit-stats" style="font-weight:800; color:var(--green);">Cargando...</span>
-</div>
         </button>
       </nav>
 
@@ -751,6 +741,17 @@
       </section>
 
       <section id="admin" class="tab-content hide">
+        <section id="admin" class="tab-content hide">
+        <div id="visit-stats-box" style="display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted); padding:10px 12px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span style="font-weight:700; color:var(--white);">Tráfico de la web</span>
+          </div>
+          <span id="visit-stats" style="font-weight:800; color:var(--green);">Cargando...</span>
+        </div>
         <div class="card" style="margin-bottom: 15px; border-color: var(--green);">
           <h2 style="margin-top:0;">📋 Pizarra de Control del DT</h2>
           <p class="muted" style="font-size: 12px;">Manejo total de la pizarra, el plantel y los resultados.</p>
