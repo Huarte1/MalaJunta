@@ -701,6 +701,16 @@
 
         <button data-tab="admin" id="nav-admin-tab" class="hide">
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span>Panel DT
+        <div id="visit-stats-box" style="display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted); padding:10px 12px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; margin-bottom:14px;">
+  <div style="display:flex; align-items:center; gap:8px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+    <span style="font-weight:700; color:var(--white);">Tráfico de la web</span>
+  </div>
+  <span id="visit-stats" style="font-weight:800; color:var(--green);">Cargando...</span>
+</div>
         </button>
       </nav>
 
@@ -3588,6 +3598,57 @@ async function trackAndLoadVisits() {
     console.error('Error contando visitas:', e);
   }
 }
+   // --- CONTADOR DE VISITAS EXCLUSIVO PARA DT ---
+function checkIsDT() {
+  // Revisa si alguna de las variables típicas de sesión DT está activa
+  if (typeof isDT !== 'undefined' && isDT) return true;
+  if (typeof dtMode !== 'undefined' && dtMode) return true;
+  if (typeof isAdmin !== 'undefined' && isAdmin) return true;
+  if (localStorage.getItem('mj_dt_auth') || localStorage.getItem('dt_auth') || localStorage.getItem('isDT') === 'true') return true;
+  return false;
+}
+
+async function trackAndLoadVisits() {
+  try {
+    // Detecta automáticamente cómo llamaste a tu cliente de Supabase en el archivo
+    const client = typeof db !== 'undefined' ? db : (typeof supabaseClient !== 'undefined' ? supabaseClient : supabase);
+    if (!client) return;
+
+    const esDT = checkIsDT();
+
+    // 1. Si NO es DT (es un visitante normal):
+    if (!esDT) {
+      // Le crea una huella única anónima en su navegador si es su primera vez
+      let visitorId = localStorage.getItem('mj_visitor_id');
+      if (!visitorId) {
+        visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        localStorage.setItem('mj_visitor_id', visitorId);
+      }
+
+      // Guarda la visita en Supabase (1 vez por sesión para no contar si refresca la página)
+      if (!sessionStorage.getItem('mj_visit_logged')) {
+        await client.from('page_visits').insert({ visitor_id: visitorId });
+        sessionStorage.setItem('mj_visit_logged', '1');
+      }
+      return; // Corta acá: el visitante nunca descarga ni ve los números
+    }
+
+    // 2. Si SÍ es DT:
+    // No suma visita propia, pero descarga el historial y calcula los totales
+    const { data, error } = await client.from('page_visits').select('visitor_id');
+    if (error || !data) return;
+
+    const totalVisitas = data.length;
+    const personasUnicas = new Set(data.map(fila => fila.visitor_id)).size;
+
+    const textoContador = document.getElementById('visit-stats');
+    if (textoContador) {
+      textoContador.textContent = `${totalVisitas} visitas · ${personasUnicas} personas`;
+    }
+  } catch (err) {
+    console.error('Error en el contador de visitas:', err);
+  }
+}
     async function init() {
       try {
         const { data, error } = await db.rpc('get_malajunta_public_data');
@@ -3599,7 +3660,7 @@ trackAndLoadVisits();
         const { data: freshGoals, error: goalsErr } = await db.from('goals').select('*');
         if (goalsErr) throw goalsErr;
         goals = freshGoals || [];
-
+trackAndLoadVisits();
         await loadPlayerBeerCounts();
 
         const { data: { user } } = await db.auth.getUser();
