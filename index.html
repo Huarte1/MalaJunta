@@ -583,12 +583,21 @@
       background: rgba(37, 211, 102, 0.25);
     }
 
-    @media (max-width: 600px) {
-      .hero, .audio-player-card, .grid, .section { margin-bottom: 10px !important; }
-      .card { padding: 12px !important; }
-      .metric { font-size: 30px !important; }
-      .matchday-board { gap: 8px !important; padding: 2px 0 !important; }
-    }
+   @media (max-width: 600px) {
+  .music-player, #music-player, .audio-bar {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    min-height: unset !important;
+    gap: 8px !important;
+  }
+
+  /* Oculta elementos secundarios dentro del reproductor en móvil (ej. barra de volumen, subtítulos, carátula) */
+  .music-player .volume-control,
+  .music-player .track-subtitle,
+  .music-player img {
+    display: none !important;
+  }
+}
     .standings-table { width: 100%; border-collapse: collapse; }
     .standings-table th, .standings-table td {
       padding: 9px 6px;
