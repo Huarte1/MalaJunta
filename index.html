@@ -2919,18 +2919,23 @@ let leagueBase = [];
             </thead>
             <tbody>
               ${sorted.map((row, i) => {
-                const pos = i + 1;
-                const isMJ = row.name.toLowerCase().includes('malajunta');
-                const badge = pos === 1 ? 'top-1' : (pos <= 4 ? 'top-qualify' : '');
+               const pos = i + 1;
+const isMJ = row.name.toLowerCase().includes('malajunta');
+const isAscensoA = stage === 'apertura' && pos <= 2;
+const badge = isAscensoA ? 'top-qualify' : (pos === 1 ? 'top-1' : '');
+const promoTag = isAscensoA
+  ? `<span style="margin-left:auto; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; background:rgba(166,230,91,0.18); color:var(--green); border:1px solid rgba(166,230,91,0.45); letter-spacing:0.4px;">ASCENSO A</span>`
+  : '';
                 return `
                   <tr class="${isMJ ? 'standings-row-mj' : ''}">
                     <td><span class="pos-badge ${badge}">${pos}</span></td>
                     <td>
-                      <div style="display:flex; align-items:center; gap:7px; white-space:nowrap;">
-                        ${typeof getTeamCrestHTML === 'function' ? getTeamCrestHTML(row.name, false) : ''}
-                        <span>${esc(row.name)}</span>
-                      </div>
-                    </td>
+  <div style="display:flex; align-items:center; gap:7px; white-space:nowrap;">
+    ${typeof getTeamCrestHTML === 'function' ? getTeamCrestHTML(row.name, false) : ''}
+    <span>${esc(row.name)}</span>
+    ${promoTag}
+  </div>
+</td>
                     <td style="font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:var(--white);">${row.pts}</td>
                     <td>${row.pj}</td>
                     <td>${row.pg}</td>
@@ -2943,9 +2948,15 @@ let leagueBase = [];
                     </td>
                   </tr>`;
               }).join('')}
-            </tbody>
+           </tbody>
           </table>
-        </div>`;
+        </div>
+        ${stage === 'apertura' ? `
+          <div style="display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11px; color:var(--muted);">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:var(--green);"></span>
+            <span>Puestos 1 y 2: Ascienden a Categoría A para el Clausura</span>
+          </div>
+        ` : ''}`;
     }
 function syncLeagueStageInputs() {
   const sel = document.getElementById('dt-league-select');
