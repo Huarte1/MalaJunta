@@ -2808,76 +2808,91 @@ let leagueBase = [];
       render();
     }
 
-    function renderLeagueTable(leagueId) {
+  function renderLeagueTable(leagueId) {
       const league = leagues.find(l => String(l.id) === String(leagueId)) || {};
       const apEnd = Number(league.apertura_end || 13);
       const clStart = Number(league.clausura_start || (apEnd + 1));
-      const stage = leagueStageFilter[leagueId] || 'apertura'; // Por defecto muestra Apertura
+      const stage = leagueStageFilter[leagueId] || 'apertura';
 
-      // Filtra los partidos según la pestaña elegida
-      const matches = leagueMatches.filter(m => {
-        if (String(m.league_id) !== String(leagueId)) return false;
-        const md = Number(m.matchday || 1);
-        if (stage === 'apertura') return md <= apEnd;
-        if (stage === 'clausura') return md >= clStart;
-        return true; // 'anual' muestra todos
-      });
+      // Función auxiliar para calcular una tabla dada una lista de partidos y si incluye la base inicial
+      const computeStandings = (matchList, includeBase, maxCrosses) => {
+        const tbl = {};
+        const getT = (rawName) => {
+          const clean = rawName.trim();
+          const key = clean.toLowerCase();
+          if (!tbl[key]) {
+            tbl[key] = { name: clean, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dif: 0, pts: 0 };
+          }
+          return tbl[key];
+        };
 
-      const table = {};
-      const getTeam = (rawName) => {
-        const clean = rawName.trim();
-        const key = clean.toLowerCase();
-        if (!table[key]) {
-          table[key] = { name: clean, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, dif: 0, pts: 0 };
+        if (includeBase) {
+          leagueBase
+            .filter(b => String(b.league_id) === String(leagueId))
+            .forEach(b => {
+              const t = getT(b.team_name);
+              t.pj += Number(b.pj || 0);
+              t.pg += Number(b.pg || 0);
+              t.pe += Number(b.pe || 0);
+              t.pp += Number(b.pp || 0);
+              t.gf += Number(b.gf || 0);
+              t.gc += Number(b.gc || 0);
+              t.pts += Number(b.pts || 0);
+            });
         }
-        return table[key];
+
+        const h2h = {};
+        matchList.forEach(m => {
+          const home = getT(m.home_team);
+          const away = getT(m.away_team);
+          const pairKey = [home.name.toLowerCase(), away.name.toLowerCase()].sort().join('__vs__');
+          h2h[pairKey] = (h2h[pairKey] || 0) + 1;
+          if (h2h[pairKey] > maxCrosses) return;
+
+          const hg = Number(m.home_goals);
+          const ag = Number(m.away_goals);
+
+          home.pj++; away.pj++;
+          home.gf += hg; home.gc += ag;
+          away.gf += ag; away.gc += hg;
+
+          if (hg > ag) { home.pg++; home.pts += 3; away.pp++; }
+          else if (ag > hg) { away.pg++; away.pts += 3; home.pp++; }
+          else { home.pe++; away.pe++; home.pts += 1; away.pts += 1; }
+        });
+
+        return Object.values(tbl)
+          .map(r => ({ ...r, dif: r.gf - r.gc }))
+          .sort((a, b) => b.pts - a.pts || b.dif - b.dif || b.gf - b.gf);
       };
 
-      // La tabla base inicial solo se suma en Apertura y en la Anual
-      if (stage === 'apertura' || stage === 'anual') {
-        leagueBase
-          .filter(b => String(b.league_id) === String(leagueId))
-          .forEach(b => {
-            const t = getTeam(b.team_name);
-            t.pj += Number(b.pj || 0);
-            t.pg += Number(b.pg || 0);
-            t.pe += Number(b.pe || 0);
-            t.pp += Number(b.pp || 0);
-            t.gf += Number(b.gf || 0);
-            t.gc += Number(b.gc || 0);
-            t.pts += Number(b.pts || 0);
-          });
+      const allLeagueMatches = leagueMatches.filter(m => String(m.league_id) === String(leagueId));
+      const aperturaMatches = allLeagueMatches.filter(m => Number(m.matchday || 1) <= apEnd);
+
+      // 1. Calculamos siempre el Apertura primero para saber quiénes son los 2 ascendidos a Categoría A
+      const aperturaSorted = computeStandings(aperturaMatches, true, 2);
+      const promotedKeys = new Set(
+        aperturaSorted.slice(0, 2).map(t => t.name.trim().toLowerCase())
+      );
+
+      // 2. Calculamos la vista que el usuario está mirando ahora
+      let sorted = [];
+      if (stage === 'apertura') {
+        sorted = aperturaSorted;
+      } else if (stage === 'clausura') {
+        // Excluye cualquier partido o equipo que haya ascendido en el Apertura
+        const clausuraMatches = allLeagueMatches.filter(m => {
+          if (Number(m.matchday || 1) < clStart) return false;
+          const hKey = m.home_team.trim().toLowerCase();
+          const aKey = m.away_team.trim().toLowerCase();
+          return !promotedKeys.has(hKey) && !promotedKeys.has(aKey);
+        });
+        sorted = computeStandings(clausuraMatches, false, 2);
+      } else {
+        // Tabla Anual
+        sorted = computeStandings(allLeagueMatches, true, 4);
       }
 
-      const h2hCount = {};
-      matches.forEach(m => {
-        const home = getTeam(m.home_team);
-        const away = getTeam(m.away_team);
-
-        const pairKey = [home.name.toLowerCase(), away.name.toLowerCase()].sort().join('__vs__');
-        h2hCount[pairKey] = (h2hCount[pairKey] || 0) + 1;
-
-        // En Apertura o Clausura máximo 2 cruces; en la Anual permite hasta 4 (2 por torneo)
-        const maxCrosses = stage === 'anual' ? 4 : 2;
-        if (h2hCount[pairKey] > maxCrosses) return;
-
-        const hg = Number(m.home_goals);
-        const ag = Number(m.away_goals);
-
-        home.pj++; away.pj++;
-        home.gf += hg; home.gc += ag;
-        away.gf += ag; away.gc += hg;
-
-        if (hg > ag) { home.pg++; home.pts += 3; away.pp++; }
-        else if (ag > hg) { away.pg++; away.pts += 3; home.pp++; }
-        else { home.pe++; away.pe++; home.pts += 1; away.pts += 1; }
-      });
-
-      const sorted = Object.values(table)
-        .map(r => ({ ...r, dif: r.gf - r.gc }))
-        .sort((a, b) => b.pts - a.pts || b.dif - a.dif || b.gf - a.gf);
-
-      // Botonera de filtro Apertura / Clausura / Anual (sin emojis)
       const tabsHTML = `
         <div style="display:flex; gap:6px; margin-bottom:10px;">
           ${[
@@ -2919,23 +2934,23 @@ let leagueBase = [];
             </thead>
             <tbody>
               ${sorted.map((row, i) => {
-               const pos = i + 1;
-const isMJ = row.name.toLowerCase().includes('malajunta');
-const isAscensoA = stage === 'apertura' && pos <= 2;
-const badge = isAscensoA ? 'top-qualify' : (pos === 1 ? 'top-1' : '');
-const promoTag = isAscensoA
-  ? `<span style="margin-left:auto; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; background:rgba(166,230,91,0.18); color:var(--green); border:1px solid rgba(166,230,91,0.45); letter-spacing:0.4px;">ASCENSO A</span>`
-  : '';
+                const pos = i + 1;
+                const isMJ = row.name.toLowerCase().includes('malajunta');
+                const isAscensoA = stage === 'apertura' && pos <= 2;
+                const badge = isAscensoA ? 'top-qualify' : (pos === 1 ? 'top-1' : '');
+                const promoTag = isAscensoA
+                  ? `<span style="margin-left:auto; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; background:rgba(166,230,91,0.18); color:var(--green); border:1px solid rgba(166,230,91,0.45); letter-spacing:0.4px;">ASCENSO A</span>`
+                  : '';
                 return `
                   <tr class="${isMJ ? 'standings-row-mj' : ''}">
                     <td><span class="pos-badge ${badge}">${pos}</span></td>
                     <td>
-  <div style="display:flex; align-items:center; gap:7px; white-space:nowrap;">
-    ${typeof getTeamCrestHTML === 'function' ? getTeamCrestHTML(row.name, false) : ''}
-    <span>${esc(row.name)}</span>
-    ${promoTag}
-  </div>
-</td>
+                      <div style="display:flex; align-items:center; gap:7px; white-space:nowrap;">
+                        ${typeof getTeamCrestHTML === 'function' ? getTeamCrestHTML(row.name, false) : ''}
+                        <span>${esc(row.name)}</span>
+                        ${promoTag}
+                      </div>
+                    </td>
                     <td style="font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:var(--white);">${row.pts}</td>
                     <td>${row.pj}</td>
                     <td>${row.pg}</td>
@@ -2948,13 +2963,13 @@ const promoTag = isAscensoA
                     </td>
                   </tr>`;
               }).join('')}
-           </tbody>
+            </tbody>
           </table>
         </div>
         ${stage === 'apertura' ? `
           <div style="display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11px; color:var(--muted);">
             <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:var(--green);"></span>
-            <span>Puestos 1 y 2: Ascienden a Categoría A para el Clausura</span>
+            <span>Puestos 1 y 2: Ascienden a Categoría A y no suman en el Clausura</span>
           </div>
         ` : ''}`;
     }
