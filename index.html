@@ -2807,7 +2807,12 @@ let leagueBase = [];
       leagueStageFilter[leagueId] = stage;
       render();
     }
+let leagueExpanded = {};
 
+    function toggleLeagueExpand(leagueId) {
+      leagueExpanded[leagueId] = !leagueExpanded[leagueId];
+      render();
+    }
   function renderLeagueTable(leagueId) {
       const league = leagues.find(l => String(l.id) === String(leagueId)) || {};
       const apEnd = Number(league.apertura_end || 13);
@@ -2911,6 +2916,10 @@ let leagueBase = [];
         return `${tabsHTML}<div class="empty">No hay partidos cargados en esta etapa todavía.</div>`;
       }
 
+   const isExpanded = !!leagueExpanded[leagueId];
+      const hasMore = sorted.length > 10;
+      const visibleRows = (hasMore && !isExpanded) ? sorted.slice(0, 10) : sorted;
+
       return `
         ${tabsHTML}
         <div class="table-wrap">
@@ -2930,7 +2939,7 @@ let leagueBase = [];
               </tr>
             </thead>
             <tbody>
-              ${sorted.map((row, i) => {
+              ${visibleRows.map((row, i) => {
                 const pos = i + 1;
                 const isMJ = row.name.toLowerCase().includes('malajunta');
                 const isAscensoA = stage === 'apertura' && pos <= 2;
@@ -2963,6 +2972,15 @@ let leagueBase = [];
             </tbody>
           </table>
         </div>
+        ${hasMore ? `
+          <button type="button" onclick="toggleLeagueExpand('${leagueId}')"
+            style="margin-top:8px; width:100%; padding:7px 10px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--muted); font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <span>${isExpanded ? 'Mostrar solo Top 10' : `Ver tabla completa (+${sorted.length - 10} equipos)`}</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transform:${isExpanded ? 'rotate(180deg)' : 'none'}; transition:transform 0.2s;">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+        ` : ''}
         ${stage === 'apertura' ? `
           <div style="display:flex; align-items:center; gap:6px; margin-top:8px; font-size:11px; color:var(--muted);">
             <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:var(--green);"></span>
