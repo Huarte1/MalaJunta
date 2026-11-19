@@ -624,6 +624,48 @@
   transform: scale(1.22);
   filter: drop-shadow(0 0 6px rgba(166, 230, 91, 0.28));
 }
+    /* --- MEJORA RESPONSIVE PARA TABLA DE POSICIONES --- */
+.table-wrap,
+.standings-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  padding: 8px 6px !important;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Ajuste específico para celulares */
+@media (max-width: 600px) {
+  table th,
+  table td {
+    padding: 6px 4px !important;
+    font-size: 11.5px;
+  }
+
+  /* Evita que el nombre del equipo empuje las columnas hacia afuera */
+  table td:nth-child(2) {
+    max-width: 135px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Achica las etiquetas como "ASCENSO A" para que no ocupen tanto ancho */
+  table td:nth-child(2) span,
+  .badge-ascenso {
+    font-size: 9px !important;
+    padding: 2px 5px !important;
+  }
+}
   </style>
 </head>
 <body>
