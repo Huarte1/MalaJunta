@@ -624,25 +624,19 @@
   transform: scale(1.22);
   filter: drop-shadow(0 0 6px rgba(166, 230, 91, 0.28));
 }
- // Separa el badge "ASCENSO A" a su propia columna para que se deslice con los puntos
-function separarBadgeTabla() {
-  document.querySelectorAll('table tr').forEach(tr => {
-    const tdEquipo = tr.children[1];
-    if (!tdEquipo || tr.dataset.badgeSeparado) return;
-    const badge = Array.from(tdEquipo.querySelectorAll('span')).find(s => s.textContent.includes('ASCENSO') || s.textContent.includes('DESCENSO') || s.textContent.includes('PROMO'));
-    if (badge) {
-      const nuevaTd = document.createElement('td');
-      nuevaTd.style.padding = '6px 4px';
-      nuevaTd.appendChild(badge);
-      tdEquipo.after(nuevaTd);
-      tr.dataset.badgeSeparado = '1';
-    } else if (tr.querySelector('th')) {
-      const nuevoTh = document.createElement('th');
-      tr.children[1].after(nuevoTh);
-      tr.dataset.badgeSeparado = '1';
+
+    @media (max-width: 600px) {
+      .txt-btn-goles { display: none; }
+      .tabs {
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        background: rgba(12, 18, 14, 0.97);
+      }
     }
-  });
-}
+    .tabs, .fut-card, .card {
+      will-change: transform;
+      transform: translateZ(0);
+    }
   </style>
 </head>
 <body>
@@ -1064,7 +1058,8 @@ function renderLeagueFixtures(leagueId) {
         audio.currentTime = (seekBar.value / 100) * audio.duration;
       }
     });
-    loadSongsFromBucket();
+    // Carga diferida de música para priorizar la carga de datos del club
+    setTimeout(() => { if (window.innerWidth > 600) loadSongsFromBucket(); }, 1200);
 
     // 3. ESTRATEGIA Y FORMACIONES (CON 4-1-3-2)
     let formationSettings = { formation: '4-3-3', lineups: {}, bench: {} };
@@ -2251,13 +2246,13 @@ function getTeamCrestHTML(teamName, large = false) {
       const fbStyle = `display:none; align-items:center; justify-content:center; width:${size}; height:${size}; border-radius:50%; background:var(--panel2); border:1px solid var(--line); color:var(--green); font-size:${large ? '11px' : '10px'}; font-weight:900; flex-shrink:0; text-transform:uppercase;`;
 
       if (clean.includes('malajunta')) {
-        return `<img src="logo_malajunta_transparente.png" alt="${esc(teamName)}" style="${imgStyle}">`;
+        return `<img src="logo_malajunta_transparente.png" alt="${esc(teamName)}" loading="lazy" decoding="async" style="${imgStyle}">`;
       }
 
       const { data } = db.storage.from('escudos').getPublicUrl(`${clean}.png`);
 
       return `
-        <img src="${data.publicUrl}" alt="${esc(teamName)}" style="${imgStyle}" 
+        <img src="${data.publicUrl}" alt="${esc(teamName)}" loading="lazy" decoding="async" style="${imgStyle}" 
              onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
         <span style="${fbStyle}">${esc(initials)}</span>
       `;
@@ -3576,31 +3571,9 @@ function syncLeagueStageInputs() {
         btn.textContent = "Finalizar y Guardar Resultado";
       }
     });
-// --- CACHÉ LOCAL PARA ARRANQUE INSTANTÁNEO ---
-const MJ_CACHE_KEY = 'mj_club_cache_v1';
 
-function guardarCacheClub(payload) {
-  try {
-    localStorage.setItem(MJ_CACHE_KEY, JSON.stringify({
-      ts: Date.now(),
-      data: payload
-    }));
-  } catch (e) { /* Ignora si el almacenamiento está lleno */ }
-}
-
-function leerCacheClub() {
-  try {
-    const raw = localStorage.getItem(MJ_CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return parsed && parsed.data ? parsed.data : null;
-  } catch (e) {
-    return null;
-  }
-}
-   
-// --- CACHÉ LOCAL PARA ARRANQUE INSTANTÁNEO ---
-    const MJ_CACHE_KEY = 'mj_club_cache_v1';
+    // --- CACHÉ LOCAL PARA ARRANQUE INSTANTÁNEO (0 ms) ---
+    const MJ_CACHE_KEY = 'mj_club_cache_v2';
 
     function guardarCacheClub(payload) {
       try {
@@ -3618,23 +3591,30 @@ function leerCacheClub() {
     }
 
     async function init() {
-      // 1. Si hay datos guardados en el dispositivo, muestra la web al instante (0 ms)
       const cache = leerCacheClub();
       if (cache) {
         players = cache.players || [];
         matches = cache.matches || [];
         keepers = cache.keepers || [];
         goals = cache.goals || [];
+        playerBeerCounts = cache.playerBeerCounts || {};
+        tournaments = cache.tournaments || [];
+        tournamentTeams = cache.tournamentTeams || [];
+        tournamentMatches = cache.tournamentMatches || [];
+        leagues = cache.leagues || [];
+        leagueMatches = cache.leagueMatches || [];
+        if (!activeTournamentId && tournaments.length) activeTournamentId = tournaments[0].id;
+
         render();
+        renderTournaments();
         document.getElementById('status').classList.add('hide');
         document.getElementById('site').classList.remove('hide');
       }
 
       try {
-        // 2. Descarga datos principales, goles y sesión EN PARALELO (mucho más rápido)
         const [rpcRes, goalsRes, authRes] = await Promise.all([
           db.rpc('get_malajunta_public_data'),
-          db.from('goals').select('*'),
+          db.from('goals').select('id, match_id, scorer_id, assist_id, created_at'),
           db.auth.getUser()
         ]);
 
@@ -3650,16 +3630,20 @@ function leerCacheClub() {
         const user = authRes?.data?.user || null;
         isLoggedAdmin = !!user;
 
-        // 3. Carga cervezas, torneos y liga también EN PARALELO
         await Promise.all([
           loadPlayerBeerCounts(),
           loadTournaments(),
           loadLeaguesData()
         ]);
 
-        // 4. Guarda la copia actualizada y refresca la vista con datos frescos
-        guardarCacheClub({ players, matches, keepers, goals });
+        guardarCacheClub({
+          players, matches, keepers, goals, playerBeerCounts,
+          tournaments, tournamentTeams, tournamentMatches,
+          leagues, leagueMatches
+        });
+
         render();
+        renderTournaments();
 
         document.getElementById('status').classList.add('hide');
         document.getElementById('site').classList.remove('hide');
@@ -3668,7 +3652,6 @@ function leerCacheClub() {
 
         if (currentMatchIdForView) renderMatchDetail(currentMatchIdForView);
       } catch (e) {
-        // Solo muestra error en pantalla si tampoco había caché previa cargada
         if (!cache) {
           document.getElementById('status').innerHTML = `<div class="error">❌ Error al cargar datos.<br><small>${esc(e.message || e)}</small></div>`;
         }
@@ -3758,84 +3741,80 @@ document.addEventListener('click', (e) => {
     setTimeout(trackAndLoadVisits, 150);
   }
 });
-    // --- MEJORA DE COLUMNA DE GOLES Y GOLEADORES EN ÚLTIMOS PARTIDOS ---
-async function mejorarTablaUltimosPartidos() {
-  try {
-    const client = typeof db !== 'undefined' ? db : (typeof supabaseClient !== 'undefined' ? supabaseClient : supabase);
-    if (!client) return;
+    // --- OPTIMIZACIÓN EN MEMORIA: TABLAS Y GOLEADORES SIN CONSULTAS EXTRA ---
+function optimizarTablasEnMemoria() {
+  // 1. Separa badge ASCENSO A a su propia columna para el scroll móvil
+  document.querySelectorAll('.standings-table tr:not([data-badge-ok])').forEach(tr => {
+    tr.dataset.badgeOk = '1';
+    const tdEquipo = tr.children[1];
+    if (!tdEquipo) return;
+    const badge = Array.from(tdEquipo.querySelectorAll('span')).find(s =>
+      /ASCENSO|DESCENSO|PROMO/.test(s.textContent)
+    );
+    if (badge) {
+      const nuevaTd = document.createElement('td');
+      nuevaTd.style.padding = '6px 4px';
+      nuevaTd.appendChild(badge);
+      tdEquipo.after(nuevaTd);
+    } else if (tr.querySelector('th')) {
+      tr.children[1].after(document.createElement('th'));
+    }
+  });
 
-    // 1. Carga jugadores y goles desde Supabase para mostrarlos directo en la fila
-    const [{ data: goles }, { data: jugadores }] = await Promise.all([
-      client.from('match_goals').select('*'),
-      client.from('players').select('id, name, nickname, apodo, nombre')
-    ]);
+  // 2. Mejora filas de Últimos Partidos usando `goals` y `players` ya cargados en memoria
+  const filas = document.querySelectorAll('table:not(.standings-table) tr:not([data-partido-ok])');
+  if (!filas.length) return;
 
-    const mapaJugadores = {};
-    (jugadores || []).forEach(j => {
-      mapaJugadores[j.id] = j.nickname || j.apodo || j.name || j.nombre || 'Jugador';
-    });
+  const mapaJugadores = {};
+  (players || []).forEach(p => { mapaJugadores[String(p.id)] = p.name || 'Jugador'; });
 
-    const golesPorPartido = {};
-    (goles || []).forEach(g => {
-      const mId = g.match_id;
-      if (!mId) return;
-      const nombre = mapaJugadores[g.player_id] || g.player_name || 'Gol';
-      if (!golesPorPartido[mId]) golesPorPartido[mId] = {};
-      golesPorPartido[mId][nombre] = (golesPorPartido[mId][nombre] || 0) + (g.goals || g.cantidad || 1);
-    });
+  const golesPorPartido = {};
+  (goals || []).forEach(g => {
+    const mId = String(g.match_id || '');
+    if (!mId) return;
+    const jug = mapaJugadores[String(g.scorer_id)] || 'Gol';
+    if (!golesPorPartido[mId]) golesPorPartido[mId] = {};
+    golesPorPartido[mId][jug] = (golesPorPartido[mId][jug] || 0) + 1;
+  });
 
-    // 2. Recorre las filas de "Últimos Partidos"
-    document.querySelectorAll('table tr').forEach(tr => {
-      const celdas = tr.querySelectorAll('td');
-      if (celdas.length < 4) return;
+  filas.forEach(tr => {
+    const celdas = tr.querySelectorAll('td');
+    if (celdas.length < 4) return;
+    const btnGoles = celdas[3].querySelector('button');
+    if (!btnGoles || !btnGoles.textContent.includes('Goles')) return;
 
-      const tdRival = celdas[1];
-      const tdRes = celdas[2];
-      const tdAccion = celdas[3];
-      const btnGoles = tdAccion.querySelector('button');
-      if (!btnGoles || !btnGoles.textContent.includes('Goles')) return;
+    tr.dataset.partidoOk = '1';
+    if (celdas[2].textContent.includes('PROG')) {
+      celdas[3].innerHTML = '<span style="font-size:11px; color:var(--muted);">Próximo</span>';
+      return;
+    }
 
-      const textoRes = tdRes.textContent.trim();
+    btnGoles.innerHTML = '⚽ <span class="txt-btn-goles">Ver goles</span>';
+    const matchId = ((btnGoles.getAttribute('onclick') || '').match(/['"]([^'"]+)['"]/) || [])[1];
 
-      // Opción 1: Si el partido está programado (PROG.), oculta el botón de goles
-      if (textoRes.includes('PROG')) {
-        btnGoles.style.display = 'none';
-        tdAccion.innerHTML = '<span style="font-size:11px; color:var(--muted);">Próximo</span>';
-        return;
+    if (matchId && golesPorPartido[String(matchId)] && !celdas[1].querySelector('.lista-goleadores-inline')) {
+      const resumen = Object.entries(golesPorPartido[String(matchId)])
+        .map(([jug, cant]) => (cant > 1 ? `${jug} (${cant})` : jug))
+        .join(', ');
+      if (resumen) {
+        const div = document.createElement('div');
+        div.className = 'lista-goleadores-inline';
+        div.style.cssText = 'font-size:11px; color:var(--green); margin-top:3px; opacity:0.9; white-space:normal;';
+        div.textContent = `⚽ ${resumen}`;
+        celdas[1].appendChild(div);
       }
-
-      // Opción 2: Cambia el texto del botón para que sea más claro y compacto
-      if (!btnGoles.dataset.mejorado) {
-        btnGoles.innerHTML = '⚽ <span class="txt-btn-goles">Ver goles</span>';
-        btnGoles.dataset.mejorado = '1';
-      }
-
-      // Opción 3: Extrae el ID del partido del onclick del botón e imprime los goleadores debajo del rival
-      const onclickAttr = btnGoles.getAttribute('onclick') || '';
-      const matchIdMatch = onclickAttr.match(/['"]([^'"]+)['"]/) || onclickAttr.match(/\((\d+)\)/);
-      const matchId = matchIdMatch ? matchIdMatch[1] : null;
-
-      if (matchId && golesPorPartido[matchId] && !tdRival.querySelector('.lista-goleadores-inline')) {
-        const resumenGoles = Object.entries(golesPorPartido[matchId])
-          .map(([jug, cant]) => cant > 1 ? `${jug} (${cant})` : jug)
-          .join(', ');
-
-        if (resumenGoles) {
-          const divGoles = document.createElement('div');
-          divGoles.className = 'lista-goleadores-inline';
-          divGoles.style.cssText = 'font-size: 11px; color: var(--green, #4ade80); margin-top: 3px; opacity: 0.9; white-space: normal;';
-          divGoles.textContent = `⚽ ${resumenGoles}`;
-          tdRival.appendChild(divGoles);
-        }
-      }
-    });
-  } catch (e) {
-    console.error('Error mejorando tabla de partidos:', e);
-  }
+    }
+  });
 }
 
-window.addEventListener('load', () => setTimeout(mejorarTablaUltimosPartidos, 700));
-setInterval(mejorarTablaUltimosPartidos, 2500);
+const observerTablas = new MutationObserver(() => {
+  requestAnimationFrame(optimizarTablasEnMemoria);
+});
+const contenedorSite = document.getElementById('site');
+if (contenedorSite) {
+  observerTablas.observe(contenedorSite, { childList: true, subtree: true });
+}
+window.addEventListener('load', () => setTimeout(optimizarTablasEnMemoria, 150));
 
 
   </script>
