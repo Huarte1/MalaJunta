@@ -3673,6 +3673,52 @@ document.addEventListener('click', (e) => {
     setTimeout(trackAndLoadVisits, 150);
   }
 });
+    // --- BOTÓN EXPORTAR / COPIAR RESULTADOS EN PANEL DT ---
+function inyectarBotonCopiarResultados() {
+  const adminSection = document.getElementById('admin');
+  if (!adminSection || document.getElementById('btn-export-results')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'btn-export-results';
+  btn.className = 'btn-action';
+  btn.style.cssText = 'margin-bottom: 14px; background: var(--panel2); color: var(--green); border: 1px solid var(--green);';
+  btn.textContent = '📋 Copiar todos los resultados (Texto)';
+
+  btn.onclick = async () => {
+    try {
+      const client = typeof db !== 'undefined' ? db : (typeof supabaseClient !== 'undefined' ? supabaseClient : supabase);
+      // Ajustá 'matches' si tu tabla en Supabase tiene otro nombre
+      const { data, error } = await client.from('matches').select('*').order('date', { ascending: true });
+      if (error || !data || !data.length) {
+        alert('No se encontraron partidos para exportar.');
+        return;
+      }
+
+      const texto = data.map((p, idx) => {
+        const fecha = p.date || p.fecha || `Fecha ${idx + 1}`;
+        const rival = p.opponent || p.rival || 'Rival';
+        const gf = p.goals_for ?? p.gf ?? p.goles_favor ?? '-';
+        const gc = p.goals_against ?? p.gc ?? p.goles_contra ?? '-';
+        return `• ${fecha} | MalaJunta ${gf} - ${gc} ${rival}`;
+      }).join('\n');
+
+      await navigator.clipboard.writeText(`📊 *HISTORIAL DE RESULTADOS - MALAJUNTA FC*\n\n${texto}`);
+      btn.textContent = '✅ ¡Resultados copiados al portapapeles!';
+      setTimeout(() => btn.textContent = '📋 Copiar todos los resultados (Texto)', 2500);
+    } catch (e) {
+      console.error(e);
+      alert('Error al copiar resultados. Revisá el nombre de la tabla en consola.');
+    }
+  };
+
+  adminSection.prepend(btn);
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-tab="admin"]') || e.target.closest('#nav-admin-tab')) {
+    setTimeout(inyectarBotonCopiarResultados, 200);
+  }
+});
   </script>
 </body>
 </html>
