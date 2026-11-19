@@ -624,17 +624,19 @@
   transform: scale(1.22);
   filter: drop-shadow(0 0 6px rgba(166, 230, 91, 0.28));
 }
-    /* --- MEJORA RESPONSIVE PARA TABLA DE POSICIONES --- */
+   /* --- TABLA DE POSICIONES RESPONSIVE CON COLUMNAS FIJAS (STICKY) --- */
 .table-wrap,
 .standings-wrap {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 table th,
@@ -642,24 +644,45 @@ table td {
   padding: 8px 6px !important;
   font-size: 13px;
   white-space: nowrap;
+  border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+}
+
+/* Fija columna 1 (#) y columna 2 (EQUIPO) a la izquierda */
+table th:nth-child(1),
+table td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--panel, #111612);
+  width: 30px;
+  min-width: 30px;
+  text-align: center;
+}
+
+table th:nth-child(2),
+table td:nth-child(2) {
+  position: sticky;
+  left: 30px;
+  z-index: 2;
+  background: var(--panel, #111612);
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.35);
 }
 
 /* Ajuste específico para celulares */
 @media (max-width: 600px) {
   table th,
   table td {
-    padding: 6px 4px !important;
+    padding: 6px 5px !important;
     font-size: 11.5px;
   }
 
-  /* Evita que el nombre del equipo empuje las columnas hacia afuera */
+  table th:nth-child(2),
   table td:nth-child(2) {
-    max-width: 135px;
+    max-width: 145px;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  /* Achica las etiquetas como "ASCENSO A" para que no ocupen tanto ancho */
   table td:nth-child(2) span,
   .badge-ascenso {
     font-size: 9px !important;
