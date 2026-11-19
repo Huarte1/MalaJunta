@@ -3693,6 +3693,88 @@ document.addEventListener('click', (e) => {
     setTimeout(trackAndLoadVisits, 150);
   }
 });
+    // --- MEJORA DE COLUMNA DE GOLES Y GOLEADORES EN ÚLTIMOS PARTIDOS ---
+async function mejorarTablaUltimosPartidos() {
+  try {
+    const client = typeof db !== 'undefined' ? db : (typeof supabaseClient !== 'undefined' ? supabaseClient : supabase);
+    if (!client) return;
+
+    // 1. Carga jugadores y goles desde Supabase para mostrarlos directo en la fila
+    const [{ data: goles }, { data: jugadores }] = await Promise.all([
+      client.from('match_goals').select('*'),
+      client.from('players').select('id, name, nickname, apodo, nombre')
+    ]);
+
+    const mapaJugadores = {};
+    (jugadores || []).forEach(j => {
+      mapaJugadores[j.id] = j.nickname || j.apodo || j.name || j.nombre || 'Jugador';
+    });
+
+    const golesPorPartido = {};
+    (goles || []).forEach(g => {
+      const mId = g.match_id;
+      if (!mId) return;
+      const nombre = mapaJugadores[g.player_id] || g.player_name || 'Gol';
+      if (!golesPorPartido[mId]) golesPorPartido[mId] = {};
+      golesPorPartido[mId][nombre] = (golesPorPartido[mId][nombre] || 0) + (g.goals || g.cantidad || 1);
+    });
+
+    // 2. Recorre las filas de "Últimos Partidos"
+    document.querySelectorAll('table tr').forEach(tr => {
+      const celdas = tr.querySelectorAll('td');
+      if (celdas.length < 4) return;
+
+      const tdRival = celdas[1];
+      const tdRes = celdas[2];
+      const tdAccion = celdas[3];
+      const btnGoles = tdAccion.querySelector('button');
+      if (!btnGoles || !btnGoles.textContent.includes('Goles')) return;
+
+      const textoRes = tdRes.textContent.trim();
+
+      // Opción 1: Si el partido está programado (PROG.), oculta el botón de goles
+      if (textoRes.includes('PROG')) {
+        btnGoles.style.display = 'none';
+        tdAccion.innerHTML = '<span style="font-size:11px; color:var(--muted);">Próximo</span>';
+        return;
+      }
+
+      // Opción 2: Cambia el texto del botón para que sea más claro y compacto
+      if (!btnGoles.dataset.mejorado) {
+        btnGoles.innerHTML = '⚽ <span class="txt-btn-goles">Ver goles</span>';
+        btnGoles.dataset.mejorado = '1';
+      }
+
+      // Opción 3: Extrae el ID del partido del onclick del botón e imprime los goleadores debajo del rival
+      const onclickAttr = btnGoles.getAttribute('onclick') || '';
+      const matchIdMatch = onclickAttr.match(/['"]([^'"]+)['"]/) || onclickAttr.match(/\((\d+)\)/);
+      const matchId = matchIdMatch ? matchIdMatch[1] : null;
+
+      if (matchId && golesPorPartido[matchId] && !tdRival.querySelector('.lista-goleadores-inline')) {
+        const resumenGoles = Object.entries(golesPorPartido[matchId])
+          .map(([jug, cant]) => cant > 1 ? `${jug} (${cant})` : jug)
+          .join(', ');
+
+        if (resumenGoles) {
+          const divGoles = document.createElement('div');
+          divGoles.className = 'lista-goleadores-inline';
+          divGoles.style.cssText = 'font-size: 11px; color: var(--green, #4ade80); margin-top: 3px; opacity: 0.9; white-space: normal;';
+          divGoles.textContent = `⚽ ${resumenGoles}`;
+          tdRival.appendChild(divGoles);
+        }
+      }
+    });
+  } catch (e) {
+    console.error('Error mejorando tabla de partidos:', e);
+  }
+}
+
+window.addEventListener('load', () => setTimeout(mejorarTablaUltimosPartidos, 700));
+setInterval(mejorarTablaUltimosPartidos, 2500);
+
+    @media (max-width: 600px) {
+  .txt-btn-goles { display: none; }
+}
   </script>
 </body>
 </html>
