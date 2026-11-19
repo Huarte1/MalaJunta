@@ -3576,26 +3576,89 @@ function syncLeagueStageInputs() {
         btn.textContent = "Finalizar y Guardar Resultado";
       }
     });
+// --- CACHÉ LOCAL PARA ARRANQUE INSTANTÁNEO ---
+const MJ_CACHE_KEY = 'mj_club_cache_v1';
+
+function guardarCacheClub(payload) {
+  try {
+    localStorage.setItem(MJ_CACHE_KEY, JSON.stringify({
+      ts: Date.now(),
+      data: payload
+    }));
+  } catch (e) { /* Ignora si el almacenamiento está lleno */ }
+}
+
+function leerCacheClub() {
+  try {
+    const raw = localStorage.getItem(MJ_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.data ? parsed.data : null;
+  } catch (e) {
+    return null;
+  }
+}
+   
+// --- CACHÉ LOCAL PARA ARRANQUE INSTANTÁNEO ---
+    const MJ_CACHE_KEY = 'mj_club_cache_v1';
+
+    function guardarCacheClub(payload) {
+      try {
+        localStorage.setItem(MJ_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: payload }));
+      } catch (e) {}
+    }
+
+    function leerCacheClub() {
+      try {
+        const raw = localStorage.getItem(MJ_CACHE_KEY);
+        return raw ? (JSON.parse(raw).data || null) : null;
+      } catch (e) {
+        return null;
+      }
+    }
 
     async function init() {
+      // 1. Si hay datos guardados en el dispositivo, muestra la web al instante (0 ms)
+      const cache = leerCacheClub();
+      if (cache) {
+        players = cache.players || [];
+        matches = cache.matches || [];
+        keepers = cache.keepers || [];
+        goals = cache.goals || [];
+        render();
+        document.getElementById('status').classList.add('hide');
+        document.getElementById('site').classList.remove('hide');
+      }
+
       try {
-        const { data, error } = await db.rpc('get_malajunta_public_data');
-        if (error) throw error;
+        // 2. Descarga datos principales, goles y sesión EN PARALELO (mucho más rápido)
+        const [rpcRes, goalsRes, authRes] = await Promise.all([
+          db.rpc('get_malajunta_public_data'),
+          db.from('goals').select('*'),
+          db.auth.getUser()
+        ]);
+
+        if (rpcRes.error) throw rpcRes.error;
+        if (goalsRes.error) throw goalsRes.error;
+
+        const data = rpcRes.data || {};
         players = data.players || [];
         matches = data.matches || [];
         keepers = data.goalkeepers || [];
+        goals = goalsRes.data || [];
 
-        const { data: freshGoals, error: goalsErr } = await db.from('goals').select('*');
-        if (goalsErr) throw goalsErr;
-        goals = freshGoals || [];
-
-        await loadPlayerBeerCounts();
-
-        const { data: { user } } = await db.auth.getUser();
+        const user = authRes?.data?.user || null;
         isLoggedAdmin = !!user;
 
-        await loadTournaments();
-        await loadLeaguesData();
+        // 3. Carga cervezas, torneos y liga también EN PARALELO
+        await Promise.all([
+          loadPlayerBeerCounts(),
+          loadTournaments(),
+          loadLeaguesData()
+        ]);
+
+        // 4. Guarda la copia actualizada y refresca la vista con datos frescos
+        guardarCacheClub({ players, matches, keepers, goals });
         render();
 
         document.getElementById('status').classList.add('hide');
@@ -3605,7 +3668,10 @@ function syncLeagueStageInputs() {
 
         if (currentMatchIdForView) renderMatchDetail(currentMatchIdForView);
       } catch (e) {
-        document.getElementById('status').innerHTML = `<div class="error">❌ Error al cargar datos.<br><small>${esc(e.message || e)}</small></div>`;
+        // Solo muestra error en pantalla si tampoco había caché previa cargada
+        if (!cache) {
+          document.getElementById('status').innerHTML = `<div class="error">❌ Error al cargar datos.<br><small>${esc(e.message || e)}</small></div>`;
+        }
       }
     }
 
