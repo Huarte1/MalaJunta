@@ -2994,8 +2994,8 @@ let leagueExpanded = {};
                 const isAscensoA = stage === 'apertura' && pos <= 2;
                 const badge = isAscensoA ? 'top-qualify' : (pos === 1 ? 'top-1' : '');
                 const promoTag = isAscensoA
-                  ? `<span style="margin-left:auto; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; background:rgba(166,230,91,0.18); color:var(--green); border:1px solid rgba(166,230,91,0.45); letter-spacing:0.4px;">ASCENSO A</span>`
-                  : '';
+  ? `<span title="Asciende a Categoría A" style="margin-left:auto; display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:6px; background:rgba(166,230,91,0.18); color:var(--green); border:1px solid rgba(166,230,91,0.45); flex-shrink:0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>`
+  : '';
                 return `
                   <tr class="${isMJ ? 'standings-row-mj' : ''}">
                     <td><span class="pos-badge ${badge}">${pos}</span></td>
