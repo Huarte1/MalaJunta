@@ -727,13 +727,16 @@
   display: none !important;
 }
 
-/* Neón verde en la fila de MalaJunta FC */
-tr[data-mj="1"] td:first-child {
-  box-shadow: inset 5px 0 0 #39ff14 !important;
-  background: #17271b !important;
+/* Resaltado sutil en toda la fila de MalaJunta FC */
+.standings-row-mj td,
+tr[data-mj-listo="1"] td {
+  background: rgba(166, 230, 91, 0.08) !important;
 }
-tr[data-mj="1"] td {
-  background: #142218 !important;
+.standings-row-mj td:nth-child(1),
+.standings-row-mj td:nth-child(2),
+tr[data-mj-listo="1"] td:nth-child(1),
+tr[data-mj-listo="1"] td:nth-child(2) {
+  background: #152118 !important;
 }
 
 /* Transición suave al cambiar entre pestañas */
@@ -3868,35 +3871,15 @@ function optimizarTablasEnMemoria() {
     }
   });
 
-  // 1. Luz neón sobre el nombre de MalaJunta FC en tabla de posiciones
+  // 1. Resaltado sutil en toda la fila de MalaJunta FC en tabla de posiciones
   document.querySelectorAll('table tr:not([data-mj-listo])').forEach(tr => {
     const celdas = tr.querySelectorAll('td');
     const texto = tr.textContent.toLowerCase();
 
     if (celdas.length >= 5 && (texto.includes('malajunta') || texto.includes('mala junta'))) {
       tr.dataset.mjListo = '1';
-
       if (celdas[1]) {
-        celdas[1].style.setProperty('font-weight', '800', 'important');
-        celdas[1].style.setProperty('text-shadow', '0 0 8px #39ff14, 0 0 18px rgba(57, 255, 20, 0.75)', 'important');
-      }
-
-      // Píldora de acceso rápido arriba de la tabla con puesto y puntos
-      const tabla = tr.closest('table');
-      const contenedor = tabla ? (tabla.parentElement || tabla) : null;
-      if (contenedor && contenedor.parentElement) {
-        let pill = contenedor.parentElement.querySelector('.pill-ubicacion-mj');
-        if (!pill) {
-          pill = document.createElement('button');
-          pill.type = 'button';
-          pill.className = 'pill-ubicacion-mj';
-          pill.style.cssText = 'display:inline-flex; align-items:center; gap:6px; margin-bottom:8px; padding:5px 11px; border-radius:999px; background:rgba(57,255,20,0.14); border:1px solid #39ff14; color:#39ff14; font-size:12px; font-weight:800; cursor:pointer;';
-          pill.onclick = () => tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          contenedor.parentElement.insertBefore(pill, contenedor);
-        }
-        const puesto = celdas[0].textContent.trim();
-        const pts = celdas[2] ? celdas[2].textContent.trim() : '';
-        pill.textContent = `📍 MalaJunta FC · Puesto #${puesto} (${pts} pts)`;
+        celdas[1].style.setProperty('font-weight', '700', 'important');
       }
     }
   });
