@@ -3900,26 +3900,6 @@ function optimizarTablasEnMemoria() {
     }
   });
 
-      // Píldora de acceso rápido arriba de la tabla con puesto y puntos
-      const tabla = tr.closest('table');
-      const contenedor = tabla ? (tabla.parentElement || tabla) : null;
-      if (contenedor && contenedor.parentElement) {
-        let pill = contenedor.parentElement.querySelector('.pill-ubicacion-mj');
-        if (!pill) {
-          pill = document.createElement('button');
-          pill.type = 'button';
-          pill.className = 'pill-ubicacion-mj';
-          pill.style.cssText = 'display:inline-flex; align-items:center; gap:6px; margin-bottom:8px; padding:5px 11px; border-radius:999px; background:rgba(57,255,20,0.14); border:1px solid #39ff14; color:#39ff14; font-size:12px; font-weight:800; cursor:pointer;';
-          pill.onclick = () => tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          contenedor.parentElement.insertBefore(pill, contenedor);
-        }
-        const puesto = celdas[0].textContent.trim();
-        const pts = celdas[2] ? celdas[2].textContent.trim() : '';
-        pill.textContent = `📍 MalaJunta FC · Puesto #${puesto} (${pts} pts)`;
-      }
-    }
-  });
-
   // 2. Mejora filas de Últimos Partidos usando `goals` y `players` ya cargados en memoria
   const filas = document.querySelectorAll('table:not(.standings-table) tr:not([data-partido-ok])');
   if (!filas.length) return;
@@ -3956,26 +3936,4 @@ function optimizarTablasEnMemoria() {
         .map(([jug, cant]) => (cant > 1 ? `${jug} (${cant})` : jug))
         .join(', ');
       if (resumen) {
-        const div = document.createElement('div');
-        div.className = 'lista-goleadores-inline';
-        div.style.cssText = 'font-size:11px; color:var(--green); margin-top:3px; opacity:0.9; white-space:normal;';
-        div.textContent = `⚽ ${resumen}`;
-        celdas[1].appendChild(div);
-      }
-    }
-  });
-}
-
-let timerTablas = null;
-const observerTablas = new MutationObserver(() => {
-  clearTimeout(timerTablas);
-  timerTablas = setTimeout(optimizarTablasEnMemoria, 120);
-});
-const contenedorSite = document.getElementById('site');
-if (contenedorSite) {
-  observerTablas.observe(contenedorSite, { childList: true, subtree: true });
-}
-window.addEventListener('load', () => setTimeout(optimizarTablasEnMemoria, 150));
-  </script>
-</body>
-</html>
+        const
