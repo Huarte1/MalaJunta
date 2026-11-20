@@ -787,6 +787,34 @@
   }
 }
 
+/* Grilla de 4 métricas en una sola fila también en celular */
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+  .grid .card {
+    padding: 10px 6px !important;
+    border-radius: 12px !important;
+    text-align: center;
+  }
+  .grid .card > div:first-child {
+    font-size: 9.5px !important;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .grid .metric {
+    font-size: 23px !important;
+    margin-top: 2px !important;
+    white-space: nowrap;
+  }
+  .grid .card-invicto-badge {
+    display: none !important;
+  }
+}
+
 /* Resaltado sutil en toda la fila de MalaJunta FC */
 .standings-row-mj td,
 tr[data-mj-listo="1"] td {
@@ -2951,7 +2979,7 @@ ${leagues.map(l => `
         ${(topScorer || topAssister) ? `
           <div class="section podium-grid">
             <div class="podium-card card-glow-gold">
-              <div class="podium-role">👑 EL GOLEADOR</div>
+              <div class="podium-role">👑 EL GOLEADOR DEL CLUB</div>
               <div class="podium-name">${topScorer ? esc(topScorer.name) : '-'}</div>
               <div class="podium-stat">${topScorer ? topScorer.count : 0} <small style="font-size:13px; color:var(--muted);">GOLES</small></div>
             </div>
