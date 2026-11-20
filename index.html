@@ -721,38 +721,28 @@
 .fut-card {
   cursor: pointer;
 }
- /* 1. Borde verde neón interno en la fila de MalaJunta FC */
-.standings-row-mj td:first-child,
+/* Ocultar barra de temas LNK */
+.lnk-player-card,
+#lnkPlayerCard {
+  display: none !important;
+}
+
+/* Neón verde en la fila de MalaJunta FC */
 tr[data-mj="1"] td:first-child {
-  box-shadow: inset 4px 0 0 var(--green) !important;
+  box-shadow: inset 5px 0 0 #39ff14 !important;
   background: #17271b !important;
 }
-.standings-row-mj td,
 tr[data-mj="1"] td {
   background: #142218 !important;
 }
 
-/* 2. Transición suave al cambiar entre pestañas */
+/* Transición suave al cambiar entre pestañas */
 section {
   animation: tabFadeIn 0.22s ease-out;
 }
 @keyframes tabFadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-/* 3. Reproductor compacto en celular */
-@media (max-width: 600px) {
-  .lnk-player-card,
-  #lnkPlayerCard {
-    display: flex !important;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    padding: 8px 12px !important;
-    margin: 8px 0 !important;
-  }
 }
     </style>
 </head>
@@ -3737,7 +3727,7 @@ function syncLeagueStageInputs() {
         document.getElementById('site').classList.remove('hide');
       }
 
-      try {
+  try {
         const [rpcRes, goalsRes, authRes] = await Promise.all([
           db.rpc('get_malajunta_public_data'),
           db.from('goals').select('id, match_id, scorer_id, assist_id, created_at'),
@@ -3928,15 +3918,26 @@ window.addEventListener('load', () => setTimeout(optimizarTablasEnMemoria, 150))
 
   </script>
 <script>
-  // Marca automáticamente la fila de MalaJunta FC apenas se dibuja la tabla
-  const mjObserver = new MutationObserver(() => {
-    document.querySelectorAll('.standings-table tbody tr').forEach(tr => {
-      if (tr.textContent.toLowerCase().includes('malajunta')) {
-        tr.dataset.mj = '1';
+  function aplicarAjustesVisualesMJ() {
+    // 1. Ocultar barra de temas LNK (busca cualquier tarjeta que contenga el <audio> o el texto LNK)
+    document.querySelectorAll('audio').forEach(audio => {
+      const tarjeta = audio.closest('div');
+      if (tarjeta) tarjeta.style.display = 'none';
+    });
+
+    // 2. Aplicar borde neón verde directo en la fila de MalaJunta FC en las tablas
+    document.querySelectorAll('table tr').forEach(tr => {
+      const celdas = tr.querySelectorAll('td');
+      if (celdas.length > 0 && tr.textContent.toLowerCase().includes('malajunta')) {
+        celdas[0].style.setProperty('box-shadow', 'inset 5px 0 0 #39ff14', 'important');
+        celdas.forEach(td => td.style.setProperty('background', '#15251a', 'important'));
       }
     });
-  });
-  mjObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  aplicarAjustesVisualesMJ();
+  window.addEventListener('load', aplicarAjustesVisualesMJ);
+  new MutationObserver(aplicarAjustesVisualesMJ).observe(document.body, { childList: true, subtree: true });
 </script>
 </body>
 </html>
