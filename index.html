@@ -727,6 +727,66 @@
   display: none !important;
 }
 
+/* Tabla de Partidos y Resultados compacta y alineada */
+.matches-table {
+  width: 100%;
+  min-width: 0 !important;
+  table-layout: auto;
+}
+.matches-table th:nth-child(1),
+.matches-table td:nth-child(1) {
+  width: 68px;
+  white-space: nowrap;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+}
+.matches-table th:nth-child(2),
+.matches-table td:nth-child(2) {
+  width: auto;
+}
+.matches-table th:nth-child(3),
+.matches-table td:nth-child(3) {
+  width: 78px;
+  text-align: center;
+  white-space: nowrap;
+}
+.matches-table th:nth-child(4),
+.matches-table td:nth-child(4) {
+  width: 44px;
+  text-align: right;
+  white-space: nowrap;
+}
+.matches-table .pill {
+  display: inline-block;
+  min-width: 62px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 4px 8px;
+}
+@media (max-width: 600px) {
+  .matches-table th:nth-child(1),
+  .matches-table td:nth-child(1) {
+    width: 60px;
+    font-size: 10.5px;
+    padding-left: 6px;
+    padding-right: 4px;
+  }
+  .matches-table th:nth-child(3),
+  .matches-table td:nth-child(3) {
+    width: 70px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .matches-table th:nth-child(4),
+  .matches-table td:nth-child(4) {
+    width: 38px;
+    padding-left: 2px;
+    padding-right: 6px;
+  }
+}
+
 /* Resaltado sutil en toda la fila de MalaJunta FC */
 .standings-row-mj td,
 tr[data-mj-listo="1"] td {
@@ -2460,8 +2520,8 @@ function getTeamCrestHTML(teamName, large = false) {
     }
 
     function matchRows(arr) {
-      return arr.length ? `<div class="table-wrap"><table>
-        <thead><tr><th>Fecha</th><th>Rival</th><th>Res.</th><th>Acción</th></tr></thead>
+      return arr.length ? `<div class="table-wrap"><table class="matches-table">
+        <thead><tr><th>Fecha</th><th>Rival</th><th style="text-align:center;">Res.</th><th style="text-align:right;"></th></tr></thead>
         <tbody>${arr.map(m => {
           const h2h = getHeadToHead(m.opponent);
           const totalEnfrentamientos = h2h.total;
@@ -3885,7 +3945,7 @@ function optimizarTablasEnMemoria() {
   });
 
   // 2. Mejora filas de Últimos Partidos usando `goals` y `players` ya cargados en memoria
-  const filas = document.querySelectorAll('table:not(.standings-table) tr:not([data-partido-ok])');
+  const filas = document.querySelectorAll('.matches-table tr:not([data-partido-ok])');
   if (!filas.length) return;
 
   const mapaJugadores = {};
