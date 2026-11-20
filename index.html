@@ -3937,4 +3937,26 @@ function optimizarTablasEnMemoria() {
         .map(([jug, cant]) => (cant > 1 ? `${jug} (${cant})` : jug))
         .join(', ');
       if (resumen) {
-        const
+        const div = document.createElement('div');
+        div.className = 'lista-goleadores-inline';
+        div.style.cssText = 'font-size:11px; color:var(--green); margin-top:3px; opacity:0.9; white-space:normal;';
+        div.textContent = `⚽ ${resumen}`;
+        celdas[1].appendChild(div);
+      }
+    }
+  });
+}
+
+let timerTablas = null;
+const observerTablas = new MutationObserver(() => {
+  clearTimeout(timerTablas);
+  timerTablas = setTimeout(optimizarTablasEnMemoria, 120);
+});
+const contenedorSite = document.getElementById('site');
+if (contenedorSite) {
+  observerTablas.observe(contenedorSite, { childList: true, subtree: true });
+}
+window.addEventListener('load', () => setTimeout(optimizarTablasEnMemoria, 150));
+  </script>
+</body>
+</html>
