@@ -1,0 +1,23 @@
+{
+  "name": "MalaJunta FC · Plantel y Estadísticas",
+  "short_name": "MalaJunta FC",
+  "description": "Plantel oficial, fixture, tabla de posiciones y estadísticas de MalaJunta FC.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080b09",
+  "theme_color": "#080b09",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo_malajunta_transparente.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo_malajunta_transparente.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
