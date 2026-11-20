@@ -3763,23 +3763,7 @@ document.addEventListener('click', (e) => {
 });
     // --- OPTIMIZACIÓN EN MEMORIA: TABLAS Y GOLEADORES SIN CONSULTAS EXTRA ---
 function optimizarTablasEnMemoria() {
-// 1. Separa badge ASCENSO A a su propia columna para el scroll móvil
-  document.querySelectorAll('.standings-table tr:not([data-badge-ok])').forEach(tr => {
-    tr.dataset.badgeOk = '1';
-    const tdEquipo = tr.children[1];
-    if (!tdEquipo) return;
-    const badge = Array.from(tdEquipo.querySelectorAll('span')).find(s =>
-      /ASCENSO|DESCENSO|PROMO/.test(s.textContent)
-    );
-    if (badge) {
-      const nuevaTd = document.createElement('td');
-      nuevaTd.style.padding = '6px 4px';
-      nuevaTd.appendChild(badge);
-      tdEquipo.after(nuevaTd);
-    } else if (tr.querySelector('th')) {
-      tr.children[1].after(document.createElement('th'));
-    }
-  });
+
   // 2. Mejora filas de Últimos Partidos usando `goals` y `players` ya cargados en memoria
   const filas = document.querySelectorAll('table:not(.standings-table) tr:not([data-partido-ok])');
   if (!filas.length) return;
