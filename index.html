@@ -3591,7 +3591,7 @@ function syncLeagueStageInputs() {
       ctx.fillStyle = accent;
       ctx.fillRect(W / 2 - 85, safeTop + 34, 170, 6);
 
-      // 2. Cabecera: Competencia / Fecha + MATCHDAY + Countdown
+      // 2. Cabecera: Competencia / Fecha + DÍA DE PARTIDO + JUEGA EL MALA
       ctx.textAlign = 'center';
       const compLabel = getMatchCompetitionLabel(m);
       ctx.fillStyle = accent;
@@ -3599,20 +3599,20 @@ function syncLeagueStageInputs() {
       ctx.fillText(compLabel, W / 2, safeTop + 92);
 
       ctx.fillStyle = '#f4f7f3';
-      ctx.font = '800 108px "Barlow Condensed", sans-serif';
-      ctx.fillText('MATCHDAY', W / 2, safeTop + 196);
+      ctx.font = '800 94px "Barlow Condensed", sans-serif';
+      ctx.fillText('DÍA DE PARTIDO', W / 2, safeTop + 192);
 
-      const countdownTxt = getCountdownText(m.match_date).replace(/^[^A-ZÁÉÍÓÚÑ0-9]+/i, '') || 'PRÓXIMO PARTIDO';
-      ctx.font = '800 28px "Barlow Condensed", sans-serif';
-      const badgeW = Math.max(300, ctx.measureText(countdownTxt).width + 84);
+      const subBannerTxt = 'JUEGA EL MALA';
+      ctx.font = '800 32px "Barlow Condensed", sans-serif';
+      const badgeW = Math.max(320, ctx.measureText(subBannerTxt).width + 100);
       ctx.fillStyle = `rgba(${accentRgb}, 0.16)`;
-      drawRoundRect(ctx, (W - badgeW) / 2, safeTop + 224, badgeW, 52, 26);
+      drawRoundRect(ctx, (W - badgeW) / 2, safeTop + 220, badgeW, 56, 28);
       ctx.fill();
       ctx.strokeStyle = accent;
       ctx.lineWidth = 2.5;
       ctx.stroke();
       ctx.fillStyle = accent;
-      ctx.fillText(countdownTxt.toUpperCase(), W / 2, safeTop + 259);
+      ctx.fillText(subBannerTxt, W / 2, safeTop + 258);
 
       // 3. Tarjeta central de enfrentamiento (Escudos + VS + Racha + H2H)
       const cardX = 88;
