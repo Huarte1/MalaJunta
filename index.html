@@ -861,15 +861,15 @@ tr[data-mj-listo="1"] td:nth-child(2) {
       overflow-y: auto;
     }
     .story-preview-img {
-      width: auto;
-      max-width: 100%;
-      max-height: 70vh;
+      width: min(290px, 72vw);
+      height: auto;
       aspect-ratio: 9 / 16;
       border-radius: 18px;
       border: 1px solid rgba(166, 230, 91, 0.35);
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
-      object-fit: contain;
+      object-fit: cover;
       background: #080b09;
+      display: block;
     }
 
 /* Transición suave al cambiar entre pestañas */
@@ -3579,9 +3579,9 @@ function syncLeagueStageInputs() {
       ctx.fillStyle = radial;
       ctx.fillRect(0, 0, W, H);
 
-      // Marco Safe-Zone Instagram (respeta 210px arriba y 230px abajo)
-      const safeTop = 215;
-      const safeBottom = H - 235;
+      // Marco Safe-Zone Instagram (aprovecha todo el alto vertical 9:16)
+      const safeTop = 160;
+      const safeBottom = H - 180;
       ctx.strokeStyle = `rgba(${accentRgb}, 0.28)`;
       ctx.lineWidth = 3.5;
       drawRoundRect(ctx, 52, safeTop, W - 104, safeBottom - safeTop, 42);
@@ -3591,7 +3591,7 @@ function syncLeagueStageInputs() {
       ctx.fillStyle = accent;
       ctx.fillRect(W / 2 - 85, safeTop + 34, 170, 6);
 
-      // 2. Cabecera: Competencia / Fecha + DÍA DE PARTIDO + JUEGA EL MALA
+      // 2. Cabecera: Competencia / Fecha + MATCHDAY + Countdown
       ctx.textAlign = 'center';
       const compLabel = getMatchCompetitionLabel(m);
       ctx.fillStyle = accent;
@@ -3599,26 +3599,26 @@ function syncLeagueStageInputs() {
       ctx.fillText(compLabel, W / 2, safeTop + 92);
 
       ctx.fillStyle = '#f4f7f3';
-      ctx.font = '800 94px "Barlow Condensed", sans-serif';
-      ctx.fillText('DÍA DE PARTIDO', W / 2, safeTop + 192);
+      ctx.font = '800 108px "Barlow Condensed", sans-serif';
+      ctx.fillText('MATCHDAY', W / 2, safeTop + 196);
 
-      const subBannerTxt = 'JUEGA EL MALA';
-      ctx.font = '800 32px "Barlow Condensed", sans-serif';
-      const badgeW = Math.max(320, ctx.measureText(subBannerTxt).width + 100);
+      const countdownTxt = getCountdownText(m.match_date).replace(/^[^A-ZÁÉÍÓÚÑ0-9]+/i, '') || 'PRÓXIMO PARTIDO';
+      ctx.font = '800 28px "Barlow Condensed", sans-serif';
+      const badgeW = Math.max(300, ctx.measureText(countdownTxt).width + 84);
       ctx.fillStyle = `rgba(${accentRgb}, 0.16)`;
-      drawRoundRect(ctx, (W - badgeW) / 2, safeTop + 220, badgeW, 56, 28);
+      drawRoundRect(ctx, (W - badgeW) / 2, safeTop + 224, badgeW, 52, 26);
       ctx.fill();
       ctx.strokeStyle = accent;
       ctx.lineWidth = 2.5;
       ctx.stroke();
       ctx.fillStyle = accent;
-      ctx.fillText(subBannerTxt, W / 2, safeTop + 258);
+      ctx.fillText(countdownTxt.toUpperCase(), W / 2, safeTop + 259);
 
       // 3. Tarjeta central de enfrentamiento (Escudos + VS + Racha + H2H)
       const cardX = 88;
-      const cardY = safeTop + 318;
+      const cardY = safeTop + 310;
       const cardW = W - 176;
-      const cardH = 650;
+      const cardH = 740;
 
       const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
       cardGrad.addColorStop(0, cardTop);
@@ -3636,8 +3636,8 @@ function syncLeagueStageInputs() {
 
       const leftCenterX = W * 0.28;
       const rightCenterX = W * 0.72;
-      const crestY = cardY + 205;
-      const crestSize = 215;
+      const crestY = cardY + 235;
+      const crestSize = 240;
 
       if (mjLogo) {
         const ratio = Math.min((crestSize * 1.12) / mjLogo.width, (crestSize * 1.12) / mjLogo.height);
@@ -3679,13 +3679,38 @@ function syncLeagueStageInputs() {
 
       // Nombres de equipos
       ctx.fillStyle = '#f4f7f3';
-      ctx.font = '800 50px "Barlow Condensed", sans-serif';
-      ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 382);
+      ctx.font = '800 52px "Barlow Condensed", sans-serif';
+      ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 435);
 
       const rivalLines = wrapCanvasText(ctx, (m.opponent || 'RIVAL').toUpperCase(), 340).slice(0, 2);
       rivalLines.forEach((line, idx) => {
-        ctx.fillText(line, rightCenterX, cardY + 382 + idx * 52);
+        ctx.fillText(line, rightCenterX, cardY + 435 + idx * 54);
       });
+
+      // Racha últimos 5 partidos debajo de MalaJunta
+      const last5 = getLast5ResultsArray();
+      if (last5.length > 0) {
+        const boxSize = 38;
+        const gap = 8;
+        const totalW = last5.length * boxSize + (last5.length - 1) * gap;
+        let startX = leftCenterX - totalW / 2;
+        const boxY = cardY + 472;
+
+        last5.forEach(res => {
+          const bgCol = res === 'G' ? 'rgba(166,230,91,0.22)' : (res === 'E' ? 'rgba(255,209,102,0.22)' : 'rgba(255,82,82,0.22)');
+          const txtCol = res === 'G' ? '#a6e65b' : (res === 'E' ? '#ffd166' : '#ff5252');
+          ctx.fillStyle = bgCol;
+          drawRoundRect(ctx, startX, boxY, boxSize, boxSize, 8);
+          ctx.fill();
+          ctx.strokeStyle = txtCol;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = txtCol;
+          ctx.font = '800 22px "Barlow Condensed", sans-serif';
+          ctx.fillText(res, startX + boxSize / 2, boxY + 25);
+          startX += boxSize + gap;
+        });
+      }
 
       // Historial H2H al pie de la tarjeta central
       const h2h = getHeadToHead(m.opponent);
@@ -3693,11 +3718,11 @@ function syncLeagueStageInputs() {
         const h2hText = `HISTORIAL ENTRE AMBOS: ${h2h.wins}G · ${h2h.draws}E · ${h2h.losses}P`;
         ctx.fillStyle = '#9aa79d';
         ctx.font = '700 26px "JetBrains Mono", monospace';
-        ctx.fillText(h2hText, W / 2, cardY + 595);
+        ctx.fillText(h2hText, W / 2, cardY + 680);
       } else {
         ctx.fillStyle = '#9aa79d';
         ctx.font = '700 24px "JetBrains Mono", monospace';
-        ctx.fillText('PRIMER ENFRENTAMIENTO OFICIAL', W / 2, cardY + 595);
+        ctx.fillText('PRIMER ENFRENTAMIENTO OFICIAL', W / 2, cardY + 680);
       }
 
       // 4. Bloque de Fecha, Hora y Cancha
@@ -3711,8 +3736,8 @@ function syncLeagueStageInputs() {
       const horaTexto = m.match_time ? `${String(m.match_time).slice(0, 5)} HS` : 'HORARIO A CONFIRMAR';
       const canchaTexto = (m.venue || 'CANCHA A CONFIRMAR').replace(/^🏆\s*/, '').toUpperCase();
 
-      const infoY = cardY + cardH + 34;
-      const infoH = 310;
+      const infoY = cardY + cardH + 40;
+      const infoH = 360;
       ctx.fillStyle = 'rgba(15, 21, 17, 0.94)';
       drawRoundRect(ctx, cardX, infoY, cardW, infoH, 32);
       ctx.fill();
@@ -3721,27 +3746,27 @@ function syncLeagueStageInputs() {
       ctx.stroke();
 
       ctx.fillStyle = accent;
-      ctx.font = '800 28px "Barlow Condensed", sans-serif';
-      ctx.fillText('DÍA Y HORARIO', W / 2, infoY + 60);
+      ctx.font = '800 30px "Barlow Condensed", sans-serif';
+      ctx.fillText('DÍA Y HORARIO', W / 2, infoY + 68);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = '700 48px "JetBrains Mono", monospace';
-      ctx.fillText(`${diaTexto} · ${horaTexto}`, W / 2, infoY + 122);
+      ctx.fillText(`${diaTexto} · ${horaTexto}`, W / 2, infoY + 136);
 
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(cardX + 80, infoY + 158);
-      ctx.lineTo(cardX + cardW - 80, infoY + 158);
+      ctx.moveTo(cardX + 80, infoY + 180);
+      ctx.lineTo(cardX + cardW - 80, infoY + 180);
       ctx.stroke();
 
       ctx.fillStyle = accent;
-      ctx.font = '800 28px "Barlow Condensed", sans-serif';
-      ctx.fillText('SEDE / CANCHA', W / 2, infoY + 208);
+      ctx.font = '800 30px "Barlow Condensed", sans-serif';
+      ctx.fillText('SEDE / CANCHA', W / 2, infoY + 236);
 
       ctx.fillStyle = isGold ? '#f4f7f3' : '#d4af37';
-      ctx.font = '800 44px "Barlow Condensed", sans-serif';
-      ctx.fillText(canchaTexto, W / 2, infoY + 266);
+      ctx.font = '800 46px "Barlow Condensed", sans-serif';
+      ctx.fillText(canchaTexto, W / 2, infoY + 302);
 
       // 5. Frase del club + Pie dentro de Safe-Zone
       const quoteEl = document.getElementById('hero-quote');
@@ -3836,7 +3861,7 @@ function syncLeagueStageInputs() {
             </button>
           </div>
 
-          <img id="story-preview-img-el" src="${currentStoryUrl}" alt="Placa Próximo Partido" class="story-preview-img" style="max-height:63vh;">
+          <img id="story-preview-img-el" src="${currentStoryUrl}" alt="Placa Próximo Partido" class="story-preview-img">
 
           <div style="display:flex; gap:8px; width:100%;">
             <button id="btn-share-ig-native" class="btn-action" style="flex:1; background:linear-gradient(135deg, #e1306c, #f77737); color:#fff; margin:0;">
@@ -3989,8 +4014,8 @@ function syncLeagueStageInputs() {
       ctx.fillStyle = radial;
       ctx.fillRect(0, 0, W, H);
 
-      const safeTop = 215;
-      const safeBottom = H - 235;
+      const safeTop = 160;
+      const safeBottom = H - 180;
       ctx.strokeStyle = `rgba(${accentRgb}, 0.28)`;
       ctx.lineWidth = 3.5;
       drawRoundRect(ctx, 52, safeTop, W - 104, safeBottom - safeTop, 42);
@@ -4024,9 +4049,9 @@ function syncLeagueStageInputs() {
       ctx.fillText(resultBannerText, W / 2, safeTop + 254);
 
       const cardX = 88;
-      const cardY = safeTop + 308;
+      const cardY = safeTop + 305;
       const cardW = W - 176;
-      const cardH = 510;
+      const cardH = 570;
 
       const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
       cardGrad.addColorStop(0, cardTop);
@@ -4044,8 +4069,8 @@ function syncLeagueStageInputs() {
 
       const leftCenterX = W * 0.25;
       const rightCenterX = W * 0.75;
-      const crestY = cardY + 195;
-      const crestSize = 195;
+      const crestY = cardY + 215;
+      const crestSize = 215;
 
       if (mjLogo) {
         const ratio = Math.min((crestSize * 1.12) / mjLogo.width, (crestSize * 1.12) / mjLogo.height);
@@ -4074,17 +4099,17 @@ function syncLeagueStageInputs() {
       ctx.fillText(`${gf} - ${ga}`, W / 2, crestY + 46);
 
       ctx.fillStyle = '#f4f7f3';
-      ctx.font = '800 44px "Barlow Condensed", sans-serif';
-      ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 365);
+      ctx.font = '800 46px "Barlow Condensed", sans-serif';
+      ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 405);
 
       const rivalLines = wrapCanvasText(ctx, (m.opponent || 'RIVAL').toUpperCase(), 310).slice(0, 2);
       rivalLines.forEach((line, idx) => {
-        ctx.fillText(line, rightCenterX, cardY + 365 + idx * 46);
+        ctx.fillText(line, rightCenterX, cardY + 405 + idx * 48);
       });
 
       const scorersLines = getMatchGoalsSummaryForStory(m);
-      const goalsBoxY = cardY + cardH + 32;
-      const goalsBoxH = 445;
+      const goalsBoxY = cardY + cardH + 36;
+      const goalsBoxH = 520;
 
       ctx.fillStyle = 'rgba(15, 21, 17, 0.94)';
       drawRoundRect(ctx, cardX, goalsBoxY, cardW, goalsBoxH, 32);
@@ -4209,7 +4234,7 @@ function syncLeagueStageInputs() {
             </button>
           </div>
 
-          <img id="postmatch-preview-img-el" src="${currentStoryUrl}" alt="Placa Resultado Final" class="story-preview-img" style="max-height:63vh;">
+          <img id="postmatch-preview-img-el" src="${currentStoryUrl}" alt="Placa Resultado Final" class="story-preview-img">
 
           <div style="display:flex; gap:8px; width:100%;">
             <button id="btn-share-pm-ig-native" class="btn-action" style="flex:1; background:linear-gradient(135deg, #e1306c, #f77737); color:#fff; margin:0;">
