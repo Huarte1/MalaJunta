@@ -3687,31 +3687,6 @@ function syncLeagueStageInputs() {
         ctx.fillText(line, rightCenterX, cardY + 382 + idx * 52);
       });
 
-      // Racha últimos 5 partidos debajo de MalaJunta
-      const last5 = getLast5ResultsArray();
-      if (last5.length > 0) {
-        const boxSize = 36;
-        const gap = 8;
-        const totalW = last5.length * boxSize + (last5.length - 1) * gap;
-        let startX = leftCenterX - totalW / 2;
-        const boxY = cardY + 414;
-
-        last5.forEach(res => {
-          const bgCol = res === 'G' ? 'rgba(166,230,91,0.22)' : (res === 'E' ? 'rgba(255,209,102,0.22)' : 'rgba(255,82,82,0.22)');
-          const txtCol = res === 'G' ? '#a6e65b' : (res === 'E' ? '#ffd166' : '#ff5252');
-          ctx.fillStyle = bgCol;
-          drawRoundRect(ctx, startX, boxY, boxSize, boxSize, 8);
-          ctx.fill();
-          ctx.strokeStyle = txtCol;
-          ctx.lineWidth = 2;
-          ctx.stroke();
-          ctx.fillStyle = txtCol;
-          ctx.font = '800 22px "Barlow Condensed", sans-serif';
-          ctx.fillText(res, startX + boxSize / 2, boxY + 25);
-          startX += boxSize + gap;
-        });
-      }
-
       // Historial H2H al pie de la tarjeta central
       const h2h = getHeadToHead(m.opponent);
       if (h2h && h2h.total > 0) {
