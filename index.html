@@ -3607,12 +3607,15 @@ function syncLeagueStageInputs() {
       ctx.fillText(compLabel, W / 2, safeTop + 92);
 
       ctx.fillStyle = '#f4f7f3';
-      ctx.font = '800 108px "Barlow Condensed", sans-serif';
-      ctx.fillText('MATCHDAY', W / 2, safeTop + 196);
+      ctx.font = '800 98px "Barlow Condensed", sans-serif';
+      ctx.fillText('DÍA DE PARTIDO', W / 2, safeTop + 196);
 
-      const countdownTxt = getCountdownText(m.match_date).replace(/^[^A-ZÁÉÍÓÚÑ0-9]+/i, '') || 'PRÓXIMO PARTIDO';
+      const rawCountdown = getCountdownText(m.match_date).replace(/^[^A-ZÁÉÍÓÚÑ0-9]+/i, '');
+      const countdownTxt = rawCountdown.includes('HOY')
+        ? '¡HOY JUEGA EL MALA!'
+        : (rawCountdown ? `¡JUEGA EL MALA! · ${rawCountdown}` : '¡JUEGA EL MALA!');
       ctx.font = '800 28px "Barlow Condensed", sans-serif';
-      const badgeW = Math.max(300, ctx.measureText(countdownTxt).width + 84);
+      const badgeW = Math.max(320, ctx.measureText(countdownTxt).width + 84);
       ctx.fillStyle = `rgba(${accentRgb}, 0.16)`;
       drawRoundRect(ctx, (W - badgeW) / 2, safeTop + 224, badgeW, 52, 26);
       ctx.fill();
@@ -3685,7 +3688,7 @@ function syncLeagueStageInputs() {
       ctx.font = '800 42px "Barlow Condensed", sans-serif';
       ctx.fillText('VS', W / 2, crestY + 14);
 
-      // Nombres de equipos
+     // Nombres de equipos
       ctx.fillStyle = '#f4f7f3';
       ctx.font = '800 50px "Barlow Condensed", sans-serif';
       ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 382);
@@ -3707,7 +3710,6 @@ function syncLeagueStageInputs() {
         ctx.font = '700 24px "JetBrains Mono", monospace';
         ctx.fillText('PRIMER ENFRENTAMIENTO OFICIAL', W / 2, cardY + 555);
       }
-
       // 4. Bloque de Fecha, Hora y Cancha
       let diaTexto = 'FECHA A CONFIRMAR';
       if (m.match_date) {
