@@ -317,7 +317,8 @@
     .fut-card:hover { transform: translateY(-2px); border-color: rgba(166,230,91,.45); }
     .fut-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
     .fut-avatar-box { position: relative; width: 48px; height: 48px; flex: none; }
-    .fut-avatar { width: 100%; height: 100%; border-radius: 14px; background: rgba(166,230,91,.08); border: 1px solid rgba(166,230,91,.2); display: grid; place-items: center; font-size: 22px; font-weight: 900; color: var(--green); }
+    .fut-avatar { width: 100%; height: 100%; border-radius: 14px; background: rgba(166,230,91,.08); border: 1px solid rgba(166,230,91,.2); display: grid; place-items: center; font-size: 22px; font-weight: 900; color: var(--green); overflow: hidden; }
+    .fut-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
     .fut-dorsal { position: absolute; bottom: -4px; right: -4px; background: var(--green); color: #10170c; font-size: 10px; font-weight: 900; padding: 1px 5px; border-radius: 6px; border: 1.5px solid #10170c; }
     .fut-info { flex: 1; min-width: 0; }
     .fut-name { font-size: 15px; font-weight: 900; color: #fff; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -753,7 +754,7 @@
 }
 .matches-table th:nth-child(4),
 .matches-table td:nth-child(4) {
-  width: auto;
+  width: 44px;
   text-align: right;
   white-space: nowrap;
 }
@@ -781,7 +782,7 @@
   }
   .matches-table th:nth-child(4),
   .matches-table td:nth-child(4) {
-    width: auto;
+    width: 38px;
     padding-left: 2px;
     padding-right: 6px;
   }
@@ -861,15 +862,15 @@ tr[data-mj-listo="1"] td:nth-child(2) {
       overflow-y: auto;
     }
     .story-preview-img {
-      width: min(290px, 72vw);
-      height: auto;
+      width: auto;
+      max-width: 100%;
+      max-height: 70vh;
       aspect-ratio: 9 / 16;
       border-radius: 18px;
       border: 1px solid rgba(166, 230, 91, 0.35);
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
-      object-fit: cover;
+      object-fit: contain;
       background: #080b09;
-      display: block;
     }
 
 /* Transición suave al cambiar entre pestañas */
@@ -1018,11 +1019,17 @@ section {
           <input type="text" id="add-player-name" class="input-field" placeholder="Nombre y Apellido">
           <input type="text" id="add-player-pos" class="input-field" placeholder="Posición (ej: Delantero, Arquero)">
           <input type="number" id="add-player-num" class="input-field" placeholder="Número de Camiseta (Dorsal)">
+          <label style="display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--panel2); border:1px dashed var(--line); border-radius:10px; padding:9px 12px; margin-bottom:10px; cursor:pointer; font-size:12px; color:var(--muted);">
+            <span id="add-player-photo-label">📷 Foto del jugador (opcional)</span>
+            <input type="file" id="add-player-photo" accept="image/*" style="display:none;" onchange="document.getElementById('add-player-photo-label').innerText = this.files[0] ? '✅ ' + this.files[0].name : '📷 Foto del jugador (opcional)'">
+            <span style="background:rgba(166,230,91,0.15); color:var(--green); padding:3px 8px; border-radius:6px; font-weight:700; font-size:11px;">Elegir</span>
+          </label>
           <button id="btn-save-player" class="btn-action">Guardar Jugador</button>
         </div>
 
         <div class="section card">
-          <h2>👥 Gestionar Plantel (Borrar / Editar)</h2>
+          <h2>👥 Gestionar Plantel (Foto / Editar / Borrar)</h2>
+          <input type="file" id="edit-player-photo-input" accept="image/*" style="display:none;">
           <div id="admin-player-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
 
@@ -2612,10 +2619,8 @@ function getTeamCrestHTML(teamName, large = false) {
            <td><div class="team-with-crest">${getTeamCrestHTML(m.opponent)}<div><b>${esc(m.opponent || 'Rival')}</b>${countBadge}${tourneyTag}</div></div></td>
             <td>${getMatchBadge(m.goals_for, m.goals_against, m.status)}</td>
             <td>
-              <div style="display:flex; gap:4px; align-items:center; justify-content:flex-end;">
-                ${m.status === 'Jugado' ? `
-                  <button onclick="openPostMatchStoryModal('${m.id}')" title="Generar Placa Post-Partido IG" style="background:linear-gradient(135deg, rgba(225,48,108,0.22), rgba(247,119,55,0.22)); color:#ff8ab5; border:1px solid rgba(225,48,108,0.45); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">📲</button>
-                ` : ''}
+              <div style="display:flex; gap:4px; align-items:center;">
+                ${m.status === 'Jugado' ? `<button onclick="openPostMatchStoryModal('${m.id}')" title="Placa Resultado IG" style="background:rgba(225,48,108,0.16); color:#ff8ab5; border:1px solid rgba(225,48,108,0.45); padding:4px 7px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">📲</button>` : ''}
                 ${m.isTournament 
                   ? `<button onclick="openTournament('${m.tournament_id}')" style="background:var(--panel2); color:var(--gold); border:1px solid var(--gold); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🏆 Torneo</button>`
                   : `<button onclick="viewMatchDetail('${m.id}')" style="background:var(--panel2); color:var(--green); border:1px solid var(--line); padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:bold;">🔍 Goles</button>`
@@ -2751,11 +2756,14 @@ function getTeamCrestHTML(teamName, large = false) {
         }
         container.innerHTML = filtered.map(p => {
           const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
+          const avatarInner = p.photo_url
+            ? `<img src="${esc(p.photo_url)}" alt="${esc(p.name)}" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${initial}';">`
+            : initial;
           return `
             <article class="fut-card">
               <div class="fut-header">
                 <div class="fut-avatar-box">
-                  <div class="fut-avatar">${initial}</div>
+                  <div class="fut-avatar">${avatarInner}</div>
                   <div class="fut-dorsal">#${p.number ?? '-'}</div>
                 </div>
                 <div class="fut-info">
@@ -3033,7 +3041,7 @@ ${leagues.map(l => `
         ${(topScorer || topAssister) ? `
           <div class="section podium-grid">
             <div class="podium-card card-glow-gold">
-              <div class="podium-role">👑 EL GOLEADOR</div>
+              <div class="podium-role">👑 EL GOLEADOR DEL CLUB</div>
               <div class="podium-name">${topScorer ? esc(topScorer.name) : '-'}</div>
               <div class="podium-stat">${topScorer ? topScorer.count : 0} <small style="font-size:13px; color:var(--muted);">GOLES</small></div>
             </div>
@@ -3579,9 +3587,9 @@ function syncLeagueStageInputs() {
       ctx.fillStyle = radial;
       ctx.fillRect(0, 0, W, H);
 
-      // Marco Safe-Zone Instagram (aprovecha todo el alto vertical 9:16)
-      const safeTop = 160;
-      const safeBottom = H - 180;
+      // Marco Safe-Zone Instagram (respeta 210px arriba y 230px abajo)
+      const safeTop = 215;
+      const safeBottom = H - 235;
       ctx.strokeStyle = `rgba(${accentRgb}, 0.28)`;
       ctx.lineWidth = 3.5;
       drawRoundRect(ctx, 52, safeTop, W - 104, safeBottom - safeTop, 42);
@@ -3616,9 +3624,9 @@ function syncLeagueStageInputs() {
 
       // 3. Tarjeta central de enfrentamiento (Escudos + VS + Racha + H2H)
       const cardX = 88;
-      const cardY = safeTop + 310;
+      const cardY = safeTop + 318;
       const cardW = W - 176;
-      const cardH = 740;
+      const cardH = 650;
 
       const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
       cardGrad.addColorStop(0, cardTop);
@@ -3636,8 +3644,8 @@ function syncLeagueStageInputs() {
 
       const leftCenterX = W * 0.28;
       const rightCenterX = W * 0.72;
-      const crestY = cardY + 235;
-      const crestSize = 240;
+      const crestY = cardY + 205;
+      const crestSize = 215;
 
       if (mjLogo) {
         const ratio = Math.min((crestSize * 1.12) / mjLogo.width, (crestSize * 1.12) / mjLogo.height);
@@ -3679,22 +3687,22 @@ function syncLeagueStageInputs() {
 
       // Nombres de equipos
       ctx.fillStyle = '#f4f7f3';
-      ctx.font = '800 52px "Barlow Condensed", sans-serif';
-      ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 435);
+      ctx.font = '800 50px "Barlow Condensed", sans-serif';
+      ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 382);
 
       const rivalLines = wrapCanvasText(ctx, (m.opponent || 'RIVAL').toUpperCase(), 340).slice(0, 2);
       rivalLines.forEach((line, idx) => {
-        ctx.fillText(line, rightCenterX, cardY + 435 + idx * 54);
+        ctx.fillText(line, rightCenterX, cardY + 382 + idx * 52);
       });
 
       // Racha últimos 5 partidos debajo de MalaJunta
       const last5 = getLast5ResultsArray();
       if (last5.length > 0) {
-        const boxSize = 38;
+        const boxSize = 36;
         const gap = 8;
         const totalW = last5.length * boxSize + (last5.length - 1) * gap;
         let startX = leftCenterX - totalW / 2;
-        const boxY = cardY + 472;
+        const boxY = cardY + 414;
 
         last5.forEach(res => {
           const bgCol = res === 'G' ? 'rgba(166,230,91,0.22)' : (res === 'E' ? 'rgba(255,209,102,0.22)' : 'rgba(255,82,82,0.22)');
@@ -3718,11 +3726,11 @@ function syncLeagueStageInputs() {
         const h2hText = `HISTORIAL ENTRE AMBOS: ${h2h.wins}G · ${h2h.draws}E · ${h2h.losses}P`;
         ctx.fillStyle = '#9aa79d';
         ctx.font = '700 26px "JetBrains Mono", monospace';
-        ctx.fillText(h2hText, W / 2, cardY + 680);
+        ctx.fillText(h2hText, W / 2, cardY + 595);
       } else {
         ctx.fillStyle = '#9aa79d';
         ctx.font = '700 24px "JetBrains Mono", monospace';
-        ctx.fillText('PRIMER ENFRENTAMIENTO OFICIAL', W / 2, cardY + 680);
+        ctx.fillText('PRIMER ENFRENTAMIENTO OFICIAL', W / 2, cardY + 595);
       }
 
       // 4. Bloque de Fecha, Hora y Cancha
@@ -3736,8 +3744,8 @@ function syncLeagueStageInputs() {
       const horaTexto = m.match_time ? `${String(m.match_time).slice(0, 5)} HS` : 'HORARIO A CONFIRMAR';
       const canchaTexto = (m.venue || 'CANCHA A CONFIRMAR').replace(/^🏆\s*/, '').toUpperCase();
 
-      const infoY = cardY + cardH + 40;
-      const infoH = 360;
+      const infoY = cardY + cardH + 34;
+      const infoH = 310;
       ctx.fillStyle = 'rgba(15, 21, 17, 0.94)';
       drawRoundRect(ctx, cardX, infoY, cardW, infoH, 32);
       ctx.fill();
@@ -3746,27 +3754,27 @@ function syncLeagueStageInputs() {
       ctx.stroke();
 
       ctx.fillStyle = accent;
-      ctx.font = '800 30px "Barlow Condensed", sans-serif';
-      ctx.fillText('DÍA Y HORARIO', W / 2, infoY + 68);
+      ctx.font = '800 28px "Barlow Condensed", sans-serif';
+      ctx.fillText('DÍA Y HORARIO', W / 2, infoY + 60);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = '700 48px "JetBrains Mono", monospace';
-      ctx.fillText(`${diaTexto} · ${horaTexto}`, W / 2, infoY + 136);
+      ctx.fillText(`${diaTexto} · ${horaTexto}`, W / 2, infoY + 122);
 
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(cardX + 80, infoY + 180);
-      ctx.lineTo(cardX + cardW - 80, infoY + 180);
+      ctx.moveTo(cardX + 80, infoY + 158);
+      ctx.lineTo(cardX + cardW - 80, infoY + 158);
       ctx.stroke();
 
       ctx.fillStyle = accent;
-      ctx.font = '800 30px "Barlow Condensed", sans-serif';
-      ctx.fillText('SEDE / CANCHA', W / 2, infoY + 236);
+      ctx.font = '800 28px "Barlow Condensed", sans-serif';
+      ctx.fillText('SEDE / CANCHA', W / 2, infoY + 208);
 
       ctx.fillStyle = isGold ? '#f4f7f3' : '#d4af37';
-      ctx.font = '800 46px "Barlow Condensed", sans-serif';
-      ctx.fillText(canchaTexto, W / 2, infoY + 302);
+      ctx.font = '800 44px "Barlow Condensed", sans-serif';
+      ctx.fillText(canchaTexto, W / 2, infoY + 266);
 
       // 5. Frase del club + Pie dentro de Safe-Zone
       const quoteEl = document.getElementById('hero-quote');
@@ -3820,6 +3828,7 @@ function syncLeagueStageInputs() {
     async function openNextMatchStoryModal() {
       const m = getNextMatch();
       if (!m) return alert('No hay ningún próximo partido programado.');
+      activeStoryConfig = { mode: 'next', matchId: String(m.id) };
 
       let modal = document.getElementById('ig-story-modal');
       if (!modal) {
@@ -3861,7 +3870,7 @@ function syncLeagueStageInputs() {
             </button>
           </div>
 
-          <img id="story-preview-img-el" src="${currentStoryUrl}" alt="Placa Próximo Partido" class="story-preview-img">
+          <img id="story-preview-img-el" src="${currentStoryUrl}" alt="Placa Próximo Partido" class="story-preview-img" style="max-height:63vh;">
 
           <div style="display:flex; gap:8px; width:100%;">
             <button id="btn-share-ig-native" class="btn-action" style="flex:1; background:linear-gradient(135deg, #e1306c, #f77737); color:#fff; margin:0;">
@@ -3901,7 +3910,406 @@ function syncLeagueStageInputs() {
       });
     }
 
-   function shareNextMatchWhatsApp() {
+   let activeStoryConfig = { mode: 'next', matchId: null };
+
+    function getMatchByIdUnified(matchId) {
+      const all = getAllMalaJuntaMatches();
+      return all.find(x => String(x.id) === String(matchId) || String(x.raw_id) === String(matchId)) || null;
+    }
+
+    function getMatchGoalsGroupedForStory(m) {
+      let rawGoals = [];
+      if (m.isTournament) {
+        const t = tournaments.find(x => String(x.id) === String(m.tournament_id));
+        const tData = getTournamentDataFromDescription(t);
+        rawGoals = (tData.goals || []).filter(g => String(g.match_id) === String(m.raw_id));
+      } else {
+        rawGoals = (goals || []).filter(g => String(g.match_id) === String(m.id));
+      }
+
+      const grouped = {};
+      rawGoals.forEach(g => {
+        const sName = name(g.scorer_id);
+        if (!grouped[sName]) grouped[sName] = { count: 0, assists: [] };
+        grouped[sName].count += 1;
+        if (g.assist_id) grouped[sName].assists.push(name(g.assist_id));
+      });
+
+      return Object.entries(grouped).map(([scorer, info]) => {
+        const countTxt = info.count > 1 ? ` (x${info.count})` : '';
+        const assistTxt = info.assists.length ? ` · Asist: ${info.assists.join(', ')}` : '';
+        return `⚽ ${scorer}${countTxt}${assistTxt}`;
+      });
+    }
+
+    async function generatePostMatchStoryBlob(matchId, theme = currentStoryTheme) {
+      const m = getMatchByIdUnified(matchId);
+      if (!m) return null;
+
+      const gf = Number(m.goals_for || 0);
+      const ga = Number(m.goals_against || 0);
+      const isWin = gf > ga;
+      const isDraw = gf === ga;
+
+      const isGold = theme === 'gold';
+      const accent = isGold ? '#d4af37' : '#a6e65b';
+      const accentRgb = isGold ? '212, 175, 55' : '166, 230, 91';
+      const bgMid = isGold ? '#1d190e' : '#0f1b13';
+      const cardTop = isGold ? 'rgba(38, 32, 18, 0.94)' : 'rgba(24, 34, 27, 0.94)';
+
+      const resultText = isWin ? '¡VICTORIA DE MALAJUNTA!' : (isDraw ? 'EMPATE EN LA CANCHA' : 'FINAL DEL PARTIDO');
+      const resultColor = isWin ? '#a6e65b' : (isDraw ? '#ffd166' : '#ff6b6b');
+      const resultRgb = isWin ? '166, 230, 91' : (isDraw ? '255, 209, 102' : '255, 107, 107');
+
+      const W = 1080;
+      const H = 1920;
+      const canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d');
+
+      // 1. Fondo deportivo + textura + líneas + marca de agua
+      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+      bgGrad.addColorStop(0, '#060807');
+      bgGrad.addColorStop(0.48, bgMid);
+      bgGrad.addColorStop(1, '#060807');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      const pitchBg = await loadImageCORS('cancha_fondo.jpg');
+      if (pitchBg) {
+        ctx.save();
+        ctx.globalAlpha = 0.14;
+        const scale = Math.max(W / pitchBg.width, H / pitchBg.height);
+        const dw = pitchBg.width * scale;
+        const dh = pitchBg.height * scale;
+        ctx.drawImage(pitchBg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.strokeStyle = `rgba(${accentRgb}, 0.08)`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(W / 2, H * 0.45, 310, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(60, H * 0.45);
+      ctx.lineTo(W - 60, H * 0.45);
+      ctx.stroke();
+      ctx.restore();
+
+      const mjLogo = await loadImageCORS('logo_malajunta_transparente.png');
+      if (mjLogo) {
+        ctx.save();
+        ctx.globalAlpha = 0.06;
+        const wmSize = 860;
+        const wmRatio = Math.min(wmSize / mjLogo.width, wmSize / mjLogo.height);
+        const wmW = mjLogo.width * wmRatio;
+        const wmH = mjLogo.height * wmRatio;
+        ctx.drawImage(mjLogo, (W - wmW) / 2, (H - wmH) / 2 + 20, wmW, wmH);
+        ctx.restore();
+      }
+
+      const radial = ctx.createRadialGradient(W / 2, H * 0.44, 40, W / 2, H * 0.44, 650);
+      radial.addColorStop(0, `rgba(${accentRgb}, 0.22)`);
+      radial.addColorStop(1, `rgba(${accentRgb}, 0)`);
+      ctx.fillStyle = radial;
+      ctx.fillRect(0, 0, W, H);
+
+      // Marco Safe-Zone Instagram
+      const safeTop = 215;
+      const safeBottom = H - 235;
+      ctx.strokeStyle = `rgba(${accentRgb}, 0.28)`;
+      ctx.lineWidth = 3.5;
+      drawRoundRect(ctx, 52, safeTop, W - 104, safeBottom - safeTop, 42);
+      ctx.stroke();
+
+      ctx.fillStyle = accent;
+      ctx.fillRect(W / 2 - 85, safeTop + 34, 170, 6);
+
+      // 2. Cabecera Post-Partido
+      ctx.textAlign = 'center';
+      const compLabel = m.isTournament && m.venue
+        ? m.venue.replace(/^🏆\s*/, '').toUpperCase()
+        : (m.match_date ? `PARTIDO OFICIAL · ${date(m.match_date)}` : 'RESULTADO OFICIAL');
+      ctx.fillStyle = accent;
+      ctx.font = '800 32px "Barlow Condensed", sans-serif';
+      ctx.fillText(compLabel, W / 2, safeTop + 92);
+
+      ctx.fillStyle = '#f4f7f3';
+      ctx.font = '800 94px "Barlow Condensed", sans-serif';
+      ctx.fillText('RESULTADO FINAL', W / 2, safeTop + 188);
+
+      // Pill de resultado (Victoria / Empate / Final)
+      ctx.font = '800 28px "Barlow Condensed", sans-serif';
+      const badgeW = Math.max(320, ctx.measureText(resultText).width + 88);
+      ctx.fillStyle = `rgba(${resultRgb}, 0.16)`;
+      drawRoundRect(ctx, (W - badgeW) / 2, safeTop + 218, badgeW, 52, 26);
+      ctx.fill();
+      ctx.strokeStyle = resultColor;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.fillStyle = resultColor;
+      ctx.fillText(resultText, W / 2, safeTop + 253);
+
+      // 3. Tarjeta central de marcador
+      const cardX = 88;
+      const cardY = safeTop + 308;
+      const cardW = W - 176;
+      const cardH = 520;
+
+      const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+      cardGrad.addColorStop(0, cardTop);
+      cardGrad.addColorStop(1, 'rgba(12, 17, 14, 0.96)');
+      ctx.fillStyle = cardGrad;
+      drawRoundRect(ctx, cardX, cardY, cardW, cardH, 36);
+      ctx.fill();
+      ctx.strokeStyle = `rgba(${accentRgb}, 0.45)`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      const rivalClean = (m.opponent || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+      const { data: rivalPub } = db.storage.from('escudos').getPublicUrl(`${rivalClean}.png`);
+      const rivalLogo = await loadImageCORS(rivalPub?.publicUrl);
+
+      const leftCenterX = W * 0.25;
+      const rightCenterX = W * 0.75;
+      const crestY = cardY + 195;
+      const crestSize = 195;
+
+      if (mjLogo) {
+        const ratio = Math.min((crestSize * 1.12) / mjLogo.width, (crestSize * 1.12) / mjLogo.height);
+        const w = mjLogo.width * ratio;
+        const h = mjLogo.height * ratio;
+        ctx.drawImage(mjLogo, leftCenterX - w / 2, crestY - h / 2, w, h);
+      }
+
+      if (rivalLogo) {
+        const ratio = Math.min(crestSize / rivalLogo.width, crestSize / rivalLogo.height);
+        const w = rivalLogo.width * ratio;
+        const h = rivalLogo.height * ratio;
+        ctx.drawImage(rivalLogo, rightCenterX - w / 2, crestY - h / 2, w, h);
+      } else {
+        ctx.fillStyle = '#18221b';
+        ctx.beginPath();
+        ctx.arc(rightCenterX, crestY, 88, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = `rgba(${accentRgb}, 0.45)`;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        const initials = (m.opponent || 'RV').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        ctx.fillStyle = accent;
+        ctx.font = '800 64px "Barlow Condensed", sans-serif';
+        ctx.fillText(initials, rightCenterX, crestY + 22);
+      }
+
+      // Marcador gigante central
+      ctx.fillStyle = '#101612';
+      drawRoundRect(ctx, W / 2 - 135, crestY - 64, 270, 128, 26);
+      ctx.fill();
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 3.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 84px "Barlow Condensed", sans-serif';
+      ctx.fillText(`${gf} - ${ga}`, W / 2, crestY + 28);
+
+      // Nombres de equipos
+      ctx.fillStyle = '#f4f7f3';
+      ctx.font = '800 46px "Barlow Condensed", sans-serif';
+      ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 365);
+
+      const rivalLines = wrapCanvasText(ctx, (m.opponent || 'RIVAL').toUpperCase(), 310).slice(0, 2);
+      rivalLines.forEach((line, idx) => {
+        ctx.fillText(line, rightCenterX, cardY + 365 + idx * 48);
+      });
+
+      // 4. Bloque de Goleadores y Asistencias
+      const scorerLines = getMatchGoalsGroupedForStory(m);
+      const goalsBoxY = cardY + cardH + 30;
+      const goalsBoxH = 445;
+
+      ctx.fillStyle = 'rgba(15, 21, 17, 0.94)';
+      drawRoundRect(ctx, cardX, goalsBoxY, cardW, goalsBoxH, 32);
+      ctx.fill();
+      ctx.strokeStyle = `rgba(${accentRgb}, 0.28)`;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.fillStyle = accent;
+      ctx.font = '800 30px "Barlow Condensed", sans-serif';
+      ctx.fillText('GRITOS SAGRADOS · MALAJUNTA FC', W / 2, goalsBoxY + 56);
+
+      if (scorerLines.length > 0) {
+        const visibleScorers = scorerLines.slice(0, 6);
+        const startY = goalsBoxY + 112;
+        const stepY = Math.min(54, Math.floor(300 / Math.max(visibleScorers.length, 1)));
+        visibleScorers.forEach((line, idx) => {
+          ctx.fillStyle = '#f4f7f3';
+          ctx.font = '700 34px "Barlow Condensed", sans-serif';
+          ctx.fillText(line.toUpperCase(), W / 2, startY + idx * stepY);
+        });
+      } else {
+        ctx.fillStyle = '#9aa79d';
+        ctx.font = '700 32px "Barlow Condensed", sans-serif';
+        ctx.fillText(gf === 0 ? 'SIN GOLES A FAVOR EN ESTE ENCUENTRO' : 'GOLEADORES PENDIENTES DE CARGA', W / 2, goalsBoxY + 215);
+      }
+
+      // Sede / Fecha al pie del cuadro de goles
+      const venueInfo = [
+        m.match_date ? date(m.match_date) : '',
+        m.venue ? m.venue.replace(/^🏆\s*/, '').toUpperCase() : ''
+      ].filter(Boolean).join(' · ');
+      if (venueInfo) {
+        ctx.fillStyle = '#9aa79d';
+        ctx.font = '700 24px "JetBrains Mono", monospace';
+        ctx.fillText(venueInfo, W / 2, goalsBoxY + goalsBoxH - 28);
+      }
+
+      // 5. Frase del club + Pie Safe-Zone
+      const quoteEl = document.getElementById('hero-quote');
+      const clubQuote = (quoteEl ? quoteEl.innerText : '"LA REDONDA NO SE MANCHA"').toUpperCase();
+      ctx.fillStyle = 'rgba(244, 247, 243, 0.72)';
+      ctx.font = '700 25px "Barlow Condensed", sans-serif';
+      ctx.fillText(clubQuote, W / 2, safeBottom - 78);
+
+      ctx.fillStyle = accent;
+      ctx.font = '800 26px "JetBrains Mono", monospace';
+      ctx.fillText('@MALAJUNTAFC', W / 2, safeBottom - 34);
+
+      return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+    }
+
+    async function openPostMatchStoryModal(matchId) {
+      const m = getMatchByIdUnified(matchId);
+      if (!m) return alert('No se encontró el partido.');
+      activeStoryConfig = { mode: 'post', matchId: String(matchId) };
+      await renderUnifiedStoryModal(m, 'post');
+    }
+
+    async function renderUnifiedStoryModal(m, mode = 'next') {
+      let modal = document.getElementById('ig-story-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'ig-story-modal';
+        modal.className = 'story-modal-backdrop';
+        document.body.appendChild(modal);
+      }
+
+      modal.innerHTML = `<div style="color:var(--green); font-weight:800; font-size:15px;">⏳ Generando placa 9:16 para Instagram...</div>`;
+      modal.classList.remove('hide');
+
+      const blob = mode === 'post'
+        ? await generatePostMatchStoryBlob(m.id, currentStoryTheme)
+        : await generateNextMatchStoryBlob(currentStoryTheme);
+
+      if (!blob) {
+        modal.classList.add('hide');
+        return alert('No se pudo generar la imagen.');
+      }
+
+      if (currentStoryUrl) URL.revokeObjectURL(currentStoryUrl);
+      currentStoryBlob = blob;
+      currentStoryUrl = URL.createObjectURL(blob);
+
+      const prefix = mode === 'post' ? 'MalaJunta_Resultado_vs_' : 'MalaJunta_vs_';
+      const fileName = `${prefix}${(m.opponent || 'Rival').replace(/[^a-zA-Z0-9]/g, '_')}_${currentStoryTheme}_Story.png`;
+      const modalTitle = mode === 'post' ? '📲 Placa Post-Partido (1080×1920)' : '📲 Placa Matchday (1080×1920)';
+
+      modal.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; max-width:380px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+            <span style="font-weight:900; color:var(--green); font-size:14px;">${modalTitle}</span>
+            <button onclick="document.getElementById('ig-story-modal').classList.add('hide')" style="background:var(--panel2); color:var(--white); border:1px solid var(--line); border-radius:8px; padding:5px 10px; font-weight:bold; cursor:pointer;">✕ Cerrar</button>
+          </div>
+
+          <div style="display:flex; gap:8px; width:100%;">
+            <button id="btn-theme-green" onclick="refreshActiveStoryPreview('green')" style="flex:1; padding:7px; border-radius:9px; border:1px solid ${currentStoryTheme === 'green' ? 'var(--green)' : 'var(--line)'}; background:${currentStoryTheme === 'green' ? 'rgba(166,230,91,0.18)' : 'var(--panel2)'}; color:var(--green); font-size:11.5px; font-weight:800; cursor:pointer;">
+              🟢 Nocturno Verde
+            </button>
+            <button id="btn-theme-gold" onclick="refreshActiveStoryPreview('gold')" style="flex:1; padding:7px; border-radius:9px; border:1px solid ${currentStoryTheme === 'gold' ? 'var(--gold)' : 'var(--line)'}; background:${currentStoryTheme === 'gold' ? 'rgba(212,175,55,0.2)' : 'var(--panel2)'}; color:var(--gold); font-size:11.5px; font-weight:800; cursor:pointer;">
+              👑 Clásico Dorado
+            </button>
+          </div>
+
+          <img id="story-preview-img-el" src="${currentStoryUrl}" alt="Placa Instagram" class="story-preview-img" style="max-height:63vh;">
+
+          <div style="display:flex; gap:8px; width:100%;">
+            <button id="btn-share-ig-native" class="btn-action" style="flex:1; background:linear-gradient(135deg, #e1306c, #f77737); color:#fff; margin:0;">
+              📤 Compartir en IG
+            </button>
+            <a id="story-download-link" href="${currentStoryUrl}" download="${fileName}" class="btn-action" style="flex:1; text-align:center; text-decoration:none; margin:0; display:flex; align-items:center; justify-content:center;">
+              ⬇️ Descargar
+            </a>
+          </div>
+          <div class="muted" style="font-size:11px; text-align:center;">
+            En el celu tocá <b>Compartir en IG</b> y elegí <i>Instagram → Tu historia</i>.
+          </div>
+        </div>
+      `;
+
+      document.getElementById('btn-share-ig-native')?.addEventListener('click', async () => {
+        const activeBlob = currentStoryBlob || blob;
+        const activeName = `${prefix}${(m.opponent || 'Rival').replace(/[^a-zA-Z0-9]/g, '_')}_${currentStoryTheme}_Story.png`;
+        const file = new File([activeBlob], activeName, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `MalaJunta FC vs ${m.opponent}`,
+              text: mode === 'post' ? `Resultado Final: MalaJunta FC ${m.goals_for} - ${m.goals_against} ${m.opponent}` : `Próximo partido: MalaJunta FC vs ${m.opponent}`
+            });
+          } catch (err) {
+            if (err.name !== 'AbortError') alert('No se pudo abrir el menú de compartir. Usá el botón Descargar.');
+          }
+        } else {
+          const a = document.createElement('a');
+          a.href = currentStoryUrl || URL.createObjectURL(activeBlob);
+          a.download = activeName;
+          a.click();
+          alert('✅ Imagen descargada en tu galería. Subila directo a tu historia de Instagram.');
+        }
+      });
+    }
+
+    async function refreshActiveStoryPreview(theme) {
+      if (theme) currentStoryTheme = theme;
+      const isPost = activeStoryConfig.mode === 'post';
+      const m = isPost ? getMatchByIdUnified(activeStoryConfig.matchId) : getNextMatch();
+      if (!m) return;
+
+      const btnGreen = document.getElementById('btn-theme-green');
+      const btnGold = document.getElementById('btn-theme-gold');
+      if (btnGreen && btnGold) {
+        btnGreen.style.borderColor = currentStoryTheme === 'green' ? 'var(--green)' : 'var(--line)';
+        btnGreen.style.background = currentStoryTheme === 'green' ? 'rgba(166,230,91,0.18)' : 'var(--panel2)';
+        btnGold.style.borderColor = currentStoryTheme === 'gold' ? 'var(--gold)' : 'var(--line)';
+        btnGold.style.background = currentStoryTheme === 'gold' ? 'rgba(212,175,55,0.2)' : 'var(--panel2)';
+      }
+
+      const blob = isPost
+        ? await generatePostMatchStoryBlob(m.id, currentStoryTheme)
+        : await generateNextMatchStoryBlob(currentStoryTheme);
+      if (!blob) return;
+
+      if (currentStoryUrl) URL.revokeObjectURL(currentStoryUrl);
+      currentStoryBlob = blob;
+      currentStoryUrl = URL.createObjectURL(blob);
+
+      const prefix = isPost ? 'MalaJunta_Resultado_vs_' : 'MalaJunta_vs_';
+      const fileName = `${prefix}${(m.opponent || 'Rival').replace(/[^a-zA-Z0-9]/g, '_')}_${currentStoryTheme}_Story.png`;
+      const imgEl = document.getElementById('story-preview-img-el');
+      const dlEl = document.getElementById('story-download-link');
+      if (imgEl) imgEl.src = currentStoryUrl;
+      if (dlEl) {
+        dlEl.href = currentStoryUrl;
+        dlEl.download = fileName;
+      }
+    }
+
+    function shareNextMatchWhatsApp() {
       const m = getNextMatch();
       if (!m) return;
 
@@ -3927,351 +4335,6 @@ function syncLeagueStageInputs() {
 
       const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
       window.open(url, '_blank');
-    }
-
-    let currentPostMatchId = null;
-
-    function getMatchGoalsSummaryForStory(matchObj) {
-      let rawGoals = [];
-      if (matchObj.isTournament) {
-        const t = tournaments.find(x => String(x.id) === String(matchObj.tournament_id));
-        const tData = getTournamentDataFromDescription(t);
-        rawGoals = (tData.goals || []).filter(g => String(g.match_id) === String(matchObj.raw_id));
-      } else {
-        rawGoals = (goals || []).filter(g => String(g.match_id) === String(matchObj.id));
-      }
-
-      const grouped = {};
-      rawGoals.forEach(g => {
-        const sId = String(g.scorer_id);
-        if (!grouped[sId]) grouped[sId] = { name: name(g.scorer_id), count: 0, assists: [] };
-        grouped[sId].count += 1;
-        if (g.assist_id) grouped[sId].assists.push(name(g.assist_id));
-      });
-
-      return Object.values(grouped).map(item => {
-        const countTxt = item.count > 1 ? ` (x${item.count})` : '';
-        const uniqueAssists = [...new Set(item.assists)];
-        const assistTxt = uniqueAssists.length ? `  ·  🎯 Asist: ${uniqueAssists.join(', ')}` : '';
-        return `⚽ ${item.name}${countTxt}${assistTxt}`;
-      });
-    }
-
-    async function generatePostMatchStoryBlob(matchId, theme = currentStoryTheme) {
-      const m = getAllMalaJuntaMatches().find(x => String(x.id) === String(matchId));
-      if (!m) return null;
-
-      const gf = Number(m.goals_for || 0);
-      const ga = Number(m.goals_against || 0);
-      const isWin = gf > ga;
-      const isDraw = gf === ga;
-
-      const resultBannerText = isWin ? '¡VICTORIA!' : (isDraw ? 'EMPATE' : 'DERROTA');
-      const resultColor = isWin ? '#a6e65b' : (isDraw ? '#ffd166' : '#ff5252');
-      const resultRgb = isWin ? '166, 230, 91' : (isDraw ? '255, 209, 102' : '255, 82, 82');
-
-      const isGold = theme === 'gold';
-      const accent = isGold ? '#d4af37' : '#a6e65b';
-      const accentRgb = isGold ? '212, 175, 55' : '166, 230, 91';
-      const bgMid = isGold ? '#1d190e' : '#0f1b13';
-      const cardTop = isGold ? 'rgba(38, 32, 18, 0.94)' : 'rgba(24, 34, 27, 0.94)';
-
-      const W = 1080;
-      const H = 1920;
-      const canvas = document.createElement('canvas');
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d');
-
-      const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-      bgGrad.addColorStop(0, '#060807');
-      bgGrad.addColorStop(0.48, bgMid);
-      bgGrad.addColorStop(1, '#060807');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, W, H);
-
-      const pitchBg = await loadImageCORS('cancha_fondo.jpg');
-      if (pitchBg) {
-        ctx.save();
-        ctx.globalAlpha = 0.14;
-        const scale = Math.max(W / pitchBg.width, H / pitchBg.height);
-        ctx.drawImage(pitchBg, (W - pitchBg.width * scale) / 2, (H - pitchBg.height * scale) / 2, pitchBg.width * scale, pitchBg.height * scale);
-        ctx.restore();
-      }
-
-      const mjLogo = await loadImageCORS('logo_malajunta_transparente.png');
-      if (mjLogo) {
-        ctx.save();
-        ctx.globalAlpha = 0.06;
-        const wmRatio = Math.min(860 / mjLogo.width, 860 / mjLogo.height);
-        ctx.drawImage(mjLogo, (W - mjLogo.width * wmRatio) / 2, (H - mjLogo.height * wmRatio) / 2 + 20, mjLogo.width * wmRatio, mjLogo.height * wmRatio);
-        ctx.restore();
-      }
-
-      const radial = ctx.createRadialGradient(W / 2, H * 0.44, 40, W / 2, H * 0.44, 650);
-      radial.addColorStop(0, `rgba(${resultRgb}, 0.22)`);
-      radial.addColorStop(1, `rgba(${resultRgb}, 0)`);
-      ctx.fillStyle = radial;
-      ctx.fillRect(0, 0, W, H);
-
-      const safeTop = 160;
-      const safeBottom = H - 180;
-      ctx.strokeStyle = `rgba(${accentRgb}, 0.28)`;
-      ctx.lineWidth = 3.5;
-      drawRoundRect(ctx, 52, safeTop, W - 104, safeBottom - safeTop, 42);
-      ctx.stroke();
-
-      ctx.fillStyle = accent;
-      ctx.fillRect(W / 2 - 85, safeTop + 34, 170, 6);
-
-      ctx.textAlign = 'center';
-      const subComp = m.isTournament
-        ? `${(m.venue || 'TORNEO OFICIAL').replace(/^🏆\s*/, '').toUpperCase()}${m.match_date ? ' · ' + date(m.match_date) : ''}`
-        : `${(m.venue || 'PARTIDO OFICIAL').toUpperCase()}${m.match_date ? ' · ' + date(m.match_date) : ''}`;
-
-      ctx.fillStyle = accent;
-      ctx.font = '800 30px "Barlow Condensed", sans-serif';
-      ctx.fillText(subComp, W / 2, safeTop + 88);
-
-      ctx.fillStyle = '#f4f7f3';
-      ctx.font = '800 94px "Barlow Condensed", sans-serif';
-      ctx.fillText('FINAL DEL PARTIDO', W / 2, safeTop + 184);
-
-      ctx.font = '800 34px "Barlow Condensed", sans-serif';
-      const bannerW = Math.max(320, ctx.measureText(resultBannerText).width + 110);
-      ctx.fillStyle = `rgba(${resultRgb}, 0.20)`;
-      drawRoundRect(ctx, (W - bannerW) / 2, safeTop + 214, bannerW, 58, 29);
-      ctx.fill();
-      ctx.strokeStyle = resultColor;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.fillStyle = resultColor;
-      ctx.fillText(resultBannerText, W / 2, safeTop + 254);
-
-      const cardX = 88;
-      const cardY = safeTop + 305;
-      const cardW = W - 176;
-      const cardH = 570;
-
-      const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
-      cardGrad.addColorStop(0, cardTop);
-      cardGrad.addColorStop(1, 'rgba(12, 17, 14, 0.96)');
-      ctx.fillStyle = cardGrad;
-      drawRoundRect(ctx, cardX, cardY, cardW, cardH, 36);
-      ctx.fill();
-      ctx.strokeStyle = `rgba(${accentRgb}, 0.45)`;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      const rivalClean = (m.opponent || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
-      const { data: rivalPub } = db.storage.from('escudos').getPublicUrl(`${rivalClean}.png`);
-      const rivalLogo = await loadImageCORS(rivalPub?.publicUrl);
-
-      const leftCenterX = W * 0.25;
-      const rightCenterX = W * 0.75;
-      const crestY = cardY + 215;
-      const crestSize = 215;
-
-      if (mjLogo) {
-        const ratio = Math.min((crestSize * 1.12) / mjLogo.width, (crestSize * 1.12) / mjLogo.height);
-        ctx.drawImage(mjLogo, leftCenterX - (mjLogo.width * ratio) / 2, crestY - (mjLogo.height * ratio) / 2, mjLogo.width * ratio, mjLogo.height * ratio);
-      }
-
-      if (rivalLogo) {
-        const ratio = Math.min(crestSize / rivalLogo.width, crestSize / rivalLogo.height);
-        ctx.drawImage(rivalLogo, rightCenterX - (rivalLogo.width * ratio) / 2, crestY - (rivalLogo.height * ratio) / 2, rivalLogo.width * ratio, rivalLogo.height * ratio);
-      } else {
-        ctx.fillStyle = '#18221b';
-        ctx.beginPath();
-        ctx.arc(rightCenterX, crestY, 88, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = `rgba(${accentRgb}, 0.45)`;
-        ctx.lineWidth = 4;
-        ctx.stroke();
-        const initials = (m.opponent || 'RV').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
-        ctx.fillStyle = accent;
-        ctx.font = '800 66px "Barlow Condensed", sans-serif';
-        ctx.fillText(initials, rightCenterX, crestY + 22);
-      }
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '800 138px "Barlow Condensed", sans-serif';
-      ctx.fillText(`${gf} - ${ga}`, W / 2, crestY + 46);
-
-      ctx.fillStyle = '#f4f7f3';
-      ctx.font = '800 46px "Barlow Condensed", sans-serif';
-      ctx.fillText('MALAJUNTA FC', leftCenterX, cardY + 405);
-
-      const rivalLines = wrapCanvasText(ctx, (m.opponent || 'RIVAL').toUpperCase(), 310).slice(0, 2);
-      rivalLines.forEach((line, idx) => {
-        ctx.fillText(line, rightCenterX, cardY + 405 + idx * 48);
-      });
-
-      const scorersLines = getMatchGoalsSummaryForStory(m);
-      const goalsBoxY = cardY + cardH + 36;
-      const goalsBoxH = 520;
-
-      ctx.fillStyle = 'rgba(15, 21, 17, 0.94)';
-      drawRoundRect(ctx, cardX, goalsBoxY, cardW, goalsBoxH, 32);
-      ctx.fill();
-      ctx.strokeStyle = `rgba(${accentRgb}, 0.28)`;
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      ctx.fillStyle = accent;
-      ctx.font = '800 30px "Barlow Condensed", sans-serif';
-      ctx.fillText('GOLEADORES DEL PARTIDO', W / 2, goalsBoxY + 56);
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(cardX + 80, goalsBoxY + 80);
-      ctx.lineTo(cardX + cardW - 80, goalsBoxY + 80);
-      ctx.stroke();
-
-      if (scorersLines.length > 0) {
-        const visibleLines = scorersLines.slice(0, 6);
-        const fontSize = visibleLines.length > 4 ? 32 : 38;
-        const lineHeight = visibleLines.length > 4 ? 50 : 58;
-        ctx.fillStyle = '#f4f7f3';
-        ctx.font = `700 ${fontSize}px "Barlow Condensed", sans-serif`;
-
-        visibleLines.forEach((line, idx) => {
-          ctx.fillText(line, W / 2, goalsBoxY + 135 + idx * lineHeight);
-        });
-      } else {
-        ctx.fillStyle = '#9aa79d';
-        ctx.font = '700 32px "Barlow Condensed", sans-serif';
-        ctx.fillText(gf === 0 ? 'SIN GOLES A FAVOR EN EL MARCADOR' : 'GOLEADORES SIN DETALLAR', W / 2, goalsBoxY + 235);
-      }
-
-      const quoteEl = document.getElementById('hero-quote');
-      const clubQuote = (quoteEl ? quoteEl.innerText : '"LA REDONDA NO SE MANCHA"').toUpperCase();
-      ctx.fillStyle = 'rgba(244, 247, 243, 0.72)';
-      ctx.font = '700 25px "Barlow Condensed", sans-serif';
-      ctx.fillText(clubQuote, W / 2, safeBottom - 78);
-
-      ctx.fillStyle = accent;
-      ctx.font = '800 26px "JetBrains Mono", monospace';
-      ctx.fillText('@MALAJUNTAFC', W / 2, safeBottom - 34);
-
-      return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
-    }
-
-    async function refreshPostMatchPreview(theme) {
-      if (theme) currentStoryTheme = theme;
-      if (!currentPostMatchId) return;
-      const m = getAllMalaJuntaMatches().find(x => String(x.id) === String(currentPostMatchId));
-      if (!m) return;
-
-      const imgEl = document.getElementById('postmatch-preview-img-el');
-      const dlEl = document.getElementById('postmatch-download-link');
-      const btnGreen = document.getElementById('btn-pm-theme-green');
-      const btnGold = document.getElementById('btn-pm-theme-gold');
-
-      if (btnGreen && btnGold) {
-        btnGreen.style.borderColor = currentStoryTheme === 'green' ? 'var(--green)' : 'var(--line)';
-        btnGreen.style.background = currentStoryTheme === 'green' ? 'rgba(166,230,91,0.18)' : 'var(--panel2)';
-        btnGold.style.borderColor = currentStoryTheme === 'gold' ? 'var(--gold)' : 'var(--line)';
-        btnGold.style.background = currentStoryTheme === 'gold' ? 'rgba(212,175,55,0.2)' : 'var(--panel2)';
-      }
-
-      const blob = await generatePostMatchStoryBlob(currentPostMatchId, currentStoryTheme);
-      if (!blob) return;
-
-      if (currentStoryUrl) URL.revokeObjectURL(currentStoryUrl);
-      currentStoryBlob = blob;
-      currentStoryUrl = URL.createObjectURL(blob);
-
-      const fileName = `MalaJunta_${m.goals_for}-${m.goals_against}_${(m.opponent || 'Rival').replace(/[^a-zA-Z0-9]/g, '_')}_${currentStoryTheme}_Final.png`;
-      if (imgEl) imgEl.src = currentStoryUrl;
-      if (dlEl) {
-        dlEl.href = currentStoryUrl;
-        dlEl.download = fileName;
-      }
-    }
-
-    async function openPostMatchStoryModal(matchId) {
-      const m = getAllMalaJuntaMatches().find(x => String(x.id) === String(matchId));
-      if (!m || m.status !== 'Jugado') return alert('Este partido todavía no tiene resultado final.');
-      currentPostMatchId = String(matchId);
-
-      let modal = document.getElementById('ig-story-modal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'ig-story-modal';
-        modal.className = 'story-modal-backdrop';
-        document.body.appendChild(modal);
-      }
-
-      modal.innerHTML = `<div style="color:var(--green); font-weight:800; font-size:15px;">⏳ Generando placa de Resultado Final...</div>`;
-      modal.classList.remove('hide');
-
-      const blob = await generatePostMatchStoryBlob(currentPostMatchId, currentStoryTheme);
-      if (!blob) {
-        modal.classList.add('hide');
-        return alert('No se pudo generar la imagen.');
-      }
-
-      if (currentStoryUrl) URL.revokeObjectURL(currentStoryUrl);
-      currentStoryBlob = blob;
-      currentStoryUrl = URL.createObjectURL(blob);
-      const fileName = `MalaJunta_${m.goals_for}-${m.goals_against}_${(m.opponent || 'Rival').replace(/[^a-zA-Z0-9]/g, '_')}_${currentStoryTheme}_Final.png`;
-
-      modal.innerHTML = `
-        <div style="display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; max-width:380px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-            <span style="font-weight:900; color:var(--green); font-size:14px;">📲 Resultado Final IG (1080×1920)</span>
-            <button onclick="document.getElementById('ig-story-modal').classList.add('hide')" style="background:var(--panel2); color:var(--white); border:1px solid var(--line); border-radius:8px; padding:5px 10px; font-weight:bold; cursor:pointer;">✕ Cerrar</button>
-          </div>
-
-          <div style="display:flex; gap:8px; width:100%;">
-            <button id="btn-pm-theme-green" onclick="refreshPostMatchPreview('green')" style="flex:1; padding:7px; border-radius:9px; border:1px solid ${currentStoryTheme === 'green' ? 'var(--green)' : 'var(--line)'}; background:${currentStoryTheme === 'green' ? 'rgba(166,230,91,0.18)' : 'var(--panel2)'}; color:var(--green); font-size:11.5px; font-weight:800; cursor:pointer;">
-              🟢 Nocturno Verde
-            </button>
-            <button id="btn-pm-theme-gold" onclick="refreshPostMatchPreview('gold')" style="flex:1; padding:7px; border-radius:9px; border:1px solid ${currentStoryTheme === 'gold' ? 'var(--gold)' : 'var(--line)'}; background:${currentStoryTheme === 'gold' ? 'rgba(212,175,55,0.2)' : 'var(--panel2)'}; color:var(--gold); font-size:11.5px; font-weight:800; cursor:pointer;">
-              👑 Clásico Dorado
-            </button>
-          </div>
-
-          <img id="postmatch-preview-img-el" src="${currentStoryUrl}" alt="Placa Resultado Final" class="story-preview-img">
-
-          <div style="display:flex; gap:8px; width:100%;">
-            <button id="btn-share-pm-ig-native" class="btn-action" style="flex:1; background:linear-gradient(135deg, #e1306c, #f77737); color:#fff; margin:0;">
-              📤 Compartir en IG
-            </button>
-            <a id="postmatch-download-link" href="${currentStoryUrl}" download="${fileName}" class="btn-action" style="flex:1; text-align:center; text-decoration:none; margin:0; display:flex; align-items:center; justify-content:center;">
-              ⬇️ Descargar
-            </a>
-          </div>
-          <div class="muted" style="font-size:11px; text-align:center;">
-            Tocá <b>Compartir en IG</b> en el celu para subirla directo a tu historia.
-          </div>
-        </div>
-      `;
-
-      document.getElementById('btn-share-pm-ig-native')?.addEventListener('click', async () => {
-        const activeBlob = currentStoryBlob || blob;
-        const activeName = `MalaJunta_${m.goals_for}-${m.goals_against}_${(m.opponent || 'Rival').replace(/[^a-zA-Z0-9]/g, '_')}_${currentStoryTheme}_Final.png`;
-        const file = new File([activeBlob], activeName, { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: `Final: MalaJunta FC ${m.goals_for} - ${m.goals_against} ${m.opponent}`,
-              text: `Final del partido: MalaJunta FC ${m.goals_for} - ${m.goals_against} ${m.opponent}`
-            });
-          } catch (err) {
-            if (err.name !== 'AbortError') alert('No se pudo abrir el menú de compartir. Usá el botón Descargar.');
-          }
-        } else {
-          const a = document.createElement('a');
-          a.href = currentStoryUrl || URL.createObjectURL(activeBlob);
-          a.download = activeName;
-          a.click();
-          alert('✅ Imagen descargada en tu galería. Subila directo a tu historia de Instagram.');
-        }
-      });
     }
 
     function beerRanking() {
@@ -4430,24 +4493,102 @@ function syncLeagueStageInputs() {
       else { alert("✏️ ¡Partido actualizado correctamente!"); await init(); }
     }
 
+    const PLAYERS_BUCKET = 'jugadores';
+    let targetPlayerIdForPhoto = null;
+
+    function compressPlayerPhoto(file, maxSize = 360, quality = 0.84) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Archivo de imagen inválido.'));
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(
+              (blob) => blob ? resolve(blob) : reject(new Error('Error al comprimir la foto.')),
+              'image/jpeg',
+              quality
+            );
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadPlayerPhotoToSupabase(playerId, file) {
+      const compressedBlob = await compressPlayerPhoto(file);
+      const filePath = `player_${playerId}_${Date.now()}.jpg`;
+      const { error: uploadError } = await db.storage
+        .from(PLAYERS_BUCKET)
+        .upload(filePath, compressedBlob, { contentType: 'image/jpeg', upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data } = db.storage.from(PLAYERS_BUCKET).getPublicUrl(filePath);
+      const publicUrl = data.publicUrl;
+
+      const { error: updateError } = await db
+        .from('players')
+        .update({ photo_url: publicUrl })
+        .eq('id', playerId);
+      if (updateError) throw updateError;
+      return publicUrl;
+    }
+
+    function triggerPlayerPhotoUpload(playerId) {
+      targetPlayerIdForPhoto = playerId;
+      const input = document.getElementById('edit-player-photo-input');
+      if (!input) return;
+      input.value = '';
+      input.click();
+    }
+
+    document.getElementById('edit-player-photo-input')?.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !targetPlayerIdForPhoto) return;
+      try {
+        await uploadPlayerPhotoToSupabase(targetPlayerIdForPhoto, file);
+        alert('📸 ¡Foto del jugador actualizada!');
+        await init();
+      } catch (err) {
+        alert('❌ Error al subir foto (verificá el bucket "jugadores" y la columna photo_url): ' + err.message);
+      } finally {
+        targetPlayerIdForPhoto = null;
+      }
+    });
+
     function renderAdminLists() {
       const playerListDiv = document.getElementById('admin-player-list');
       if(!playerListDiv) return;
-      playerListDiv.innerHTML = players.length ? players.map(p => `
+      playerListDiv.innerHTML = players.length ? players.map(p => {
+        const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
+        const miniAvatar = p.photo_url
+          ? `<img src="${esc(p.photo_url)}" alt="${esc(p.name)}" style="width:32px; height:32px; border-radius:9px; object-fit:cover; object-position:center top; border:1px solid var(--line); flex:none;">`
+          : `<div style="width:32px; height:32px; border-radius:9px; background:rgba(166,230,91,0.1); border:1px solid var(--line); display:grid; place-items:center; font-weight:900; color:var(--green); font-size:13px; flex:none;">${initial}</div>`;
+        return `
         <div style="display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:10px 12px; border-radius:10px; border:1px solid var(--line); margin-bottom: 6px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-weight: 900; color: var(--green); font-size: 14px; min-width: 20px;">#${p.number ?? '-'}</span>
-            <div>
-              <b style="font-size: 13px; display: block;">${esc(p.name)}</b>
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            ${miniAvatar}
+            <span style="font-weight: 900; color: var(--green); font-size: 14px; min-width: 22px;">#${p.number ?? '-'}</span>
+            <div style="min-width:0;">
+              <b style="font-size: 13px; display: block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(p.name)}</b>
               <small class="muted" style="font-size: 10.5px;">${esc(p.position)}</small>
             </div>
           </div>
-          <div style="display:flex; gap:6px;">
-            <button onclick="editPlayer('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.number || ''}')" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">✏️</button>
-            <button onclick="deletePlayer('${p.id}')" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px;">🗑️</button>
+          <div style="display:flex; gap:5px; flex:none;">
+            <button onclick="triggerPlayerPhotoUpload('${p.id}')" title="Subir o cambiar foto" style="background:rgba(166,230,91,0.14); color:var(--green); border:1px solid rgba(166,230,91,0.4); padding:6px 9px; border-radius:8px; cursor:pointer; font-size:12px;">📷</button>
+            <button onclick="editPlayer('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.number || ''}')" title="Editar nombre/dorsal" style="background:var(--panel); color:var(--white); border:1px solid var(--line); padding:6px 9px; border-radius:8px; cursor:pointer; font-size:12px;">✏️</button>
+            <button onclick="deletePlayer('${p.id}')" title="Borrar jugador" style="background:rgba(255,82,82,0.15); color:var(--red); border:1px solid var(--red); padding:6px 9px; border-radius:8px; cursor:pointer; font-size:12px;">🗑️</button>
           </div>
         </div>
-      `).join('') : '<div class="empty" style="padding:15px;">No hay jugadores cargados.</div>';
+      `;
+      }).join('') : '<div class="empty" style="padding:15px;">No hay jugadores cargados.</div>';
     }
 
     async function viewMatchDetail(matchId) {
@@ -4458,7 +4599,7 @@ function syncLeagueStageInputs() {
     }
 
     function renderMatchDetail(matchId) {
-      const match = matches.find(m => String(m.id) === String(matchId));
+      const match = matches.find(m => m.id === matchId);
       if (!match) return;
       const h2h = getHeadToHead(match.opponent);
 
@@ -4467,22 +4608,21 @@ function syncLeagueStageInputs() {
         📅 Fecha: ${date(match.match_date)} &nbsp;·&nbsp; 
         📍 Cancha: ${esc(match.venue || 'No especificada')}<br>
         📊 Resultado: <b>${match.status === 'Jugado' ? `${match.goals_for} - ${match.goals_against}` : 'Pendiente'}</b>
-        <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <div style="padding: 8px 12px; background: var(--panel2); border-radius: 10px; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <small style="color: var(--muted); font-weight: 700;">HISTORIAL (${h2h.total} PJ):</small>
-            <span class="pill badge-win">🟢 ${h2h.wins}V</span>
-            <span class="pill badge-draw">🟡 ${h2h.draws}E</span>
-            <span class="pill badge-loss">🔴 ${h2h.losses}D</span>
-          </div>
-          ${match.status === 'Jugado' ? `
-            <button class="btn-ig-story" style="margin-top:0;" onclick="openPostMatchStoryModal('${match.id}')">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-              Placa Resultado IG
+        <div style="margin-top: 10px; padding: 8px 12px; background: var(--panel2); border-radius: 10px; border: 1px solid var(--line); display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <small style="color: var(--muted); font-weight: 700;">HISTORIAL (${h2h.total} PJ):</small>
+          <span class="pill badge-win">🟢 ${h2h.wins}V</span>
+          <span class="pill badge-draw">🟡 ${h2h.draws}E</span>
+          <span class="pill badge-loss">🔴 ${h2h.losses}D</span>
+        </div>
+        ${match.status === 'Jugado' ? `
+          <div style="margin-top:10px;">
+            <button class="btn-ig-story" onclick="openPostMatchStoryModal('${match.id}')">
+              📲 Generar Placa Resultado IG
             </button>
-          ` : ''}
-        </div>`;
+          </div>
+        ` : ''}`;
 
-      const matchGoals = goals.filter(g => String(g.match_id) === String(matchId));
+      const matchGoals = goals.filter(g => g.match_id === matchId);
       const goalsListDiv = document.getElementById('view-goals-list');
       const totalGoalsFor = Number(match.goals_for || 0);
       const registeredGoalsCount = matchGoals.length;
@@ -4562,24 +4702,39 @@ function syncLeagueStageInputs() {
       const nameVal = document.getElementById('add-player-name').value;
       const posVal = document.getElementById('add-player-pos').value;
       const numVal = document.getElementById('add-player-num').value;
+      const photoInput = document.getElementById('add-player-photo');
+      const photoFile = photoInput?.files?.[0] || null;
       if (!nameVal) return alert("⚠️ Poné al menos el nombre del jugador.");
 
       const { data: { user } } = await db.auth.getUser();
-      const { error } = await db.from('players').insert([{
+      const { data: insertedRows, error } = await db.from('players').insert([{
         name: nameVal,
         position: posVal || 'Jugador',
         number: numVal ? Number(numVal) : null,
         owner_id: user ? user.id : null
-      }]);
+      }]).select();
 
-      if (error) alert("❌ Error al guardar jugador: " + error.message);
-      else {
-        alert("⚽ ¡Jugador cargado al plantel!");
-        document.getElementById('add-player-name').value = '';
-        document.getElementById('add-player-pos').value = '';
-        document.getElementById('add-player-num').value = '';
-        init();
+      if (error) {
+        alert("❌ Error al guardar jugador: " + error.message);
+        return;
       }
+
+      if (photoFile && insertedRows?.[0]?.id) {
+        try {
+          await uploadPlayerPhotoToSupabase(insertedRows[0].id, photoFile);
+        } catch (photoErr) {
+          alert("⚠️ Jugador creado, pero falló la subida de foto: " + photoErr.message);
+        }
+      }
+
+      alert("⚽ ¡Jugador cargado al plantel!");
+      document.getElementById('add-player-name').value = '';
+      document.getElementById('add-player-pos').value = '';
+      document.getElementById('add-player-num').value = '';
+      if (photoInput) photoInput.value = '';
+      const photoLabel = document.getElementById('add-player-photo-label');
+      if (photoLabel) photoLabel.innerText = '📷 Foto del jugador (opcional)';
+      init();
     });
 
     document.getElementById('btn-save-match')?.addEventListener('click', async () => {
@@ -4863,8 +5018,8 @@ function optimizarTablasEnMemoria() {
   filas.forEach(tr => {
     const celdas = tr.querySelectorAll('td');
     if (celdas.length < 4) return;
-    const btnGoles = Array.from(celdas[3].querySelectorAll('button')).find(b => b.textContent.includes('Goles'));
-    if (!btnGoles) return;
+    const btnGoles = celdas[3].querySelector('button');
+    if (!btnGoles || !btnGoles.textContent.includes('Goles')) return;
 
     tr.dataset.partidoOk = '1';
     if (celdas[2].textContent.includes('PROG')) {
