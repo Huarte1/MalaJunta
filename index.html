@@ -1153,6 +1153,10 @@ section {
     }
     setRandomQuote();
 function renderLeagueFixtures(leagueId) {
+      const league = leagues.find(l => String(l.id) === String(leagueId)) || {};
+      const apEnd = Number(league.apertura_end || 13);
+      const clStart = Number(league.clausura_start || (apEnd + 1));
+
       const list = leagueMatches
         .filter(m => String(m.league_id) === String(leagueId))
         .sort((a, b) => Number(b.matchday) - Number(a.matchday));
@@ -1175,10 +1179,14 @@ function renderLeagueFixtures(leagueId) {
             <span class="muted" style="font-size:11px;">Desplegar</span>
           </summary>
           <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
-            ${sortedDays.map(day => `
+            ${sortedDays.map(day => {
+              const isClausura = day >= clStart;
+              const displayDay = isClausura ? (day - clStart + 1) : day;
+              const stageLabel = isClausura ? `CLAUSURA · FECHA ${displayDay}` : `APERTURA · FECHA ${displayDay}`;
+              return `
               <div style="background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 10px;">
                 <div style="font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:13px; color:var(--gold); margin-bottom:6px; letter-spacing:0.5px;">
-                  FECHA ${day}
+                  ${stageLabel}
                 </div>
                 ${byDay[day].map(m => {
                   const isMJ = m.home_team.toLowerCase().includes('malajunta') || m.away_team.toLowerCase().includes('malajunta');
@@ -1191,8 +1199,8 @@ function renderLeagueFixtures(leagueId) {
                       <span style="flex:1; text-align:left; padding-left:8px;">${esc(m.away_team)}</span>
                     </div>`;
                 }).join('')}
-              </div>
-            `).join('')}
+              </div>`;
+            }).join('')}
           </div>
         </details>
       `;
@@ -3503,7 +3511,7 @@ function syncLeagueStageInputs() {
         });
     }
 
-    function getMatchCompetitionLabel(m) {
+   function getMatchCompetitionLabel(m) {
       if (m.isTournament && m.venue) {
         return m.venue.replace(/^🏆\s*/, '').toUpperCase();
       }
@@ -3513,8 +3521,11 @@ function syncLeagueStageInputs() {
         const maxMd = lMatches.reduce((max, lm) => Math.max(max, Number(lm.matchday || 0)), 0);
         const nextMd = maxMd + 1;
         const apEnd = Number(l.apertura_end || 13);
-        const stageName = nextMd <= apEnd ? 'APERTURA' : 'CLAUSURA';
-        return `${(l.name || 'LIGA').toUpperCase()} · FECHA ${nextMd} (${stageName})`;
+        const clStart = Number(l.clausura_start || (apEnd + 1));
+        const isClausura = nextMd >= clStart;
+        const displayMd = isClausura ? (nextMd - clStart + 1) : nextMd;
+        const stageName = isClausura ? 'CLAUSURA' : 'APERTURA';
+        return `${(l.name || 'LIGA').toUpperCase()} · FECHA ${displayMd} (${stageName})`;
       }
       return 'PARTIDO OFICIAL · TEMPORADA ACTIVA';
     }
